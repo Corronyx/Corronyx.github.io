@@ -6635,7 +6635,7 @@ function aiEscalateSecurityThreat(originalText, portalName){
 async function callCloudflareAI(systemPrompt, userMessage){
   // 25.08.2026: вызов идёт на собственный Cloudflare Worker (обходит CORS),
   // токен в браузере больше не нужен — см. подробный комментарий в index.html
-  const AI_WORKER_URL='https://coronyx-ai.corronyx.workers.dev/';
+  const AI_WORKER_URL='https://corronyx-ai.corronyx.workers.dev/';
   _aiAgentHistory.push({role:'user', content:userMessage});
   if(_aiAgentHistory.length>AI_AGENT_HISTORY_LIMIT) _aiAgentHistory=_aiAgentHistory.slice(-AI_AGENT_HISTORY_LIMIT);
   try{
