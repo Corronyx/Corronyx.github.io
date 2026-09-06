@@ -16,6 +16,22 @@
   --radius:16px;
 }
 *{box-sizing:border-box; margin:0; padding:0;}
+/* Базовый стиль ДЛЯ ЛЮБОГО поля ввода/select/textarea в проекте (06.09.2026) —
+   раньше такого правила в index.html не было вообще (хотя в hotel-portal.html и
+   admin-dashboard.html оно уже есть с 28.08.2026 после аналогичного бага) — из-за
+   этого select "Страна проживания" в реферальной форме выглядел белым браузерным
+   полем на тёмном фоне. Более узкие правила ниже (.form-row input и т.п.) эту базу
+   только уточняют, не заменяют. */
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
+select, textarea{
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12);
+  border-radius:8px; padding:9px 12px; color:var(--text); font-family:inherit;
+  font-size:13px; box-sizing:border-box;
+}
+input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):focus,
+select:focus, textarea:focus{ outline:none; border-color:var(--gold); }
+input::placeholder, textarea::placeholder{ color:var(--muted); opacity:.7; }
+select option{ background:var(--bg2); color:var(--text); }
 
 /* ============================================================
    SW_BADGE_SHAPE — CSS часть фирменной ротации подложек.

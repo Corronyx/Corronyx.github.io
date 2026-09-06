@@ -82,6 +82,11 @@ textarea{resize:vertical; min-height:80px; line-height:1.5;}
 .btn-primary{background:var(--gold); color:#111;}
 .btn-primary:hover{background:var(--gold2);}
 .btn-ghost{background:transparent; color:var(--gold2); border:1px solid var(--gold);}
+/* .link-btn (06.09.2026) — использовался в кнопках "Забыли пароль?"/"Назад ко
+   входу", но само правило здесь отсутствовало (в hotel-portal.html и
+   afisha-portal.html оно есть) — из-за этого кнопка выглядела как белая
+   браузерная кнопка по умолчанию, не в стиле проекта. */
+.link-btn{background:none; border:none; color:var(--gold2); font-size:12px; cursor:pointer; text-decoration:underline; padding:0; font-family:inherit;}
 .btn-ghost:hover{border-color:var(--gold2); background:rgba(201,168,76,.08);}
 .btn-ok{background:rgba(76,175,125,.2); color:var(--ok); border:1px solid rgba(76,175,125,.3);}
 .btn-err{background:rgba(224,85,85,.15); color:var(--err); border:1px solid rgba(224,85,85,.3);}
