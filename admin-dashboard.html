@@ -1,8 +1,15 @@
 <!DOCTYPE html>
-<html lang="ru" dir="ltr">
+<html lang="ru" dir="ltr" translate="no">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- notranslate (06.09.2026) — на мобильном Chrome браузер видел встроенный
+     виджет Google Translate на странице и ПОВЕРХ нашего собственного
+     переключателя языка предлагал ЕЩЁ и свой родной перевод — человек видел
+     как будто задвоенный список языков (наш + браузерный). Явно просим
+     Chrome не предлагать свой перевод, раз перевод уже обрабатывается
+     собственным переключателем сайта. -->
+<meta name="google" content="notranslate">
 <title>Corronyx — Админ-панель</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
@@ -305,6 +312,14 @@ tr:last-child td{border-bottom:none;}
   font-size:26px; cursor:pointer; box-shadow:0 8px 24px rgba(138,111,217,.4); z-index:300; transition:.2s; border:none;
 }
 .ai-btn:hover{transform:scale(1.08);}
+/* 06.09.2026: на мобильном Android Chrome сам показывает свой плавающий
+   кружок (загрузки/установки PWA) прямо в правом нижнем углу — ровно там,
+   где сидела наша кнопка. Поднимаем кнопку и панель выше на маленьких
+   экранах, чтобы браузерный элемент никогда её не перекрывал. */
+@media (max-width:700px){
+  .ai-btn{ bottom:90px; }
+  .ai-panel{ bottom:162px; width:calc(100vw - 32px); right:16px; }
+}
 .ai-panel{
   position:fixed; bottom:96px; right:24px; width:380px; max-height:540px; background:var(--bg2);
   border:1px solid rgba(138,111,217,.3); border-radius:16px; display:none; flex-direction:column;

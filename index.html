@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru" dir="ltr">
+<html lang="ru" dir="ltr" translate="no">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
 <title>Corronyx — Бронирование отелей по всему миру</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
@@ -569,6 +570,14 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
   font-size:26px; cursor:pointer; box-shadow:0 8px 24px rgba(184,149,77,.4); z-index:300; transition:.2s; border:none;
 }
 .concierge-btn:hover{transform:scale(1.08);}
+/* 06.09.2026: Android Chrome сам показывает плавающий кружок загрузки/установки
+   PWA в правом нижнем углу — поднимаем кнопку и панель выше на маленьких
+   экранах, чтобы это никогда не перекрывало ИИ-агента (тот же фикс во всех
+   5 файлах проекта). */
+@media (max-width:700px){
+  .concierge-btn{ bottom:90px; }
+  .concierge-panel{ bottom:162px; width:calc(100vw - 32px); right:16px; }
+}
 .concierge-panel{
   position:fixed; bottom:96px; right:24px; width:360px; max-height:520px; background:var(--bg2);
   border:1px solid rgba(184,149,77,.2); border-radius:16px; display:none; flex-direction:column;

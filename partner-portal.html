@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" translate="no">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
 <title>Corronyx — Партнёрский портал</title>
 <!-- Нужна для ИИ-агента этого портала (алерты безопасности/код admin-режима на
      почту) — перенесено из Corronyx-версии другого агента, 28.08.2026. -->
@@ -3009,6 +3010,14 @@ function sendGenericSystemEmail(toEmail, subject, body){
   background:linear-gradient(135deg,var(--gold),var(--gold2)); display:flex; align-items:center; justify-content:center;
   font-size:24px; cursor:pointer; box-shadow:0 8px 24px rgba(201,168,76,.4); z-index:900; transition:.2s; border:none;}
 .ai-widget-btn:hover{transform:scale(1.08);}
+/* 06.09.2026: Android Chrome сам показывает плавающий кружок загрузки/установки
+   PWA в правом нижнем углу — поднимаем кнопку и панель выше на маленьких
+   экранах, чтобы это никогда не перекрывало настоящего ИИ-агента (тот же фикс,
+   что в hotel-portal.html/admin-dashboard.html). */
+@media (max-width:700px){
+  .ai-widget-btn{ bottom:90px; }
+  .ai-widget-panel{ bottom:162px; width:calc(100vw - 32px); right:16px; }
+}
 .ai-widget-panel{position:fixed; bottom:90px; right:24px; width:340px; max-height:480px; background:var(--bg2);
   border:1px solid rgba(201,168,76,.2); border-radius:14px; display:none; flex-direction:column;
   box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:900; overflow:hidden;}

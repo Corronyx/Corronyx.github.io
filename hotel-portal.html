@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru" dir="ltr">
+<html lang="ru" dir="ltr" translate="no">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
 <title>Corronyx — Личный кабинет отеля</title>
 <!-- Нужна для ИИ-агента этого портала (алерты безопасности/код admin-режима на
      почту) — перенесено из Corronyx-версии другого агента, 28.08.2026. -->
@@ -1082,19 +1083,6 @@ tr:last-child td{border-bottom:none;}
 <!-- Всплывающие уведомления о новых бронях — кликабельны, ведут в шахматку -->
 <div id="newBookingBanners" style="position:fixed; top:16px; right:16px; z-index:5000; display:flex; flex-direction:column; gap:10px; max-width:340px;"></div>
 
-<button class="ai-btn" id="aiBtn" onclick="HP.toggleAI()">🤖</button>
-<div class="ai-panel" id="aiPanel">
-  <div class="ai-head">
-    <span data-t="ai_name">Помощник отеля</span>
-    <span onclick="HP.toggleAI()">✕</span>
-  </div>
-  <div class="ai-body" id="aiBody"></div>
-  <div class="ai-input">
-    <input type="text" id="aiInput" data-t-ph="ai_ph" placeholder="Спросите о бронях, номерах, выплатах..." onkeydown="if(event.key==='Enter')HP.sendAI()">
-    <button onclick="HP.sendAI()">➤</button>
-  </div>
-</div>
-
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
@@ -2079,7 +2067,6 @@ Contact: Corronyx@gmail.com
     document.querySelectorAll('.curLangLbl').forEach(s=>s.textContent=code.toUpperCase());
     document.querySelectorAll('.lang-dropdown.open').forEach(d=>d.classList.remove('open'));
     applyTranslations(); this.renderAll();
-    document.getElementById('aiBody').innerHTML=''; addAI(t('ai_greet'));
   },
   nav(section){
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.section===section));
@@ -2298,7 +2285,6 @@ Contact: Corronyx@gmail.com
     this.loadProfile();
     this.renderEmailChip();
     this.checkActivation();
-    document.getElementById('aiBody').innerHTML=''; addAI(t('ai_greet'));
   },
 
   // Переводит отель active→pause, если просрочка комиссии уже перевалила за
@@ -6307,15 +6293,6 @@ Contact: Corronyx@gmail.com
     this.renderEmailChip();
     this.checkActivation();
   },
-
-  /* ---- AI assistant ---- */
-  toggleAI(){ document.getElementById('aiPanel').classList.toggle('open'); },
-  sendAI(){
-    const input=document.getElementById('aiInput');
-    const text=input.value.trim(); if(!text) return;
-    addAI(text,'user'); input.value='';
-    setTimeout(()=>aiReply(text), 300);
-  }
 };
 
 function statusBadge(status){
@@ -6340,31 +6317,6 @@ function swCapitalize(str){
 function swAutoCap(el){ el.value = swCapitalize(el.value); }
 
 /* ---- AI assistant rule-based logic ---- */
-function addAI(text, who='bot'){
-  const body=document.getElementById('aiBody');
-  const div=document.createElement('div'); div.className='msg '+(who==='bot'?'bot':'user'); div.innerHTML=text;
-  body.appendChild(div); body.scrollTop=body.scrollHeight;
-}
-function aiReply(text){
-  const q=text.toLowerCase();
-  const bookings=HP.getBookings();
-  const pending=bookings.filter(b=>b.status==='pending');
-  if(q.includes('брон')||q.includes('booking')||q.includes('pending')||q.includes('ожида')){
-    addAI(LANG==='ru' ? `У вас ${pending.length} брони(й) ожидают подтверждения из ${bookings.length} всего.` : `You have ${pending.length} bookings awaiting confirmation out of ${bookings.length} total.`);
-  } else if(q.includes('выплат')||q.includes('payout')||q.includes('деньги')||q.includes('money')){
-    HP.renderPayouts();
-    addAI(LANG==='ru' ? 'Подробности по выплатам — в разделе «Выплаты» слева. Цикл — 10 дней, с переносом дат с выходных.' : 'Payout details are in the Payouts section. The cycle is 10 days, shifted off weekends.');
-  } else if(q.includes('номер')||q.includes('room')||q.includes('цен')||q.includes('price')){
-    const rooms=HP.getRooms();
-    addAI(LANG==='ru' ? `У вас ${rooms.length} номера(ов). Цены клиента включают комиссию 12% к вашей базовой цене.` : `You have ${rooms.length} room types. Client prices include a 12% commission on top of your base price.`);
-  } else if(q.includes('выруч')||q.includes('revenue')||q.includes('доход')){
-    const revenue=bookings.reduce((s,b)=>s+(b.total||0),0);
-    addAI(LANG==='ru' ? `Общая выручка по бронированиям: ${fmtMoney(revenue)}.` : `Total revenue from bookings: ${fmtMoney(revenue)}.`);
-  } else {
-    addAI(t('ai_fallback'));
-  }
-}
-
 // Переключатель языка — единый стиль с остальными порталами (золотой SVG-глобус,
 // нативный RU/EN + автоперевод Google на 131 язык через скрытый goog-te-combo).
 const NATIVE_LANGS = [ {code:'ru', label:'Русский'}, {code:'en', label:'English'} ];
@@ -6513,12 +6465,16 @@ function cookieChoice(choice){
   document.getElementById('cookieBanner').style.display='none';
   positionAiBtn(false);
 }
-// Кнопка ассистента (🤖) пряталась под баннером cookie — z-index баннера выше,
+// Кнопка Corronyx Agent (💬) пряталась под баннером cookie — z-index баннера выше,
 // и она физически перекрывалась (тот же приём, что и на index.html, см. там
 // positionConciergeBtn). Пока баннер виден — кнопка поднимается ровно на
 // измеренную высоту баннера; после закрытия — возвращается на место.
+// 06.09.2026: раньше эта защита была только у СТАРОГО помощника (#aiBtn,
+// теперь удалён как дублирующий и запутывающий — на его месте всегда стоял
+// новый настоящий Corronyx Agent виджет поверх, два одинаково расположенных
+// ИИ-помощника с разной логикой это явный баг) — перенесено на реальный виджет.
 function positionAiBtn(bannerVisible){
-  const btn=document.getElementById('aiBtn');
+  const btn=document.getElementById('aiWidgetBtn');
   if(!btn) return;
   if(bannerVisible){
     const banner=document.getElementById('cookieBanner');
@@ -6578,6 +6534,13 @@ function sendGenericSystemEmail(toEmail, subject, body){
   background:linear-gradient(135deg,var(--gold),var(--gold2)); display:flex; align-items:center; justify-content:center;
   font-size:24px; cursor:pointer; box-shadow:0 8px 24px rgba(201,168,76,.4); z-index:900; transition:.2s; border:none;}
 .ai-widget-btn:hover{transform:scale(1.08);}
+/* 06.09.2026: Android Chrome сам показывает плавающий кружок загрузки/установки
+   PWA в правом нижнем углу — поднимаем кнопку и панель выше на маленьких
+   экранах, чтобы это никогда не перекрывало настоящего ИИ-агента. */
+@media (max-width:700px){
+  .ai-widget-btn{ bottom:90px; }
+  .ai-widget-panel{ bottom:162px; width:calc(100vw - 32px); right:16px; }
+}
 .ai-widget-panel{position:fixed; bottom:90px; right:24px; width:340px; max-height:480px; background:var(--bg2);
   border:1px solid rgba(201,168,76,.2); border-radius:14px; display:none; flex-direction:column;
   box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:900; overflow:hidden;}
