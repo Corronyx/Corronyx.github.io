@@ -5,15 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Corronyx — Бронирование отелей по всему миру</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root{
-  --dark:#080810; --bg2:#0f0f1a; --bg3:#16162a;
-  --gold:#C9A84C; --gold2:#E8C96A;
-  --text:#F2EEE8; --muted:#9896A0;
-  --ok:#4caf7d; --warn:#e09445; --err:#e05555;
+  /* ===== LIGHT LUXURY — светлая роскошь (06.09.2026, редизайн по ТЗ) =====
+     Раньше здесь была тёмная золотая тема (--dark:#080810 и т.д.) — сохранена
+     в остальных 4 файлах (hotel/partner/afisha/admin), их очередь позже.
+     Имена переменных оставлены прежними (--dark, --bg2 и т.д.), чтобы не
+     переписывать все использования по всему файлу — поменялись только
+     значения. Новая переменная --navy — тёмно-синий для основных CTA-кнопок
+     (по ТЗ: золото — только акцент/второстепенные кнопки, не главные). */
+  --dark:#FDFBF7; --bg2:#FFFFFF; --bg3:#F4F1E9;
+  --gold:#B8954D; --gold2:#C9A45E;
+  --navy:#1E293B; --navy2:#2A3A52;
+  --text:#1A1C20; --muted:#5A5D66;
+  --ok:#10B981; --ok-bg:#D1FAE5; --warn:#F59E0B; --warn-bg:#FEF3C7; --err:#EF4444; --err-bg:#FEE2E2;
   --radius:16px;
+  --line:rgba(26,28,32,.10); --line-strong:rgba(26,28,32,.16);
+  --card-shadow:0 10px 40px rgba(30,41,59,.06);
 }
 *{box-sizing:border-box; margin:0; padding:0;}
 /* Базовый стиль ДЛЯ ЛЮБОГО поля ввода/select/textarea в проекте (06.09.2026) —
@@ -58,7 +68,7 @@ select option{ background:var(--bg2); color:var(--text); }
 }
 
 body{
-  font-family:'DM Sans',sans-serif; background:var(--dark); color:var(--text);
+  font-family:'Manrope',sans-serif; background:var(--dark); color:var(--text);
   min-height:100vh; overflow-x:hidden;
 }
 h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
@@ -123,18 +133,20 @@ nav a.active{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(-
   border:none; cursor:pointer; font-family:inherit; font-weight:600; border-radius:10px;
   transition:.2s; font-size:14px;
 }
+/* CTA (06.09.2026, ТЗ п.1.2): тёмно-синий по умолчанию, золото при наведении —
+   раньше основная кнопка сразу была золотой (это теперь оставлено только для
+   .btn-ghost/второстепенных действий). */
 .btn-primary{
-  background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#15130a; padding:11px 22px;
+  background:var(--navy); color:#fff; padding:11px 22px;
 }
-.btn-primary:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(201,168,76,.35);}
+.btn-primary:hover{background:var(--gold); color:#2a2409; transform:translateY(-2px); box-shadow:0 8px 20px rgba(184,149,77,.35);}
 .btn-ghost{
-  background:transparent; border:1px solid rgba(201,168,76,.6); color:var(--text); padding:10px 20px;
-  box-shadow:0 0 0 1px rgba(201,168,76,.08) inset;
+  background:transparent; border:1px solid rgba(184,149,77,.55); color:var(--text); padding:10px 20px;
 }
-.btn-ghost:hover{border-color:var(--gold2); color:var(--gold2); box-shadow:0 0 12px rgba(201,168,76,.35), 0 0 0 1px rgba(201,168,76,.15) inset;}
+.btn-ghost:hover{border-color:var(--gold); color:var(--gold);background:rgba(184,149,77,.06);}
 /* Кнопка входа/личного кабинета в шапке — без золотой рамки, как переключатель языка рядом с ней */
 #navLoginBtn{border:none; background:transparent;}
-#navLoginBtn:hover{background:rgba(201,168,76,.08);}
+#navLoginBtn:hover{background:rgba(184,149,77,.08);}
 
 /* ===== HERO ===== */
 .hero{position:relative; padding:80px 24px 60px; text-align:center; overflow:hidden;}
@@ -143,31 +155,35 @@ nav a.active{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(-
   .hero h1{margin-bottom:12px;}
   .hero p{margin-bottom:24px;}
 }
-#starfield{position:absolute; inset:0; width:100%; height:100%; z-index:0;}
+/* Звёздное небо (#starfield) убрано вместе с тёмной темой (06.09.2026) —
+   вместо него мягкий светлый радиальный градиент, "воздух" по ТЗ п.1.1,
+   без фото/видео (см. переписку: реальных фото пока нет, отели грузят свои
+   сами; для hero используется декоративный фон, не фотография). */
+.hero::before{
+  content:''; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(60% 50% at 18% 15%, rgba(184,149,77,.10), transparent 60%),
+    radial-gradient(50% 45% at 85% 10%, rgba(30,41,59,.05), transparent 60%);
+}
 .hero-content{position:relative; z-index:1; max-width:900px; margin:0 auto;}
 .hero h1{
   font-size:clamp(34px,5.5vw,64px); font-weight:700; line-height:1.15; margin-bottom:18px;
-  background-image:linear-gradient(90deg, #ffffff 0%, #fdf6e3 35%, var(--gold2) 70%, var(--gold) 100%);
-  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
+  color:var(--navy);
 }
-.hero h1 span{ -webkit-text-fill-color:transparent; color:transparent; }
+.hero h1 span{ color:var(--gold); }
 .hero h1::after{
   content:''; display:block; width:160px; height:3px; margin:22px auto 0;
-  background:linear-gradient(90deg, transparent, var(--gold2), var(--gold), transparent);
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
   border-radius:2px;
 }
-/* Тот же плавный переход белый→золотой + золотая полоса снизу, для отдельных заголовков секций
-   (по запросу — только там, где явно попросили, не для всех 34 секций сайта). */
-.gradient-heading{
-  background-image:linear-gradient(90deg, #ffffff 0%, #fdf6e3 35%, var(--gold2) 70%, var(--gold) 100%);
-  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent;
-}
+/* Тот же приём для отдельных заголовков секций, где явно попросили. */
+.gradient-heading{ color:var(--navy); }
 .gradient-heading::after{
   content:''; display:block; width:120px; height:3px; margin:14px auto 0;
-  background:linear-gradient(90deg, transparent, var(--gold2), var(--gold), transparent);
+  background:linear-gradient(90deg, transparent, var(--gold), transparent);
   border-radius:2px;
 }
-.hero p{font-size:18px; color:var(--muted); margin-bottom:36px; max-width:620px; margin-inline:auto; font-family:'Spectral',serif; font-style:italic;}
+.hero p{font-size:18px; color:var(--muted); margin-bottom:36px; max-width:620px; margin-inline:auto; font-family:'Playfair Display',serif; font-style:italic;}
 
 /* ===== STATS BAR ===== */
 .stats-bar{
@@ -176,50 +192,54 @@ nav a.active{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(-
 }
 .stats-bar .stat-item{
   flex:1; min-width:130px; padding:0 20px; text-align:center;
-  border-right:1px solid rgba(255,255,255,.1);
+  border-right:1px solid var(--line);
 }
 .stats-bar .stat-item:last-child{border-right:none;}
 .stats-bar .stat-num{
-  font-family:inherit; font-size:clamp(20px,2.6vw,28px); font-weight:700; color:var(--gold2);
+  font-family:inherit; font-size:clamp(20px,2.6vw,28px); font-weight:700; color:var(--navy);
   line-height:1.2; display:block;
 }
 .stats-bar .stat-label{font-size:12px; color:var(--muted); margin-top:2px; display:block;}
 @media (max-width:640px){
   .stats-bar{gap:14px 0;}
-  .stats-bar .stat-item{min-width:44%; border-right:none; padding:0 10px 14px; border-bottom:1px solid rgba(255,255,255,.1);}
+  .stats-bar .stat-item{min-width:44%; border-right:none; padding:0 10px 14px; border-bottom:1px solid var(--line);}
   .stats-bar .stat-item:nth-last-child(-n+2){border-bottom:none;}
 }
 
-/* ===== SEARCH BOX ===== */
+/* ===== SEARCH BOX (06.09.2026: белая "парящая" карточка + 3 вкладки Отели/Афиши/Партнёры,
+   ТЗ п.2.1 "Умный поиск") ===== */
+.search-tabs{display:flex; gap:4px; max-width:980px; margin:0 auto; position:relative; z-index:5; padding:0 6px;}
+.search-tab{
+  flex:1; text-align:center; padding:12px 10px; font-size:14px; font-weight:600; color:var(--muted);
+  background:rgba(255,255,255,.6); border:1px solid var(--line); border-bottom:none; cursor:pointer;
+  border-radius:14px 14px 0 0; transition:.15s;
+}
+.search-tab.active{background:var(--bg2); color:var(--navy); box-shadow:0 -4px 14px rgba(30,41,59,.05);}
+.search-tab:hover:not(.active){color:var(--navy); background:rgba(255,255,255,.85);}
 .search-box{
-  background:linear-gradient(180deg, rgba(26,24,48,.92), rgba(19,17,42,.96));
-  border:1px solid rgba(201,168,76,.25); border-radius:18px;
+  background:var(--bg2);
+  border:1px solid var(--line); border-radius:0 18px 18px 18px;
   padding:24px; display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end;
   max-width:980px; margin:0 auto; position:relative; z-index:5;
-  box-shadow:0 24px 70px rgba(0,0,0,.5), 0 0 0 1px rgba(201,168,76,.06) inset;
-  backdrop-filter:blur(6px);
-}
-.search-box::before{
-  content:''; position:absolute; top:0; left:16px; right:16px; height:1px;
-  background:linear-gradient(90deg, transparent, rgba(232,198,122,.6), transparent);
+  box-shadow:var(--card-shadow);
 }
 .search-field{flex:1; min-width:160px; position:relative;}
 .search-field label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px; text-align:left; letter-spacing:.03em;}
 .search-field input{
-  width:100%; background:var(--bg3); border:1px solid rgba(255,255,255,.08); color:var(--text);
+  width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text);
   padding:13px 14px; border-radius:10px; font-size:14px; font-family:inherit; transition:border-color .2s, box-shadow .2s;
 }
-.search-field input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,168,76,.12);}
-.search-submit .btn-primary{padding:13px 26px; font-size:15px; box-shadow:0 8px 24px rgba(201,168,76,.25);}
+.search-field input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(184,149,77,.12);}
+.search-submit .btn-primary{padding:13px 26px; font-size:15px;}
 .popular-destinations{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:820px; margin:30px auto 0;}
 
 .afisha-teaser{text-align:center; max-width:640px; margin:36px auto 0; padding:0 20px;}
 .afisha-teaser .at-line{
   font-family:'Playfair Display',serif; font-style:italic; font-size:19px; line-height:1.5;
-  color:var(--text); opacity:.92; margin-bottom:14px;
+  color:var(--navy); opacity:.92; margin-bottom:14px;
 }
 .afisha-teaser .at-cta{
-  display:inline-flex; align-items:center; gap:8px; color:var(--gold2);
+  display:inline-flex; align-items:center; gap:8px; color:var(--gold);
   font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
 }
 .afisha-teaser .at-chevron{display:inline-block; font-size:16px; animation:atBounce 1.6s ease-in-out infinite;}
@@ -227,16 +247,16 @@ nav a.active{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(-
 @media(max-width:600px){ .afisha-teaser .at-line{font-size:16px;} }
 .pd-chip{
   display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:999px; cursor:pointer;
-  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.09); font-size:13px; color:var(--muted,#9a97ad);
-  transition:all .18s ease;
+  background:var(--bg2); border:1px solid var(--line); font-size:13px; color:var(--muted);
+  transition:all .18s ease; box-shadow:0 2px 8px rgba(30,41,59,.04);
 }
-.pd-chip:hover{border-color:var(--gold); color:var(--text); background:rgba(201,168,76,.1); transform:translateY(-1px);}
+.pd-chip:hover{border-color:var(--gold); color:var(--navy); background:rgba(184,149,77,.08); transform:translateY(-1px);}
 input[type="date"]{position:relative; cursor:pointer; color-scheme:light;}
 input[type="date"]::-webkit-calendar-picker-indicator{
-  background-color:var(--gold2); cursor:pointer; padding:3px; border-radius:5px;
+  background-color:var(--gold); cursor:pointer; padding:3px; border-radius:5px;
   width:20px; height:20px; opacity:1;
 }
-input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var(--gold);}
+input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var(--navy); filter:invert(1) brightness(2);}
 .search-dropdown{
   position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--bg3);
   border:1px solid rgba(255,255,255,.1); border-radius:10px; max-height:240px; overflow-y:auto;
@@ -663,11 +683,20 @@ body{top:0 !important; position:relative !important;}
 <div id="view-home">
 
   <section class="hero">
-    <canvas id="starfield"></canvas>
     <div class="hero-content">
       <h1 class="font-cormorant" data-t="hero_title">Найдите идеальный отель <span>в любой точке мира</span></h1>
 
-      <div class="search-box">
+      <!-- Вкладки поиска (06.09.2026, ТЗ п.2.1): Отели/Афиши/Партнёры — все три
+           реально ищут по своим данным (не просто визуальные заглушки), решение
+           владельца. Недвижимость/Рестораны/Услуги как отдельные вкладки пока не
+           делаем — этих разделов ещё не существует как таковых. -->
+      <div class="search-tabs" id="homeSearchTabs">
+        <div class="search-tab active" data-tab="hotels" onclick="CX.switchSearchTab('hotels')">🏨 <span data-t="tab_hotels">Отели</span></div>
+        <div class="search-tab" data-tab="afisha" onclick="CX.switchSearchTab('afisha')">🎭 <span data-t="tab_afisha">Афиши</span></div>
+        <div class="search-tab" data-tab="partners" onclick="CX.switchSearchTab('partners')">🤝 <span data-t="tab_partners">Партнёры</span></div>
+      </div>
+
+      <div class="search-box" id="searchPanelHotels">
         <div class="search-field">
           <label data-t="lbl_country">Страна</label>
           <input type="text" id="searchCountry" data-t-ph="ph_country" placeholder="Выберите страну" autocomplete="off" oninput="CX.filterCountries(capitalizeFirst(this))" onfocus="CX.filterCountries(this.value)" onblur="setTimeout(()=>CX.confirmSearchCountry(),200)">
@@ -688,6 +717,51 @@ body{top:0 !important; position:relative !important;}
         </div>
         <div class="search-submit">
           <button class="btn btn-primary" data-t="btn_search" onclick="CX.startSearch()">Найти →</button>
+        </div>
+      </div>
+
+      <div class="search-box hidden" id="searchPanelAfisha">
+        <div class="search-field">
+          <label data-t="lbl_country">Страна</label>
+          <input type="text" id="homeAfishaCountry" data-t-ph="ph_country" placeholder="Выберите страну" autocomplete="off" oninput="CX.filterHomeAfishaCountries(capitalizeFirst(this))" onfocus="CX.filterHomeAfishaCountries(this.value)" onblur="setTimeout(()=>CX.confirmHomeAfishaCountry(),200)">
+          <div class="search-dropdown" id="ddHomeAfishaCountry"></div>
+        </div>
+        <div class="search-field">
+          <label data-t="lbl_city">Город</label>
+          <input type="text" id="homeAfishaCity" data-t-ph="ph_city" placeholder="Выберите город" autocomplete="off" oninput="CX.filterHomeAfishaCities(capitalizeFirst(this))" onfocus="CX.filterHomeAfishaCities(this.value)" onblur="setTimeout(()=>CX.confirmHomeAfishaCity(),200)" disabled>
+          <div class="search-dropdown" id="ddHomeAfishaCity"></div>
+        </div>
+        <div class="search-submit">
+          <button class="btn btn-primary" data-t="btn_search" onclick="CX.startAfishaSearch()">Найти →</button>
+        </div>
+      </div>
+
+      <div class="search-box hidden" id="searchPanelPartners">
+        <div class="search-field">
+          <label data-t="lbl_partner_category">Категория</label>
+          <select id="homePartnerCategory">
+            <option value="realtor" data-t="cat_realtor">Агентство недвижимости</option>
+            <option value="travel" data-t="cat_travel">Турагентство</option>
+            <option value="excursion" data-t="cat_excursion">Экскурсии / Туры</option>
+            <option value="restaurant" data-t="cat_restaurant">Ресторан</option>
+            <option value="beauty" data-t="cat_beauty">Красота</option>
+            <option value="health" data-t="cat_health">Здоровье и отдых</option>
+            <option value="medicine" data-t="cat_medicine">Медицина</option>
+            <option value="legal" data-t="cat_legal">Юридические услуги</option>
+          </select>
+        </div>
+        <div class="search-field">
+          <label data-t="lbl_country">Страна</label>
+          <input type="text" id="homePartnerCountry" data-t-ph="ph_country" placeholder="Выберите страну" autocomplete="off" oninput="CX.filterHomePartnerCountries(capitalizeFirst(this))" onfocus="CX.filterHomePartnerCountries(this.value)" onblur="setTimeout(()=>CX.confirmHomePartnerCountry(),200)">
+          <div class="search-dropdown" id="ddHomePartnerCountry"></div>
+        </div>
+        <div class="search-field">
+          <label data-t="lbl_city">Город</label>
+          <input type="text" id="homePartnerCity" data-t-ph="ph_city" placeholder="Выберите город" autocomplete="off" oninput="CX.filterHomePartnerCities(capitalizeFirst(this))" onfocus="CX.filterHomePartnerCities(this.value)" onblur="setTimeout(()=>CX.confirmHomePartnerCity(),200)" disabled>
+          <div class="search-dropdown" id="ddHomePartnerCity"></div>
+        </div>
+        <div class="search-submit">
+          <button class="btn btn-primary" data-t="btn_search" onclick="CX.startPartnerSearch()">Найти →</button>
         </div>
       </div>
 
@@ -1862,6 +1936,8 @@ const T = {
  hero_title:{ru:'Найдите идеальный отель <span>в любой точке мира</span>', en:'Find the perfect hotel <span>anywhere in the world</span>'},
  hero_sub:{ru:'Более 50 000 отелей в 195 странах. Бронируйте без онлайн-оплаты — платите прямо в отеле при заезде.', en:'Over 50,000 hotels in 195 countries. Book with no online payment — pay directly at the hotel on arrival.'},
  lbl_country:{ru:'Страна',en:'Country'}, ph_country:{ru:'Выберите страну',en:'Select country'},
+ tab_hotels:{ru:'Отели',en:'Hotels'}, tab_afisha:{ru:'Афиши',en:'Events'}, tab_partners:{ru:'Партнёры',en:'Partners'},
+ lbl_partner_category:{ru:'Категория',en:'Category'},
  lbl_city:{ru:'Город',en:'City'}, ph_city:{ru:'Выберите город',en:'Select city'},
  lbl_checkin:{ru:'Заезд',en:'Check-in'}, lbl_checkout:{ru:'Выезд',en:'Check-out'},
  btn_search:{ru:'Найти →',en:'Search →'},
@@ -2903,6 +2979,137 @@ const CX = {
     const match = matchCityByText(raw, cities);
     if(match && match!==this._searchCity){ this.pickCity(match); return; }
     if(raw!==this._searchCity) this.pickCity(raw);
+  },
+
+  /* ---------- Вкладки поиска на главной: Отели/Афиши/Партнёры (06.09.2026) ----------
+     Отели — уже существовавшая логика выше, без изменений. Афиша и Партнёры —
+     НЕ новый поиск с нуля: переиспользуют уже готовые и проверенные CX.showAfisha()
+     и CX.gotoCat() (тот же путь, что и у карточек-категорий на главной), просто с
+     полями страна/город прямо в hero, а не через клик по карточке. */
+  switchSearchTab(tab){
+    document.querySelectorAll('#homeSearchTabs .search-tab').forEach(el=>el.classList.toggle('active', el.dataset.tab===tab));
+    ['Hotels','Afisha','Partners'].forEach(name=>{
+      const panel=document.getElementById('searchPanel'+name);
+      if(panel) panel.classList.toggle('hidden', name.toLowerCase()!==tab);
+    });
+  },
+
+  /* ---- Афиша: страна/город, копия паттерна filterCountries/filterCities выше,
+     но со своим состоянием (_homeAfishaCountry/_homeAfishaCity) и своими id полей,
+     чтобы не пересекаться с #afishaSearchCountry/#afishaSearchCity внутри
+     #view-afisha (у showAfisha() свои поля с теми же именами, это другой экран). ---- */
+  filterHomeAfishaCountries(q){
+    const dd=document.getElementById('ddHomeAfishaCountry');
+    const codes=getRealCountryCodes();
+    const items=codes.map(code=>({code, flag:flagEmoji(code)}));
+    const ranked=smartFilter(items, q, c=>countryDisplayName(c.code), c=>EN_COUNTRY_NAMES[c.code]||'');
+    dd.innerHTML=ranked.map(({item:c,text})=>`<div onclick="CX.pickHomeAfishaCountry('${c.code}')">${c.flag} ${highlightMatch(text,q)}</div>`).join('');
+    dd.classList.toggle('open', ranked.length>0);
+  },
+  pickHomeAfishaCountry(code){
+    document.getElementById('homeAfishaCountry').value=flagEmoji(code)+' '+countryDisplayName(code);
+    document.getElementById('ddHomeAfishaCountry').classList.remove('open');
+    const cityInput=document.getElementById('homeAfishaCity');
+    cityInput.disabled=false; cityInput.value='';
+    this._homeAfishaCountry=code; this._homeAfishaCity=null;
+  },
+  confirmHomeAfishaCountry(){
+    const raw=document.getElementById('homeAfishaCountry').value.trim();
+    if(!raw){
+      if(this._homeAfishaCountry){
+        this._homeAfishaCountry=null; this._homeAfishaCity=null;
+        const cityInput=document.getElementById('homeAfishaCity');
+        if(cityInput){ cityInput.value=''; cityInput.disabled=true; }
+      }
+      return;
+    }
+    const match=matchCountryByText(raw, getRealCountryCodes());
+    if(match && match!==this._homeAfishaCountry) this.pickHomeAfishaCountry(match);
+  },
+  filterHomeAfishaCities(q){
+    if(!this._homeAfishaCountry) return;
+    const dd=document.getElementById('ddHomeAfishaCity');
+    const cities=getAllRealCities().filter(c=>c.country===this._homeAfishaCountry).map(c=>c.city);
+    const ranked=smartFilter(cities, q, ci=>ci, ci=>translitToLatin(ci));
+    dd.innerHTML=ranked.map(({item:ci,text})=>`<div onclick="CX.pickHomeAfishaCity('${ci}')">📍 ${highlightMatch(text,q)}</div>`).join('');
+    dd.classList.toggle('open', ranked.length>0);
+  },
+  pickHomeAfishaCity(city){
+    document.getElementById('homeAfishaCity').value=city;
+    document.getElementById('ddHomeAfishaCity').classList.remove('open');
+    this._homeAfishaCity=city;
+  },
+  confirmHomeAfishaCity(){
+    const raw=document.getElementById('homeAfishaCity').value.trim();
+    if(!raw){ if(this._homeAfishaCity){ this._homeAfishaCity=null; } return; }
+    if(!this._homeAfishaCountry) return;
+    const cities=getAllRealCities().filter(c=>c.country===this._homeAfishaCountry).map(c=>c.city);
+    const match=matchCityByText(raw, cities);
+    if(match && match!==this._homeAfishaCity){ this.pickHomeAfishaCity(match); return; }
+    if(raw!==this._homeAfishaCity) this.pickHomeAfishaCity(raw);
+  },
+  startAfishaSearch(){
+    this.pushHistory();
+    this.showAfisha(this._homeAfishaCountry||null, this._homeAfishaCity||null);
+  },
+
+  /* ---- Партнёры: та же страна/город-логика + категория. gotoCat() уже сам
+     читает страну/город из this._searchCountry/_searchCity для view='home' —
+     поэтому пишем именно туда же, а не в отдельную переменную: это тот же
+     контракт, что и у карточек-категорий на главной (CX.gotoCat). ---- */
+  filterHomePartnerCountries(q){
+    const dd=document.getElementById('ddHomePartnerCountry');
+    const codes=getRealCountryCodes();
+    const items=codes.map(code=>({code, flag:flagEmoji(code)}));
+    const ranked=smartFilter(items, q, c=>countryDisplayName(c.code), c=>EN_COUNTRY_NAMES[c.code]||'');
+    dd.innerHTML=ranked.map(({item:c,text})=>`<div onclick="CX.pickHomePartnerCountry('${c.code}')">${c.flag} ${highlightMatch(text,q)}</div>`).join('');
+    dd.classList.toggle('open', ranked.length>0);
+  },
+  pickHomePartnerCountry(code){
+    document.getElementById('homePartnerCountry').value=flagEmoji(code)+' '+countryDisplayName(code);
+    document.getElementById('ddHomePartnerCountry').classList.remove('open');
+    const cityInput=document.getElementById('homePartnerCity');
+    cityInput.disabled=false; cityInput.value='';
+    this._searchCountry=code; this._searchCity=null;
+  },
+  confirmHomePartnerCountry(){
+    const raw=document.getElementById('homePartnerCountry').value.trim();
+    if(!raw){
+      if(this._searchCountry){
+        this._searchCountry=null; this._searchCity=null;
+        const cityInput=document.getElementById('homePartnerCity');
+        if(cityInput){ cityInput.value=''; cityInput.disabled=true; }
+      }
+      return;
+    }
+    const match=matchCountryByText(raw, getRealCountryCodes());
+    if(match && match!==this._searchCountry) this.pickHomePartnerCountry(match);
+  },
+  filterHomePartnerCities(q){
+    if(!this._searchCountry) return;
+    const dd=document.getElementById('ddHomePartnerCity');
+    const cities=getAllRealCities().filter(c=>c.country===this._searchCountry).map(c=>c.city);
+    const ranked=smartFilter(cities, q, ci=>ci, ci=>translitToLatin(ci));
+    dd.innerHTML=ranked.map(({item:ci,text})=>`<div onclick="CX.pickHomePartnerCity('${ci}')">📍 ${highlightMatch(text,q)}</div>`).join('');
+    dd.classList.toggle('open', ranked.length>0);
+  },
+  pickHomePartnerCity(city){
+    document.getElementById('homePartnerCity').value=city;
+    document.getElementById('ddHomePartnerCity').classList.remove('open');
+    this._searchCity=city;
+  },
+  confirmHomePartnerCity(){
+    const raw=document.getElementById('homePartnerCity').value.trim();
+    if(!raw){ if(this._searchCity){ this._searchCity=null; } return; }
+    if(!this._searchCountry) return;
+    const cities=getAllRealCities().filter(c=>c.country===this._searchCountry).map(c=>c.city);
+    const match=matchCityByText(raw, cities);
+    if(match && match!==this._searchCity){ this.pickHomePartnerCity(match); return; }
+    if(raw!==this._searchCity) this.pickHomePartnerCity(raw);
+  },
+  startPartnerSearch(){
+    const cat=document.getElementById('homePartnerCategory').value;
+    this.gotoCat(cat);
   },
   startSearch(){
     const country = this._searchCountry, city = this._searchCity;
@@ -6939,7 +7146,9 @@ function doRefRegister(){
 }
 
 /* =========================================================
-   STARFIELD CANVAS
+   STARFIELD CANVAS — отключено 06.09.2026 при переходе на светлую тему
+   (ТЗ "Light Luxury"). Функция оставлена неиспользуемой на случай, если
+   тёмный вариант темы понадобится вернуть позже, а не вызывается.
    ========================================================= */
 function initStarfield(){
   const canvas=document.getElementById('starfield');
@@ -7016,7 +7225,6 @@ function init(){
   renderPopularDestinations();
   renderAfishaHomeSection();
   updateNavLoginBtn();
-  initStarfield();
   seedRealtorsIfEmpty();
   seedTravelAgenciesIfEmpty();
   CX.restoreState();
