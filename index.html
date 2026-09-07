@@ -34,7 +34,7 @@
    только уточняют, не заменяют. */
 input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),
 select, textarea{
-  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12);
+  background:var(--bg3); border:1px solid var(--line);
   border-radius:8px; padding:9px 12px; color:var(--text); font-family:inherit;
   font-size:13px; box-sizing:border-box;
 }
@@ -55,16 +55,16 @@ select option{ background:var(--bg2); color:var(--text); }
 .sw-badge-blob{ border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; }
 .sw-badge-ring{
   border-radius:50%;
-  box-shadow:0 0 0 4px var(--dark), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(201,168,76,.08);
+  box-shadow:0 0 0 4px var(--dark), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(184,149,77,.08);
 }
 .sw-badge-diamond{ border-radius:35%; transform:rotate(45deg); }
 .sw-badge-halo{
   border-radius:42% 58% 65% 35% / 45% 45% 55% 55%;
-  box-shadow:0 0 0 4px var(--dark), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(201,168,76,.08);
+  box-shadow:0 0 0 4px var(--dark), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(184,149,77,.08);
 }
 .sw-badge-ring-thin{
   border-radius:50%;
-  box-shadow:0 0 0 5px var(--dark), 0 0 0 6.5px rgba(232,201,106,.6), inset 0 0 10px rgba(201,168,76,.08);
+  box-shadow:0 0 0 5px var(--dark), 0 0 0 6.5px rgba(201,164,94,.6), inset 0 0 10px rgba(184,149,77,.08);
 }
 
 body{
@@ -84,7 +84,7 @@ img{max-width:100%; display:block;}
 /* ===== HEADER ===== */
 header{
   position:sticky; top:0; z-index:100; background:rgba(8,8,16,.85);
-  backdrop-filter:blur(10px); border-bottom:1px solid rgba(201,168,76,.15);
+  backdrop-filter:blur(10px); border-bottom:1px solid rgba(184,149,77,.15);
 }
 .header-top{
   max-width:1280px; margin:0 auto; padding:12px 24px 8px;
@@ -99,10 +99,10 @@ header{
 nav{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center;}
 nav a{
   font-size:13px; font-weight:600; color:var(--text); transition:.2s; cursor:pointer; white-space:nowrap;
-  padding:9px 16px; border-radius:999px; background:var(--bg3); border:1px solid rgba(201,168,76,.18);
+  padding:9px 16px; border-radius:999px; background:var(--bg3); border:1px solid rgba(184,149,77,.18);
   letter-spacing:.2px;
 }
-nav a:hover{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:transparent; transform:translateY(-1px); box-shadow:0 6px 18px rgba(201,168,76,.25); }
+nav a:hover{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:transparent; transform:translateY(-1px); box-shadow:0 6px 18px rgba(184,149,77,.25); }
 nav a.active{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:transparent; }
 .header-right{display:flex; gap:12px; align-items:center;}
 .lang-switch{position:relative;}
@@ -114,19 +114,19 @@ nav a.active{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(-
 .header-gtranslate-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none; }
 .lang-btn{
   display:flex; align-items:center; gap:6px; background:var(--bg3);
-  border:1px solid rgba(201,168,76,.18); border-radius:999px; padding:9px 16px;
+  border:1px solid rgba(184,149,77,.18); border-radius:999px; padding:9px 16px;
   color:var(--text,#e8e4f0); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
   min-height:38px; box-sizing:border-box; transition:.2s;
 }
-.lang-btn:hover{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:transparent; transform:translateY(-1px); box-shadow:0 6px 18px rgba(201,168,76,.25); }
+.lang-btn:hover{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:transparent; transform:translateY(-1px); box-shadow:0 6px 18px rgba(184,149,77,.25); }
 .lang-dropdown{
   position:absolute; top:calc(100% + 8px); right:0; background:var(--bg3);
-  border:1px solid rgba(255,255,255,.08); border-radius:12px; min-width:220px;
+  border:1px solid var(--line); border-radius:12px; min-width:220px;
   max-height:340px; overflow-y:auto; display:none; box-shadow:0 12px 32px rgba(0,0,0,.5); z-index:200;
 }
 .lang-dropdown.open{display:block;}
 .lang-dropdown div{padding:10px 16px; font-size:13px; cursor:pointer; transition:.15s; display:flex; gap:8px; align-items:center;}
-.lang-dropdown div:hover{background:rgba(201,168,76,.12); color:var(--gold2);}
+.lang-dropdown div:hover{background:rgba(184,149,77,.12); color:var(--gold2);}
 .lang-dropdown .lang-divider{padding:8px 16px 4px; font-size:11px; text-transform:uppercase; color:var(--muted); cursor:default; letter-spacing:1px;}
 .lang-dropdown .lang-divider:hover{background:none; color:var(--muted);}
 .btn{
@@ -259,16 +259,16 @@ input[type="date"]::-webkit-calendar-picker-indicator{
 input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var(--navy); filter:invert(1) brightness(2);}
 .search-dropdown{
   position:absolute; top:calc(100% + 6px); left:0; right:0; background:var(--bg3);
-  border:1px solid rgba(255,255,255,.1); border-radius:10px; max-height:240px; overflow-y:auto;
+  border:1px solid var(--line); border-radius:10px; max-height:240px; overflow-y:auto;
   display:none; z-index:50; box-shadow:0 12px 30px rgba(0,0,0,.5);
 }
 .search-dropdown.open{display:block;}
 .search-dropdown div{padding:10px 14px; font-size:14px; cursor:pointer; display:flex; gap:8px; align-items:center;}
-.search-dropdown div:hover{background:rgba(201,168,76,.12); color:var(--gold2);}
+.search-dropdown div:hover{background:rgba(184,149,77,.12); color:var(--gold2);}
 .search-submit{flex:0 0 auto;}
 
 /* ===== TICKER ===== */
-.ticker-wrap{overflow:hidden; background:var(--bg2); border-top:1px solid rgba(201,168,76,.1); border-bottom:1px solid rgba(201,168,76,.1); padding:12px 0; margin-top:48px;}
+.ticker-wrap{overflow:hidden; background:var(--bg2); border-top:1px solid rgba(184,149,77,.1); border-bottom:1px solid rgba(184,149,77,.1); padding:12px 0; margin-top:48px;}
 .ticker{display:flex; gap:60px; white-space:nowrap; animation:ticker 40s linear infinite; font-family:'Spectral',serif; font-style:italic; color:var(--gold2); font-size:14px;}
 .ticker b{color:var(--gold2);}
 .ticker .tk-flag{display:inline-block; font-family:'DM Sans',sans-serif; font-style:normal; font-weight:700; font-size:10px; letter-spacing:.5px; color:#15130a; background:linear-gradient(135deg,var(--gold),var(--gold2)); padding:2px 5px; border-radius:4px; vertical-align:1px; margin-right:2px;}
@@ -278,6 +278,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 
 /* ===== SECTIONS ===== */
 .section{max-width:1280px; margin:0 auto; padding:64px 24px;}
+/* .referral-glow (06.09.2026) — класс использовался в разметке блока
+   "Делитесь роскошью", но нигде не был описан в CSS — ТЗ п.2.1.5 просит
+   "элегантный блок с лёгким золотистым градиентом", которого физически не
+   было. */
+.referral-glow{
+  position:relative; border-radius:24px;
+  background:radial-gradient(120% 140% at 50% 0%, rgba(184,149,77,.10), transparent 65%), var(--bg2);
+  border:1px solid var(--line);
+}
 .section-head{text-align:center; margin-bottom:40px;}
 .section-head h2{font-size:clamp(26px,4vw,40px); margin-bottom:10px;}
 .section-head p{color:var(--muted); font-size:15px; font-family:'Spectral',serif; font-style:italic;}
@@ -301,7 +310,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .photo-card{
   position:relative; border-radius:14px; overflow:hidden; cursor:pointer;
   aspect-ratio:3/4; background:var(--bg3);
-  transition:.25s; border:1px solid rgba(255,255,255,.06);
+  transition:.25s; border:1px solid var(--line);
 }
 .photo-card:hover{transform:translateY(-4px) scale(1.02); box-shadow:0 18px 40px rgba(0,0,0,.4);}
 .photo-card img{width:100%; height:100%; object-fit:cover; display:block; transition:opacity .6s ease, transform .3s;}
@@ -317,34 +326,51 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
   text-align:center; text-shadow:0 2px 8px rgba(0,0,0,.6);
 }
 .pass-wrap{position:relative;}
-.tabs-login{display:flex; gap:0; margin-bottom:22px; border-radius:10px; overflow:hidden; border:1px solid rgba(255,255,255,.08);}
+.tabs-login{display:flex; gap:0; margin-bottom:22px; border-radius:10px; overflow:hidden; border:1px solid var(--line);}
 .tab-login{flex:1; padding:10px; text-align:center; cursor:pointer; font-size:14px; color:var(--muted); background:transparent; border:none; transition:all .2s; font-family:'DM Sans',sans-serif;}
 .tab-login.active{background:var(--gold); color:#111; font-weight:600;}
 .pass-wrap input{padding-right:44px;}
 .pass-eye{position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--muted); font-size:18px; user-select:none; line-height:1;}
 .pass-eye:hover{color:var(--gold2);}
 .card{
-  background:var(--bg2); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius);
-  overflow:hidden; cursor:pointer; transition:.25s;
+  background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius);
+  overflow:hidden; cursor:pointer; transition:.25s; box-shadow:var(--card-shadow);
 }
-.card:hover{transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.4); border-color:rgba(201,168,76,.3);}
-.card-img{height:170px; overflow:hidden; position:relative;}
+/* ТЗ п.2.2: карточка объекта — фото 4:3, тень мягче на светлом фоне (было
+   rgba(0,0,0,.4) — рассчитано на тёмный фон, на светлом выглядело тяжёлым
+   тёмным пятном под карточкой). */
+.card:hover{transform:translateY(-4px); box-shadow:0 16px 40px rgba(30,41,59,.10); border-color:rgba(184,149,77,.4);}
+.card-img{aspect-ratio:4/3; height:auto; overflow:hidden; position:relative; background:var(--bg3);}
 .card-img img{width:100%; height:100%; object-fit:cover;}
+/* Если фото ещё не загружено (напр. отель только зарегистрировался) —
+   аккуратная пустая заглушка вместо провала/белого прямоугольника, пока
+   отель не выложит своё фото через свой личный кабинет. */
+.card-img:empty::before, .card-img.no-photo::before{
+  content:'🏨'; display:flex; align-items:center; justify-content:center;
+  width:100%; height:100%; font-size:34px; opacity:.25; background:var(--bg3);
+}
 .card-body{padding:16px;}
-.card-body h3{font-size:17px; margin-bottom:6px;}
+.card-body h3{font-size:20px; margin-bottom:6px; font-family:'Playfair Display',serif; font-weight:600; color:var(--navy);}
 .card-body p{font-size:13px; color:var(--muted); line-height:1.5;}
 .tags{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0;}
 .tag{background:var(--bg3); border-radius:6px; padding:4px 9px; font-size:11px; color:var(--muted);}
-.stars{color:var(--gold2); font-size:13px;}
+.stars{color:var(--gold); font-size:13px;}
 .price-row{display:flex; justify-content:space-between; align-items:flex-end; margin-top:12px;}
 .price-old{font-size:12px; color:var(--muted); text-decoration:line-through;}
-.price-new{font-size:20px; font-weight:700; color:var(--gold2); font-family:'Playfair Display',serif;}
-.price-new small{font-size:12px; color:var(--muted); font-weight:400; font-family:'DM Sans',sans-serif;}
+.price-new{font-size:20px; font-weight:700; color:var(--navy); font-family:'Playfair Display',serif;}
+.price-new small{font-size:12px; color:var(--muted); font-weight:400; font-family:'Manrope',sans-serif;}
+/* Кнопка "Подробнее" на карточке — ТЗ п.2.2: тонкая золотая обводка,
+   заполняется золотом при наведении. */
+.card-cta{
+  display:inline-block; margin-top:10px; padding:8px 18px; border-radius:8px; font-size:13px; font-weight:600;
+  border:1px solid var(--gold); color:var(--gold); background:transparent; transition:.2s; cursor:pointer;
+}
+.card-cta:hover{background:var(--gold); color:#fff;}
 
 /* ---- "Поднят в топ" — золотая рамка/подсветка + бейдж, партнёр за это заплатил ---- */
-.card.boosted{border-color:var(--gold); box-shadow:0 0 0 1px rgba(201,168,76,.35), 0 10px 30px rgba(201,168,76,.12);}
-.card.boosted:hover{box-shadow:0 0 0 1px var(--gold), 0 16px 40px rgba(201,168,76,.22);}
-.boost-badge{display:inline-flex; align-items:center; gap:4px; background:rgba(201,168,76,.15); border:1px solid rgba(201,168,76,.35);
+.card.boosted{border-color:var(--gold); box-shadow:0 0 0 1px rgba(184,149,77,.35), 0 10px 30px rgba(184,149,77,.12);}
+.card.boosted:hover{box-shadow:0 0 0 1px var(--gold), 0 16px 40px rgba(184,149,77,.22);}
+.boost-badge{display:inline-flex; align-items:center; gap:4px; background:rgba(184,149,77,.15); border:1px solid rgba(184,149,77,.35);
   color:var(--gold2); border-radius:20px; padding:3px 10px; font-size:11px; font-weight:700; margin-bottom:8px;}
 .subgroup-badge{display:inline-block; background:var(--bg3); border-radius:6px; padding:3px 9px; font-size:11px; color:var(--muted); margin-bottom:8px;}
 .translate-btn{display:inline-block; background:transparent; border:none; color:var(--gold2); font-size:12px;
@@ -353,21 +379,21 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 
 /* ---- Карточки подгрупп (шаг между категорией и страной/городом у Ресторанов/
    Красоты/Здоровья/Медицины/Юр.услуг — категорий с подгруппами) ---- */
-.subgroup-card{background:var(--bg2); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:16px;
+.subgroup-card{background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:16px;
   text-align:center; cursor:pointer; transition:.2s;}
 .subgroup-card:hover{border-color:var(--gold); transform:translateY(-3px); background:var(--bg3);}
 .subgroup-card .name{font-size:13px; font-weight:600; margin-top:6px; display:inline-block; padding:5px 12px; border:1px solid var(--gold); border-radius:8px; font-family:'Spectral',serif; font-style:italic; transform:skewX(-10.89deg); background:linear-gradient(90deg,#8a6d24 0%,#C9A84C 20%,#FFF3D0 40%,#C9A84C 60%,#8a6d24 80%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:cxShimmer 3.5s linear infinite;}
 
 /* simple country/city select cards */
 .choice-card{
-  background:var(--bg2); border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:18px;
+  background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:18px;
   text-align:center; cursor:pointer; transition:.2s;
 }
 .choice-card:hover{border-color:var(--gold); transform:translateY(-3px); background:var(--bg3);}
 .choice-card .flag{font-size:32px; margin-bottom:8px; width:100%; text-align:center;}
 .choice-card .name{font-size:14px; font-weight:600; display:inline-block; padding:5px 12px; border:1px solid var(--gold); border-radius:8px; margin-top:2px; font-family:'Spectral',serif; font-style:italic; transform:skewX(-10.89deg); background:linear-gradient(90deg,#8a6d24 0%,#C9A84C 20%,#FFF3D0 40%,#C9A84C 60%,#8a6d24 80%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:cxShimmer 3.5s linear infinite;}
-.star-choice-card{border:2px solid var(--gold); box-shadow:0 0 8px rgba(201,168,76,.15);}
-.star-choice-card:hover{border-color:var(--gold2); box-shadow:0 6px 18px rgba(201,168,76,.35);}
+.star-choice-card{border:2px solid var(--gold); box-shadow:0 0 8px rgba(184,149,77,.15);}
+.star-choice-card:hover{border-color:var(--gold2); box-shadow:0 6px 18px rgba(184,149,77,.35);}
 /* Пирамида категорий на главной: верхний ряд — 4 новые профессиональные направления,
    нижний — 5 исходных сервисов. На узких экранах ряды сами перетекают в обычную сетку. */
 .category-pyramid{max-width:1040px; margin:0 auto 32px;}
@@ -380,7 +406,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
   max-width:480px; margin:0 auto 30px; position:relative;
 }
 .search-bar input{
-  width:100%; background:var(--bg2); border:1px solid rgba(255,255,255,.08); color:var(--text);
+  width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--text);
   padding:12px 16px; border-radius:12px; font-size:14px; font-family:inherit;
 }
 .search-bar input:focus{outline:none; border-color:var(--gold);}
@@ -396,7 +422,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .back-btn{
   display:inline-flex; align-items:center; gap:6px; margin:18px 24px 0; max-width:1280px;
   font-size:14px; color:var(--gold2); cursor:pointer; padding:8px 16px; border-radius:8px; background:var(--bg2);
-  border:1px solid rgba(255,255,255,.06); width:fit-content;
+  border:1px solid var(--line); width:fit-content;
 }
 .back-btn:hover{border-color:var(--gold);}
 /* Плавающая версия "На главную" — следует за прокруткой вверх/вниз, всегда видна на экране,
@@ -406,7 +432,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
   position:fixed; top:150px; left:24px; z-index:90;
   display:inline-flex; align-items:center; gap:6px;
   font-size:14px; color:var(--gold2); cursor:pointer; padding:11px 20px; border-radius:999px;
-  background:var(--bg2); border:1px solid rgba(201,168,76,.35); box-shadow:0 4px 18px rgba(0,0,0,.45);
+  background:var(--bg2); border:1px solid rgba(184,149,77,.35); box-shadow:0 4px 18px rgba(0,0,0,.45);
 }
 .back-btn-floating:hover{border-color:var(--gold); background:var(--bg3);}
 @media(max-width:640px){
@@ -431,7 +457,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .hotel-info .desc{color:var(--text); opacity:.9; line-height:1.7; margin-bottom:18px;}
 .amenities{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;}
 .sticky-box{
-  background:var(--bg2); border:1px solid rgba(201,168,76,.18); border-radius:var(--radius);
+  background:var(--bg2); border:1px solid rgba(184,149,77,.18); border-radius:var(--radius);
   padding:22px; position:sticky; top:90px; height:fit-content;
 }
 .sticky-box .from{font-size:13px; color:var(--muted);}
@@ -439,15 +465,15 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .date-row{display:flex; gap:10px; margin-bottom:14px;}
 .date-row > div{flex:1;}
 .date-row label{font-size:12px; color:var(--muted); display:block; margin-bottom:4px;}
-.date-row input{width:100%; background:var(--bg3); border:1px solid rgba(255,255,255,.08); color:var(--text); padding:10px; border-radius:8px; font-family:inherit; font-size:13px;}
+.date-row input{width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:8px; font-family:inherit; font-size:13px;}
 .map-link{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--gold2);}
 .map-links{display:flex; flex-wrap:wrap; gap:14px; margin-top:8px;}
-.addr-map{width:100%; height:240px; border-radius:var(--radius); overflow:hidden; border:1px solid rgba(255,255,255,.08); background:var(--bg2);}
+.addr-map{width:100%; height:240px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line); background:var(--bg2);}
 
 /* ===== ROOMS ===== */
 .room-card{
   display:grid; grid-template-columns:200px 1fr auto; gap:16px; background:var(--bg2);
-  border:1px solid rgba(255,255,255,.06); border-radius:14px; overflow:hidden; margin-bottom:16px; align-items:center;
+  border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-bottom:16px; align-items:center;
 }
 .room-card img{height:140px; width:100%; object-fit:cover;}
 .room-card .rc-body{padding:14px 0;}
@@ -457,7 +483,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 @media(max-width:700px){.room-card{grid-template-columns:1fr; }.room-card .rc-price{text-align:left; padding-top:0;}}
 
 /* ===== КЛАСС НОМЕРА + номера этого класса (всё видно сразу, без перехода) ===== */
-.room-class-block{background:var(--bg2); border:1px solid rgba(255,255,255,.06); border-radius:14px; overflow:hidden; margin-bottom:20px;}
+.room-class-block{background:var(--bg2); border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-bottom:20px;}
 .room-class-header{display:grid; grid-template-columns:200px 1fr; gap:16px; align-items:center; padding:0;}
 .room-class-header img{height:140px; width:100%; object-fit:cover; display:block;}
 .room-class-header .rch-body{padding:14px 18px 14px 0;}
@@ -471,13 +497,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .room-class-header .rc-desc{font-size:12.5px; color:var(--muted); margin-top:8px; line-height:1.5; max-width:620px;}
 @media(max-width:700px){.room-class-header{grid-template-columns:1fr;}}
 
-.unit-list{border-top:1px solid rgba(255,255,255,.06); padding:10px 18px;}
+.unit-list{border-top:1px solid var(--line); padding:10px 18px;}
 .unit-row{
   display:flex; align-items:center; gap:12px; padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,.04);
+  border-bottom:1px solid var(--line);
 }
 .unit-row:last-child{border-bottom:none;}
-.unit-thumb{width:56px; height:56px; border-radius:8px; object-fit:cover; flex-shrink:0; cursor:pointer; transition:.15s; border:1px solid rgba(255,255,255,.08);}
+.unit-thumb{width:56px; height:56px; border-radius:8px; object-fit:cover; flex-shrink:0; cursor:pointer; transition:.15s; border:1px solid var(--line);}
 .unit-thumb:hover{transform:scale(1.06); border-color:var(--gold);}
 .unit-num{font-weight:700; font-size:14px; min-width:70px;}
 .unit-price{color:var(--muted); font-size:13px; flex:1;}
@@ -495,7 +521,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .gallery-modal{position:relative; max-width:900px; width:100%; display:flex; align-items:center; justify-content:center;}
 .gallery-modal img{max-width:100%; max-height:80vh; border-radius:10px; object-fit:contain;}
 .gallery-close{position:absolute; top:-44px; right:0; background:none; border:none; color:var(--text); font-size:22px; cursor:pointer;}
-.gallery-nav{position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.15); color:var(--text); width:44px; height:44px; border-radius:50%; font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+.gallery-nav{position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); border:1px solid var(--line); color:var(--text); width:44px; height:44px; border-radius:50%; font-size:24px; cursor:pointer; display:flex; align-items:center; justify-content:center;}
 .gallery-nav:hover{background:var(--gold); color:#1a1406; border-color:var(--gold);}
 .gallery-prev{left:-8px;} .gallery-next{right:-8px;}
 @media(max-width:600px){.gallery-prev{left:4px;} .gallery-next{right:4px;}}
@@ -503,24 +529,24 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 
 /* ===== FORM ===== */
 .form-grid{display:grid; grid-template-columns:1.4fr 1fr; gap:32px; max-width:1100px; margin:0 auto; padding:24px;}
-.form-box{background:var(--bg2); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:26px;}
+.form-box{background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius); padding:26px;}
 .form-row{margin-bottom:16px;}
 .form-row label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px;}
 .form-row input{
-  width:100%; background:var(--bg3); border:1px solid rgba(255,255,255,.08); color:var(--text);
+  width:100%; background:var(--bg3); border:1px solid var(--line); color:var(--text);
   padding:12px 14px; border-radius:10px; font-size:14px; font-family:inherit;
 }
 .form-row input:focus{outline:none; border-color:var(--gold);}
 .form-row.err input{border-color:var(--err);}
 #bkAgreeRow.agree-err{border-color:var(--err) !important; background:rgba(224,85,85,.1); animation:agreeShake .35s;}
 @keyframes agreeShake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);}}
-.summary-line{display:flex; justify-content:space-between; font-size:14px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05); color:var(--muted);}
+.summary-line{display:flex; justify-content:space-between; font-size:14px; padding:8px 0; border-bottom:1px solid var(--line); color:var(--muted);}
 .summary-line.total{font-size:18px; color:var(--gold2); font-weight:700; border-bottom:none; padding-top:14px;}
 /* .stat-card — перенесено из admin-dashboard.html / hotel-portal.html БЕЗ
    ИЗМЕНЕНИЙ (22.08.2026, по просьбе Алексея — карточки кабинета реферала
    должны выглядеть один в один как везде в проекте). Внутри <details> —
    раскрытие истории по клику остаётся тем же нативным механизмом. */
-.stat-card{background:var(--bg2); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:18px; cursor:pointer;}
+.stat-card{background:var(--bg2); border:1px solid var(--line); border-radius:var(--radius); padding:18px; cursor:pointer;}
 .stat-card summary{list-style:none; cursor:pointer;}
 .stat-card summary::-webkit-details-marker{display:none;}
 .stat-card .num{font-size:26px; font-family:'Playfair Display',serif; color:var(--gold2);}
@@ -532,7 +558,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .success-box{max-width:600px; margin:60px auto; text-align:center; padding:0 24px;}
 .success-icon{font-size:64px; margin-bottom:16px;}
 .booking-id{
-  background:var(--bg2); border:1px solid rgba(201,168,76,.2); border-radius:12px; padding:16px;
+  background:var(--bg2); border:1px solid rgba(184,149,77,.2); border-radius:12px; padding:16px;
   font-family:monospace; font-size:18px; color:var(--gold2); margin:20px 0;
 }
 
@@ -540,12 +566,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .concierge-btn{
   position:fixed; bottom:24px; right:24px; width:60px; height:60px; border-radius:50%;
   background:linear-gradient(135deg,var(--gold),var(--gold2)); display:flex; align-items:center; justify-content:center;
-  font-size:26px; cursor:pointer; box-shadow:0 8px 24px rgba(201,168,76,.4); z-index:300; transition:.2s; border:none;
+  font-size:26px; cursor:pointer; box-shadow:0 8px 24px rgba(184,149,77,.4); z-index:300; transition:.2s; border:none;
 }
 .concierge-btn:hover{transform:scale(1.08);}
 .concierge-panel{
   position:fixed; bottom:96px; right:24px; width:360px; max-height:520px; background:var(--bg2);
-  border:1px solid rgba(201,168,76,.2); border-radius:16px; display:none; flex-direction:column;
+  border:1px solid rgba(184,149,77,.2); border-radius:16px; display:none; flex-direction:column;
   box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:300; overflow:hidden;
 }
 .concierge-panel.open{display:flex;}
@@ -556,17 +582,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .msg.bot{background:var(--bg3); align-self:flex-start;}
 .msg.user{background:var(--gold); color:#15130a; align-self:flex-end;}
 .msg .quick-btn{
-  display:inline-block; margin:6px 4px 0 0; background:rgba(201,168,76,.15); border:1px solid var(--gold);
+  display:inline-block; margin:6px 4px 0 0; background:rgba(184,149,77,.15); border:1px solid var(--gold);
   color:var(--gold2); padding:6px 10px; border-radius:8px; font-size:12px; cursor:pointer;
 }
-.concierge-input{display:flex; border-top:1px solid rgba(255,255,255,.06); padding:10px;}
-.concierge-input input{flex:1; background:var(--bg3); border:1px solid rgba(255,255,255,.08); color:var(--text); padding:10px 12px; border-radius:8px; font-family:inherit; font-size:13px;}
+.concierge-input{display:flex; border-top:1px solid var(--line); padding:10px;}
+.concierge-input input{flex:1; background:var(--bg3); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:8px; font-family:inherit; font-size:13px;}
 .concierge-input button{margin-left:8px; background:var(--gold); border:none; border-radius:8px; padding:0 16px; cursor:pointer; font-weight:700; color:#15130a;}
 
 /* ===== TOAST ===== */
 .toast-wrap{position:fixed; top:90px; right:24px; z-index:500; display:flex; flex-direction:column; gap:10px;}
 .toast{
-  background:var(--bg3); border:1px solid rgba(201,168,76,.3); color:var(--text); padding:14px 20px;
+  background:var(--bg3); border:1px solid rgba(184,149,77,.3); color:var(--text); padding:14px 20px;
   border-radius:10px; font-size:14px; box-shadow:0 10px 30px rgba(0,0,0,.4); animation:toastIn .25s ease, toastOut .25s ease 2.6s forwards;
   display:flex; align-items:center; gap:10px;
 }
@@ -577,7 +603,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 /* ===== MODAL ===== */
 .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:400; display:none; align-items:center; justify-content:center; padding:20px;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--bg2); border:1px solid rgba(201,168,76,.2); border-radius:var(--radius); padding:28px; max-width:440px; width:100%; max-height:90vh; overflow-y:auto;}
+.modal{background:var(--bg2); border:1px solid rgba(184,149,77,.2); border-radius:var(--radius); padding:28px; max-width:440px; width:100%; max-height:90vh; overflow-y:auto;}
 .modal h2{margin-bottom:16px; font-size:22px;}
 .modal .close{position:absolute; top:18px; right:22px; cursor:pointer; color:var(--muted); font-size:20px;}
 .modal-tabs{display:flex; gap:8px; margin-bottom:18px;}
@@ -587,11 +613,11 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 /* ===== FOOTER ===== */
 footer{
   position:relative; padding:56px 24px 40px; text-align:center; color:var(--muted); font-size:13px; margin-top:64px;
-  background:linear-gradient(180deg, transparent, rgba(201,168,76,.035) 40%, rgba(201,168,76,.05));
+  background:linear-gradient(180deg, transparent, rgba(184,149,77,.035) 40%, rgba(184,149,77,.05));
 }
 footer::before{
   content:''; position:absolute; top:0; left:50%; transform:translateX(-50%); width:min(680px,90%); height:1px;
-  background:linear-gradient(90deg, transparent, rgba(232,201,106,.35), transparent);
+  background:linear-gradient(90deg, transparent, rgba(201,164,94,.35), transparent);
 }
 footer .footer-links{margin-bottom:18px;}
 footer a{transition:color .18s ease;}
@@ -606,7 +632,7 @@ footer a:hover{color:var(--gold2) !important;}
 #google_translate_element{display:inline-block;}
 .goog-te-gadget{font-family:inherit !important; font-size:0 !important;}
 .goog-te-gadget .goog-te-combo{
-  background:var(--bg3); color:var(--text); border:1px solid rgba(255,255,255,.08); border-radius:10px;
+  background:var(--bg3); color:var(--text); border:1px solid var(--line); border-radius:10px;
   padding:9px 10px; font-size:13px; font-family:'DM Sans',sans-serif !important;
 }
 /* Не дубль — контр-патч: сам виджет Google Translate инлайново задаёт body{top:...},
@@ -813,10 +839,10 @@ body{top:0 !important; position:relative !important;}
     <div class="grid-cards" id="afishaHomeGrid"></div>
   </section>
 
-  <section class="section">
+  <section class="section referral-glow">
     <div class="section-head">
-      <h2 class="font-cormorant gradient-heading" data-t="ref_title">Реферальная программа</h2>
-      <p data-t="ref_sub">Получайте 3% с каждой брони приглашённых вами гостей — баллы становятся доступны через 10 дней, забрать подарком можно в USDT (сеть TON)</p>
+      <h2 class="font-cormorant gradient-heading" data-t="ref_title">Делитесь роскошью</h2>
+      <p data-t="ref_sub">Получайте 3% с каждой брони приглашённых вами гостей — баллы становятся доступны через 10 дней</p>
     </div>
     <div class="center">
       <button class="btn btn-ghost" data-t="ref_btn" onclick="CX.openModal('referral')">Получить реферальную ссылку →</button>
@@ -1945,8 +1971,8 @@ const T = {
  stat_commission:{ru:'комиссия платформы',en:'platform commission'}, stat_payout:{ru:'дней цикл выплат',en:'day payout cycle'},
  events_title:{ru:'Мировые события рядом с отелями',en:'World events near our hotels'},
  events_sub:{ru:'Спланируйте поездку под яркое событие — мы подберём отели в том же городе',en:'Plan your trip around a great event — we will suggest hotels in the same city'},
- ref_title:{ru:'Реферальная программа',en:'Referral Program'},
- ref_sub:{ru:'Приглашайте друзей — Corronyx может подарить вам бонусные баллы за их бронирования. Баллы отображаются в личном кабинете через 10 дней и по желанию платформы могут быть обменены на подарок в USDT (сеть TON)',en:'Invite friends — Corronyx may gift you bonus points for their bookings. Points appear in your account after 10 days and may, at the platform\'s discretion, be exchanged for a gift in USDT (TON network)'},
+ ref_title:{ru:'Делитесь роскошью',en:'Share the Luxury'},
+ ref_sub:{ru:'Приглашайте друзей — получайте 3% с каждой их брони бонусными баллами. Баллы отображаются в личном кабинете через 10 дней',en:'Invite friends — earn 3% in bonus points on every booking they make. Points appear in your account after 10 days'},
  ref_btn:{ru:'Получить реферальную ссылку →',en:'Get your referral link →'},
  back_home:{ru:'Назад',en:'Back'},
  footer_text:{ru:'Бронирование с оплатой в отеле.',en:'Booking with payment at the hotel.'},
@@ -4096,7 +4122,7 @@ function videoEmbedHtml(url){
   // Неизвестный источник — форма создания афиши (afisha-portal.html, isSupportedVideoUrl)
   // не даёт сохранить такую ссылку, так что сюда попадают только старые записи до этого
   // ограничения. Никакого перехода на сторонний сайт не показываем — только заглушку.
-  return `<div style="display:flex; align-items:center; justify-content:center; width:100%; height:160px; background:rgba(255,255,255,.04); border-radius:10px 10px 0 0; font-size:13px; color:var(--muted); text-align:center; padding:0 12px;">Видео недоступно для показа</div>`;
+  return `<div style="display:flex; align-items:center; justify-content:center; width:100%; height:160px; background:rgba(26,28,32,.04); border-radius:10px 10px 0 0; font-size:13px; color:var(--muted); text-align:center; padding:0 12px;">Видео недоступно для показа</div>`;
 }
 function afishaCardHtml(e){
   let posterHtml;
@@ -4107,13 +4133,13 @@ function afishaCardHtml(e){
   } else if(e.poster){
     posterHtml = `<img src="${esc2(e.poster)}" alt="" style="width:100%; height:160px; object-fit:cover; border-radius:10px 10px 0 0;" onerror="this.style.display='none'">`;
   } else {
-    posterHtml = `<div style="width:100%; height:160px; display:flex; align-items:center; justify-content:center; font-size:40px; background:rgba(255,255,255,.04); border-radius:10px 10px 0 0;">${AFISHA_TIER_ICON[e.tier]||'🎫'}</div>`;
+    posterHtml = `<div style="width:100%; height:160px; display:flex; align-items:center; justify-content:center; font-size:40px; background:rgba(26,28,32,.04); border-radius:10px 10px 0 0;">${AFISHA_TIER_ICON[e.tier]||'🎫'}</div>`;
   }
   const dateStr = e.eventDate ? new Date(e.eventDate).toLocaleString(LANG==='ru'?'ru-RU':'en-US',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
   const priceStr = e.free ? t('afisha_free') : esc2(e.price||'');
   const framed = isFrameActive(e);
   return `
-  <div class="card" style="padding:0; overflow:hidden; ${framed?'border:2px solid var(--gold2); box-shadow:0 0 0 1px var(--gold2), 0 4px 20px rgba(201,168,76,.25); position:relative;':''}">
+  <div class="card" style="padding:0; overflow:hidden; ${framed?'border:2px solid var(--gold2); box-shadow:0 0 0 1px var(--gold2), 0 4px 20px rgba(184,149,77,.25); position:relative;':''}">
     ${framed?`<div style="position:absolute; top:8px; right:8px; z-index:2; background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#15130a; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; box-shadow:0 2px 8px rgba(0,0,0,.3);">🖼️ ${LANG==='ru'?'В рамке':'Featured'}</div>`:''}
     ${posterHtml}
     <div class="card-body">
@@ -4123,7 +4149,7 @@ function afishaCardHtml(e){
       <p style="margin-top:8px; font-weight:600;">${priceStr?'💰 '+priceStr:''}</p>
       ${e.phone?`<p style="margin-top:6px;">📞 <a href="tel:${esc2(e.phone)}">${esc2(e.phone)}</a></p>`:''}
       ${e.contact?`<p>💬 ${esc2(e.contact)}</p>`:''}
-      ${(e.lat!=null&&e.lng!=null)?`<iframe style="width:100%; height:140px; border:1px solid rgba(255,255,255,.08); border-radius:8px; margin-top:8px;" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${e.lng-0.01}%2C${e.lat-0.007}%2C${e.lng+0.01}%2C${e.lat+0.007}&layer=mapnik&marker=${e.lat}%2C${e.lng}"></iframe>`:''}
+      ${(e.lat!=null&&e.lng!=null)?`<iframe style="width:100%; height:140px; border:1px solid var(--line); border-radius:8px; margin-top:8px;" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${e.lng-0.01}%2C${e.lat-0.007}%2C${e.lng+0.01}%2C${e.lat+0.007}&layer=mapnik&marker=${e.lat}%2C${e.lng}"></iframe>`:''}
     </div>
   </div>`;
 }
@@ -5580,7 +5606,7 @@ function wzForm(){
   }
   const pointsCap = Math.min(maxPointsAllowed, Math.floor(userAvailablePoints));
   const pointsBlockHtml = pointsCap>0 ? `
-    <div class="form-row" style="background:rgba(255,255,255,.03); border-radius:8px; padding:10px 12px; margin-top:6px;">
+    <div class="form-row" style="background:rgba(26,28,32,.03); border-radius:8px; padding:10px 12px; margin-top:6px;">
       <label style="font-size:12.5px;">🎁 ${LANG==='ru'?`Оплатить баллами (доступно ${Math.floor(userAvailablePoints)} ₽, максимум к списанию на эту бронь — ${pointsCap} ₽)`:`Pay with points (available ${Math.floor(userAvailablePoints)} ₽, max for this booking — ${pointsCap} ₽)`}</label>
       <input type="number" id="bkPointsInput" min="0" max="${pointsCap}" step="1" value="0" oninput="CX.recalcPointsDiscount(${hotelBase}, ${pointsCap})" style="margin-top:4px;">
     </div>` : '';
@@ -6301,7 +6327,7 @@ function renderHomeClassPicker(){
   wrap.innerHTML=`
     <p style="text-align:center; color:var(--muted); font-size:14px; margin-bottom:12px;">${t('home_class_picker_title',{city})}</p>
     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
-      ${classes.map(cl=>`<div class="choice-card" style="padding:14px; width:150px; border:2px solid var(--gold); box-shadow:0 0 8px rgba(201,168,76,.15);" onclick="CX.selectHomeHotelClass('${cl.v}')"><div class="flag" style="font-size:20px;">${cl.i}</div><div class="name" style="font-size:14px;">${cl.l}</div></div>`).join('')}
+      ${classes.map(cl=>`<div class="choice-card" style="padding:14px; width:150px; border:2px solid var(--gold); box-shadow:0 0 8px rgba(184,149,77,.15);" onclick="CX.selectHomeHotelClass('${cl.v}')"><div class="flag" style="font-size:20px;">${cl.i}</div><div class="name" style="font-size:14px;">${cl.l}</div></div>`).join('')}
     </div>`;
 }
 function renderCategoryCardsGrid(){
@@ -6408,7 +6434,7 @@ function renderModal(type){
 
       <h3 style="margin:18px 0 10px;">${t('cabinet_profile')}</h3>
       <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px;">
-        <div style="width:64px; height:64px; border-radius:50%; overflow:hidden; background:rgba(255,255,255,.06); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <div style="width:64px; height:64px; border-radius:50%; overflow:hidden; background:rgba(26,28,32,.06); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
           ${u.photo? `<img src="${u.photo}" style="width:100%; height:100%; object-fit:cover;">` : `<span style="font-size:26px;">👤</span>`}
         </div>
         <div>
@@ -6444,10 +6470,10 @@ function renderModal(type){
           // и заезд по которой ещё не наступил — отменять уже начавшееся или
           // прошедшее проживание смысла нет, это вопрос уже не к сайту, а к отелю.
           const canCancel = (b.status==='pending'||b.status==='confirmed') && new Date(b.checkin) > new Date();
-          return `<div style="border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:10px; margin-bottom:10px;">
+          return `<div style="border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:10px;">
             <div style="display:flex; justify-content:space-between; gap:10px;">
               <b>${esc2(b.hotelName)||esc2(b.hotelId)}</b>
-              <span style="font-size:12px; padding:2px 8px; border-radius:6px; background:rgba(201,168,76,.15); color:var(--gold); white-space:nowrap;">${t(statusKey)}</span>
+              <span style="font-size:12px; padding:2px 8px; border-radius:6px; background:rgba(184,149,77,.15); color:var(--gold); white-space:nowrap;">${t(statusKey)}</span>
             </div>
             <div style="color:var(--muted); font-size:13px; margin-top:2px;">${esc2(b.roomName)} · ${b.checkin} → ${b.checkout} (${b.nights} ${LANG==='ru'?'ноч.':'nights'})</div>
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
@@ -6563,7 +6589,7 @@ function renderModal(type){
               const sign = r.type==='spend' ? '−' : '+';
               const color = r.type==='spend' ? 'var(--muted)' : 'var(--gold2)';
               const d=new Date(r.ts);
-              return `<div style="display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:12.5px;">
+              return `<div style="display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px solid var(--line); font-size:12.5px;">
                 <span style="color:var(--muted);">${d.toLocaleDateString('ru-RU')} · ${esc2(r.description||'')}</span>
                 <span style="color:${color}; white-space:nowrap;">${sign}${Math.abs(r.amount).toFixed(0)} ₽</span>
               </div>`;
@@ -6580,7 +6606,7 @@ function renderModal(type){
       // Карточка-счётчик "кого привёл" (не деньги, а список имён при раскрытии)
       function countCard(icon, title, count, names, emptyText){
         const rowsHtml = names.length
-          ? names.map(n=>`<div style="padding:4px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:12.5px; color:var(--text);">${esc2(n)}</div>`).join('')
+          ? names.map(n=>`<div style="padding:4px 0; border-bottom:1px solid var(--line); font-size:12.5px; color:var(--text);">${esc2(n)}</div>`).join('')
           : `<div style="color:var(--muted); font-size:12.5px; padding:6px 0;">${emptyText}</div>`;
         return `<details class="stat-card">
           <summary><div class="num">${count}</div><div class="lbl">${icon} ${title} ▾</div></summary>
@@ -6615,7 +6641,7 @@ function renderModal(type){
       </div>
 
       <!-- Сводка (осталась как была — просто суммы уже посчитанных полей) -->
-      <div style="margin-top:14px; padding:10px 12px; background:rgba(255,255,255,.03); border-radius:10px; font-size:12.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px 14px;">
+      <div style="margin-top:14px; padding:10px 12px; background:rgba(26,28,32,.03); border-radius:10px; font-size:12.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px 14px;">
         <span>🏨 ${LANG==='ru'?'Брони':'Bookings'}: <b style="color:var(--fg);">${bySource.booking.toFixed(0)} ₽</b></span>
         <span>🤝 ${LANG==='ru'?'Партнёры':'Partners'}: <b style="color:var(--fg);">${bySource.partner_card.toFixed(0)} ₽</b></span>
         <span>🏢 ${LANG==='ru'?'Отели':'Hotels'}: <b style="color:var(--fg);">${bySource.hotel_commission.toFixed(0)} ₽</b></span>
@@ -6650,7 +6676,7 @@ function renderModal(type){
            заберите остаток по нынешней стране, только потом сможете сменить страну. -->
       <details style="margin-top:8px;">
         <summary style="cursor:pointer; font-size:12px; color:var(--muted); text-align:center; list-style:none;">${LANG==='ru'?'Сменить страну выплат':'Change payout country'}</summary>
-        <div style="margin-top:8px; padding:12px; background:rgba(255,255,255,.03); border-radius:10px;">
+        <div style="margin-top:8px; padding:12px; background:rgba(26,28,32,.03); border-radius:10px;">
           <select id="refConfirmCountry" style="width:100%; margin-bottom:8px;">${getAllCountryCodes().sort((a,b)=>countryDisplayName(a).localeCompare(countryDisplayName(b),'ru')).map(cc=>`<option value="${cc}" ${cc===getReferralCountry(data)?'selected':''}>${flagEmoji(cc)} ${esc2(countryDisplayName(cc))}</option>`).join('')}</select>
           <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="confirmReferralCountry('${data.code}')">${LANG==='ru'?'Сохранить новую страну':'Save new country'}</button>
         </div>
@@ -7169,7 +7195,7 @@ function initStarfield(){
       s.phase+=s.speed;
       const alpha=0.4+Math.abs(Math.sin(s.phase))*0.6;
       ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle = s.gold ? `rgba(232,201,106,${alpha})` : `rgba(255,255,255,${alpha*0.8})`;
+      ctx.fillStyle = s.gold ? `rgba(201,164,94,${alpha})` : `rgba(255,255,255,${alpha*0.8})`;
       ctx.fill();
     });
     requestAnimationFrame(draw);
