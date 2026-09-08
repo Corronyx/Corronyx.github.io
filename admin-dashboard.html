@@ -332,6 +332,23 @@ tr:last-child td{border-bottom:none;}
 .msg{max-width:88%; padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.5;}
 .msg.bot{background:var(--bg3); align-self:flex-start;}
 .msg.user{background:var(--purple); color:#fff; align-self:flex-end;}
+/* Карточка подтверждения действия ИИ-агента (06.09.2026) — ИИ никогда не
+   выполняет действие сам, только предлагает; это единственное место в коде,
+   где реальная функция (ADM.*) реально вызывается по итогам работы агента —
+   и то только по явному клику администратора. */
+.msg.action{
+  background:var(--bg2); border:1px solid rgba(184,149,77,.4); align-self:flex-start;
+  border-radius:10px; padding:12px 14px; max-width:88%;
+}
+.msg.action .action-label{font-size:13px; margin-bottom:10px; line-height:1.4;}
+.msg.action .action-btns{display:flex; gap:8px;}
+.msg.action button{border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer;}
+.msg.action .action-confirm{background:var(--ok); color:#fff;}
+.msg.action .action-cancel{background:transparent; border:1px solid rgba(255,255,255,.15); color:var(--muted);}
+.msg.action.done .action-btns{display:none;}
+.msg.action.done .action-label::after{content:' ✅ Выполнено'; color:var(--ok); font-weight:700;}
+.msg.action.cancelled .action-btns{display:none;}
+.msg.action.cancelled .action-label::after{content:' ❌ Отменено'; color:var(--err); font-weight:700;}
 .ai-input{display:flex; border-top:1px solid rgba(255,255,255,.06); padding:10px;}
 .ai-input input{flex:1; background:var(--bg3); border:1px solid rgba(255,255,255,.08); color:var(--text); padding:10px 12px; border-radius:8px; font-family:inherit; font-size:13px;}
 .ai-input button{margin-left:8px; background:var(--purple); border:none; border-radius:8px; padding:0 16px; cursor:pointer; font-weight:700; color:#fff;}
@@ -1527,10 +1544,10 @@ const T = {
  secret_emailjs_template_recovery:{ru:'EmailJS: Template ID (код восстановления пароля)',en:'EmailJS: Template ID (password recovery code)'},
  secret_emailjs_public:{ru:'EmailJS: Public Key',en:'EmailJS: Public Key'},
  btn_save:{ru:'Сохранить',en:'Save'}, secrets_saved:{ru:'Сохранено',en:'Saved'},
- ai_name:{ru:'ИИ-аналитик',en:'AI Analyst'},
- ai_ph:{ru:'Спросите про выручку, отели, выплаты...',en:'Ask about revenue, hotels, payouts...'},
- ai_greet:{ru:'Здравствуйте! Я помогу с аналитикой по платформе: выручка, отели, выплаты, рефералы.',en:'Hello! I can help with platform analytics: revenue, hotels, payouts, referrals.'},
- ai_fallback:{ru:'Спросите, например: «топ отелей по выручке» или «какие отели должны выплату».',en:'Try asking, for example: "top hotels by revenue" or "which hotels owe a payout".'}
+ ai_name:{ru:'Corronyx Agent (админ)',en:'Corronyx Agent (admin)'},
+ ai_ph:{ru:'Спросите про заявки, выплаты, отели...',en:'Ask about applications, payouts, hotels...'},
+ ai_greet:{ru:'Здравствуйте! Я Corronyx Agent — вижу все данные платформы (заявки, выплаты, отели, рефералы) и могу выполнять действия по вашей команде. Любое действие — только после вашего подтверждения.',en:'Hello! I am Corronyx Agent — I can see all platform data (applications, payouts, hotels, referrals) and can perform actions on your instruction. Any action requires your confirmation first.'},
+ ai_fallback:{ru:'Пока не могу ответить на этот вопрос — попробуйте переформулировать.',en:'I cannot answer that right now — try rephrasing.'}
 };
 let LANG = LS.get('cx_admin_lang') || 'ru';
 function t(key, vars){
@@ -5760,53 +5777,181 @@ const ADM = {
     });
   },
 
-  /* ---- AI analyst ---- */
+  /* ---- Corronyx Agent (админ) ---- */
   toggleAI(){ document.getElementById('aiPanel').classList.toggle('open'); },
-  sendAI(){
+  async sendAI(){
     const input=document.getElementById('aiInput');
     const text=input.value.trim(); if(!text) return;
-    addAI(text,'user'); input.value='';
-    setTimeout(()=>aiReply(text), 300);
+    addAI(esc(text),'user'); input.value='';
+    const thinkingId='think_'+Date.now();
+    addAI('<span id="'+thinkingId+'">…</span>');
+    const reply = await callAdminAI(text);
+    const thinkEl=document.getElementById(thinkingId);
+    if(thinkEl) thinkEl.closest('.msg').remove();
+    if(!reply){ addAI(t('ai_fallback')); return; }
+    renderAgentReply(reply);
   }
 };
 
-/* ---- AI analyst rule-based logic ---- */
+/* =========================================================
+   Corronyx Agent (админ) — 06.09.2026
+   В отличие от 4 обычных агентов на других порталах, у этого агента сразу
+   полный доступ ко всем данным платформы (пароль от входа в саму
+   admin-dashboard.html уже отделяет чужих людей — отдельная кодовая
+   фраза/письмо-код, как в других порталах, здесь не нужна).
+
+   ГЛАВНОЕ ПРАВИЛО (владелец, 06.09.2026): агент НИКОГДА не выполняет
+   действие сам. Он может только ПРЕДЛОЖИТЬ действие особой меткой
+   [ACTION]{...}[/ACTION] в своём ответе — код ищет её, показывает
+   администратору отдельную карточку с понятной подписью и двумя кнопками
+   (Подтвердить/Отмена), и только КЛИК по «Подтвердить» вызывает реальную
+   функцию. Сам текст ответа модели никогда не исполняется как код — имя
+   функции проверяется по жёсткому списку ниже (ADMIN_AI_ACTIONS), а не
+   вызывается напрямую по строке от ИИ. Если модель предложит действие не
+   из списка — карточка подтверждения просто не покажется. */
+let _adminAiHistory=[];
+const ADMIN_AI_HISTORY_LIMIT=18;
+
+// Жёсткий список того, что агенту вообще разрешено ПРЕДЛАГАТЬ. Новую
+// функцию сюда нужно добавлять руками (осознанно), а не давать модели
+// вызывать что угодно по имени.
+const ADMIN_AI_ACTIONS = {
+  approveTourOperator: { argCount:1, run:(a)=>ADM.approveTourOperator(a[0]) },
+  rejectTourOperator:  { argCount:1, run:(a)=>ADM.rejectTourOperator(a[0]) },
+  markRubSent:         { argCount:1, run:(a)=>ADM.markRubSent(a[0]) },
+  markGiftSent:        { argCount:1, run:(a)=>ADM.markGiftSent(a[0]) },
+  setHotelStatus:      { argCount:2, run:(a)=>ADM.setHotelStatus(a[0], a[1]) },
+};
+
+// Живой срез данных — модель видит АКТУАЛЬНОЕ состояние на момент вопроса,
+// а не то, что было в момент написания системного промпта (тот же приём,
+// что в index.html для гостевого агента — "live data injection").
+function buildAdminAiContext(){
+  const touropPending = ADM.getTourOperatorApplications().filter(a=>ADM.getHotelStatus(a.id)==='pending_verification');
+  const rubQueue = LS.getJSON('cx_referral_payout_requests_rub', []).filter(g=>g.status!=='sent');
+  const cryptoQueue = LS.getJSON('cx_referral_gift_requests', []).filter(g=>g.status!=='sent');
+  const hotels = ADM.getAllHotels();
+  const offHotels = hotels.filter(h=>ADM.getHotelStatus(h.id)==='off');
+  const bookings = ADM.getAllBookings();
+  const totalRevenue = bookings.reduce((s,b)=>s+(b.total||0),0);
+
+  let ctx = `ТЕКУЩЕЕ СОСТОЯНИЕ ПЛАТФОРМЫ (актуально на этот момент):\n`;
+  ctx += `- Отелей всего: ${hotels.length}, отключённых (off): ${offHotels.length}\n`;
+  ctx += `- Бронирований всего: ${bookings.length}, суммарная выручка по ним: ${totalRevenue.toFixed(2)}\n`;
+  ctx += `- Заявок туроператоров на проверке: ${touropPending.length}\n`;
+  touropPending.forEach(a=>{ ctx += `  · id=${a.id}, название="${a.name}", ИНН=${a.inn||'—'}, реестровый №=${a.reestrNumber||'—'}\n`; });
+  ctx += `- В очереди на рублёвую выплату рефералам: ${rubQueue.length}\n`;
+  rubQueue.forEach(g=>{ ctx += `  · id=${g.id}, сумма=${(g.amountRub||0).toFixed(2)}₽, реквизиты="${g.payoutRub||'—'}"\n`; });
+  ctx += `- В очереди на крипто-выплату рефералам: ${cryptoQueue.length}\n`;
+  cryptoQueue.forEach(g=>{ ctx += `  · id=${g.id}, сумма=${g.amountUsdt} USDT, кошелёк=${g.wallet||'—'}\n`; });
+  if(offHotels.length){ ctx += `- Отключённые отели: ${offHotels.map(h=>h.name).join(', ')}\n`; }
+  return ctx;
+}
+
+const ADMIN_AI_SYSTEM_PROMPT_BASE = `Ты — Corronyx Agent в режиме администратора платформы Corronyx (единственный владелец уже вошёл по паролю в admin-dashboard.html — ты разговариваешь напрямую с ним, никаких дополнительных проверок личности не нужно).
+
+Тебе доступны актуальные данные платформы (см. блок ниже, он обновляется перед каждым твоим ответом) — используй их, а не выдумывай цифры.
+
+ТЫ МОЖЕШЬ ПРЕДЛАГАТЬ ДЕЙСТВИЯ, НО НИКОГДА НЕ ВЫПОЛНЯЕШЬ ИХ САМ.
+Если администратор просит что-то СДЕЛАТЬ (одобрить заявку, отклонить заявку, отметить выплату отправленной, изменить статус отеля) — в конце ответа добавь ОДНУ метку в точном формате:
+[ACTION]{"fn":"ИМЯ_ФУНКЦИИ","args":["арг1","арг2"],"label":"Понятное описание действия для администратора"}[/ACTION]
+
+Разрешённые ИМЯ_ФУНКЦИИ и их аргументы (другие имена использовать нельзя, их просто проигнорируют):
+- approveTourOperator: args=[id заявки] — одобрить заявку туроператора
+- rejectTourOperator: args=[id заявки] — отклонить заявку туроператора (причину админ укажет сам во всплывающем окне)
+- markRubSent: args=[id заявки] — отметить рублёвую выплату рефералу отправленной
+- markGiftSent: args=[id заявки] — отметить крипто-выплату рефералу отправленной
+- setHotelStatus: args=[id отеля, "active" или "pause" или "off"] — изменить статус отеля
+
+В поле "label" ОБЯЗАТЕЛЬНО укажи конкретику (название/сумму/получателя), чтобы администратор понимал, что именно подтверждает, не открывая другие разделы. Никогда не пиши метку [ACTION], если не уверен на 100% в id — если не знаешь точный id, сначала спроси уточнение или назови варианты из блока данных.
+
+Ставь МАКСИМУМ одну метку [ACTION] в ответе. Если действий несколько — предложи одно, дождись решения, потом следующее.
+
+Если вопрос не требует действия — просто отвечай на основе данных, без метки [ACTION].
+
+Отвечай по-деловому, кратко, без лишней воды. Ты уже разговариваешь с владельцем платформы — специальная осторожность (как у агентов для обычных гостей/отелей) здесь не нужна, но метка [ACTION] — единственный способ реально что-то изменить, свободный текст ничего не меняет сам по себе.`;
+
+async function callAdminAI(userMessage){
+  const AI_WORKER_URL='https://corronyx-ai.corronyx.workers.dev/';
+  const systemPrompt = ADMIN_AI_SYSTEM_PROMPT_BASE + '\n\n' + buildAdminAiContext();
+  _adminAiHistory.push({role:'user', content:userMessage});
+  if(_adminAiHistory.length>ADMIN_AI_HISTORY_LIMIT) _adminAiHistory=_adminAiHistory.slice(-ADMIN_AI_HISTORY_LIMIT);
+  try{
+    const resp=await fetch(AI_WORKER_URL,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'system',content:systemPrompt}, ..._adminAiHistory]})
+    });
+    const data=await resp.json();
+    const reply=data && (data.response || (data.result && data.result.response)) ? (data.response || data.result.response).trim() : null;
+    if(reply) _adminAiHistory.push({role:'assistant', content:reply});
+    return reply;
+  }catch(e){ console.error('Ошибка обращения к Corronyx Agent (админ):', e); return null; }
+}
+
+// Разбирает [ACTION]{...}[/ACTION] из ответа модели. Возвращает { text, action }
+// где action — либо null, либо {fn, args, label} ТОЛЬКО если fn есть в белом
+// списке и число args совпадает — иначе action тоже null, а весь текст,
+// включая метку, просто не показывается пользователю как есть (метка режется
+// в любом случае, чтобы сырой JSON никогда не мелькал в чате).
+function parseAgentAction(reply){
+  const m = reply.match(/\[ACTION\]([\s\S]*?)\[\/ACTION\]/);
+  const text = reply.replace(/\[ACTION\][\s\S]*?\[\/ACTION\]/,'').trim();
+  if(!m) return { text, action:null };
+  let parsed;
+  try{ parsed = JSON.parse(m[1]); }catch(e){ console.warn('Corronyx Agent: не смог разобрать [ACTION]', e); return { text, action:null }; }
+  const spec = ADMIN_AI_ACTIONS[parsed.fn];
+  if(!spec){ console.warn('Corronyx Agent: предложено неизвестное действие, проигнорировано:', parsed.fn); return { text, action:null }; }
+  const args = Array.isArray(parsed.args) ? parsed.args : [];
+  if(args.length !== spec.argCount){ console.warn('Corronyx Agent: неверное число аргументов для', parsed.fn); return { text, action:null }; }
+  return { text, action:{ fn:parsed.fn, args, label:String(parsed.label||parsed.fn) } };
+}
+
+function renderAgentReply(reply){
+  const { text, action } = parseAgentAction(reply);
+  if(text) addAI(esc(text).replace(/\n/g,'<br>'));
+  if(action) addAiActionCard(action);
+}
+
+let _adminAiActionSeq=0;
+function addAiActionCard(action){
+  const id='aiact_'+(++_adminAiActionSeq);
+  const body=document.getElementById('aiBody');
+  const div=document.createElement('div');
+  div.className='msg action'; div.id=id;
+  div.innerHTML = `<div class="action-label">${esc(action.label)}</div>
+    <div class="action-btns">
+      <button class="action-confirm" onclick="runAiAction('${id}')">✅ Подтвердить</button>
+      <button class="action-cancel" onclick="cancelAiAction('${id}')">❌ Отмена</button>
+    </div>`;
+  body.appendChild(div);
+  body.scrollTop=body.scrollHeight;
+  div._pendingAction = action;
+}
+function runAiAction(cardId){
+  const card=document.getElementById(cardId);
+  if(!card || !card._pendingAction || card.classList.contains('done') || card.classList.contains('cancelled')) return;
+  const action=card._pendingAction;
+  const spec=ADMIN_AI_ACTIONS[action.fn];
+  if(!spec){ card.classList.add('cancelled'); return; }
+  try{
+    spec.run(action.args);
+    card.classList.add('done');
+  }catch(e){
+    console.error('Ошибка выполнения действия администратора:', e);
+    addAI('⚠️ Не удалось выполнить действие: '+esc(e.message||String(e)));
+  }
+}
+function cancelAiAction(cardId){
+  const card=document.getElementById(cardId);
+  if(!card) return;
+  card.classList.add('cancelled');
+}
+
+/* ---- Отрисовка обычного сообщения в чате (и бот, и пользователь) ---- */
 function addAI(text, who='bot'){
   const body=document.getElementById('aiBody');
   const div=document.createElement('div'); div.className='msg '+(who==='bot'?'bot':'user'); div.innerHTML=text;
   body.appendChild(div); body.scrollTop=body.scrollHeight;
-}
-function aiReply(text){
-  const q=text.toLowerCase();
-  const bookings=ADM.getAllBookings();
-  const hotels=ADM.getAllHotels();
-  if(q.includes('топ')||q.includes('top')||q.includes('выручк')||q.includes('revenue')){
-    const byHotel={};
-    bookings.forEach(b=>{ byHotel[b.hotelId]=(byHotel[b.hotelId]||0)+(b.total||0); });
-    const sorted=Object.entries(byHotel).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    if(!sorted.length){ addAI(LANG==='ru'?'Пока нет бронирований для анализа.':'No bookings yet to analyze.'); return; }
-    const lines=sorted.map(([id,rev])=>`${ADM.getHotelName(id)}: ${fmtMoney(rev, ADM.getHotelCountry(id))}`);
-    addAI((LANG==='ru'?'Топ отелей по выручке:<br>':'Top hotels by revenue:<br>')+lines.join('<br>'));
-  } else if(q.includes('выплат')||q.includes('payout')||q.includes('должны')||q.includes('owe')){
-    const overdue=hotels.filter(h=>ADM.getHotelStatus(h.id)==='off');
-    if(overdue.length){
-      addAI((LANG==='ru'?'Отключённые отели (проверьте задолженность):<br>':'Disabled hotels (check outstanding balance):<br>')+overdue.map(h=>esc(h.name)).join('<br>'));
-    } else {
-      addAI(LANG==='ru'?'Все отели активны, отключённых с задолженностью нет. Подробности — в разделе «Выплаты».':'All hotels are active, none disabled for non-payment. Details in the Payouts section.');
-    }
-  } else if(q.includes('отел')||q.includes('hotel')){
-    const active=hotels.filter(h=>ADM.getHotelStatus(h.id)==='active').length;
-    addAI(LANG==='ru' ? `Всего отелей: ${hotels.length}, активных: ${active}.` : `Total hotels: ${hotels.length}, active: ${active}.`);
-  } else if(q.includes('реферал')||q.includes('referral')){
-    const refs=LS.getJSON('cx_referrals', []);
-    const earned=refs.reduce((s,r)=>s+(r.earned||0),0);
-    addAI(LANG==='ru' ? `Рефералов: ${refs.length}, всего заработано (3%): $${earned.toFixed(2)}.` : `Referrals: ${refs.length}, total earned (3%): $${earned.toFixed(2)}.`);
-  } else if(q.includes('брон')||q.includes('booking')){
-    const pending=bookings.filter(b=>b.status==='pending').length;
-    addAI(LANG==='ru' ? `Всего бронирований: ${bookings.length}, ожидают подтверждения: ${pending}.` : `Total bookings: ${bookings.length}, pending confirmation: ${pending}.`);
-  } else {
-    addAI(t('ai_fallback'));
-  }
 }
 
 /* ---- init ---- */
