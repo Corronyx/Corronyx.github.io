@@ -6,7 +6,7 @@
 <meta name="google" content="notranslate">
 <title>Corronyx — Афиша</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
 <!-- EmailJS — для восстановления пароля (см. EMAILJS_* константы в блоке JS ниже).
      ⚠️ Реальные Service ID / Template ID / Public Key ещё не заданы (см. чек-лист
      перед запуском, пункт 1 — "2 Template IDs: booking + password recovery").
@@ -16,13 +16,14 @@
 <style>
 *{box-sizing:border-box; margin:0; padding:0;}
 :root{
-  --bg:#0d0b1a; --bg2:#13112a; --bg3:#1a1830;
-  --gold:#c9a84c; --gold2:#e8c67a;
-  --text:#e8e4f0; --muted:#8a86a0;
-  --ok:#4caf7d; --err:#e05555; --warn:#f0a830;
-  --radius:12px; --border:rgba(255,255,255,.08);
+  --bg:#FDFBF7; --bg2:#FFFFFF; --bg3:#F4F1E9;
+  --gold:#B8954D; --gold2:#C9A45E;
+  --navy:#1E293B; --navy2:#2A3A52;
+  --text:#1A1C20; --muted:#5A5D66;
+  --ok:#10B981; --ok-bg:#D1FAE5; --err:#EF4444; --err-bg:#FEE2E2; --warn:#F59E0B; --warn-bg:#FEF3C7;
+  --radius:12px; --border:rgba(26,28,32,.10);
 }
-body{font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh;}
+body{font-family:'Manrope',sans-serif; background:var(--bg); color:var(--text); min-height:100vh;}
 h1,h2,h3{font-family:'Playfair Display',serif;}
 
 /* ============================================================
@@ -37,16 +38,16 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
 .sw-badge-blob{ border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; }
 .sw-badge-ring{
   border-radius:50%;
-  box-shadow:0 0 0 4px var(--bg), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(201,168,76,.08);
+  box-shadow:0 0 0 4px var(--bg), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(184,149,77,.08);
 }
 .sw-badge-diamond{ border-radius:35%; transform:rotate(45deg); }
 .sw-badge-halo{
   border-radius:42% 58% 65% 35% / 45% 45% 55% 55%;
-  box-shadow:0 0 0 4px var(--bg), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(201,168,76,.08);
+  box-shadow:0 0 0 4px var(--bg), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(184,149,77,.08);
 }
 .sw-badge-ring-thin{
   border-radius:50%;
-  box-shadow:0 0 0 5px var(--bg), 0 0 0 6.5px rgba(232,201,106,.6), inset 0 0 10px rgba(201,168,76,.08);
+  box-shadow:0 0 0 5px var(--bg), 0 0 0 6.5px rgba(201,164,94,.6), inset 0 0 10px rgba(184,149,77,.08);
 }
 
 @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms !important; transition-duration:.001ms !important;} }
@@ -56,8 +57,8 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
 .login-showcase{
   flex:1 1 50%; display:flex; flex-direction:column; justify-content:center; padding:60px 56px;
   background:
-    radial-gradient(circle at 20% 20%, rgba(201,168,76,.10), transparent 45%),
-    radial-gradient(circle at 80% 75%, rgba(201,168,76,.07), transparent 40%),
+    radial-gradient(circle at 20% 20%, rgba(184,149,77,.10), transparent 45%),
+    radial-gradient(circle at 80% 75%, rgba(184,149,77,.07), transparent 40%),
     linear-gradient(160deg, #0d0b1a 0%, #14112a 60%, #191433 100%);
   position:relative; overflow:hidden;
 }
@@ -67,18 +68,20 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
   background-size:34px 34px; opacity:.15; pointer-events:none;
 }
 .showcase-eyebrow{color:var(--gold2); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; margin-bottom:14px;}
-.showcase-title{font-family:'Playfair Display',serif; font-size:clamp(28px,3.4vw,40px); line-height:1.15; margin-bottom:16px; max-width:480px;}
-.showcase-sub{color:var(--muted); font-size:15px; line-height:1.6; max-width:420px; margin-bottom:36px;}
+.showcase-title{font-family:'Playfair Display',serif; font-size:clamp(28px,3.4vw,40px); line-height:1.15; margin-bottom:16px; max-width:480px; color:#F2EEE8;}
+.showcase-sub{color:#B5B2C0; font-size:15px; line-height:1.6; max-width:420px; margin-bottom:36px;}
 .showcase-orbit{display:flex; flex-direction:column; gap:10px; max-width:420px; position:relative; z-index:1;}
+/* 06.09.2026: .login-showcase — тёмная панель намеренно (см. hotel-portal.html/
+   admin-dashboard.html/partner-portal.html — тот же приём и то же исправление). */
 .showcase-chip{
-  display:flex; align-items:center; gap:14px; background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:12px 16px;
+  display:flex; align-items:center; gap:14px; background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:12px 16px;
   opacity:0; transform:translateX(-14px); animation:chipIn .5s ease forwards;
 }
 .showcase-chip .sc-icon{font-size:22px; width:40px; height:40px; display:flex; align-items:center; justify-content:center;
-  background:rgba(201,168,76,.12); border-radius:10px; flex-shrink:0;}
-.showcase-chip .sc-label{font-size:14px; font-weight:600;}
-.showcase-chip .sc-sub{font-size:12px; color:var(--muted);}
+  background:rgba(184,149,77,.12); border-radius:10px; flex-shrink:0;}
+.showcase-chip .sc-label{font-size:14px; font-weight:600; color:#F2EEE8;}
+.showcase-chip .sc-sub{font-size:12px; color:#B5B2C0;}
 @keyframes chipIn{ to{opacity:1; transform:translateX(0);} }
 
 #loginScreen .login-box-wrap{flex:1 1 440px; max-width:520px; display:flex; align-items:center; justify-content:center; padding:40px 24px; min-height:100vh; position:sticky; top:0;}
@@ -96,7 +99,7 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
 .pp-header .logo{font-family:'Playfair Display',serif; font-size:20px; color:var(--gold2); flex:1;}
 .pp-header .user-info{font-size:13px; color:var(--muted);}
 .pp-tabs{display:flex; gap:4px; padding:16px 24px; border-bottom:1px solid var(--border); background:var(--bg);}
-.pp-tab{padding:8px 18px; border-radius:8px; cursor:pointer; font-size:14px; font-weight:500; color:var(--muted); border:1px solid rgba(201,168,76,.35); background:transparent; transition:all .2s; position:relative;}
+.pp-tab{padding:8px 18px; border-radius:8px; cursor:pointer; font-size:14px; font-weight:500; color:var(--muted); border:1px solid rgba(184,149,77,.35); background:transparent; transition:all .2s; position:relative;}
 .pp-tab.active{background:var(--bg2); color:var(--gold2);}
 .pp-tab .tab-badge{position:absolute; top:4px; right:4px; background:var(--err); color:#fff; border-radius:8px; font-size:10px; padding:1px 5px; font-weight:700;}
 .pp-content{flex:1; padding:24px; max-width:780px; margin:0 auto; width:100%;}
@@ -105,7 +108,7 @@ h1,h2,h3{font-family:'Playfair Display',serif;}
   position:fixed; top:150px; left:24px; z-index:90;
   display:inline-flex; align-items:center; gap:6px;
   font-size:14px; color:var(--gold2); cursor:pointer; padding:11px 20px; border-radius:999px;
-  background:var(--bg2); border:1px solid rgba(201,168,76,.35); box-shadow:0 4px 18px rgba(0,0,0,.45);
+  background:var(--bg2); border:1px solid rgba(184,149,77,.35); box-shadow:0 4px 18px rgba(0,0,0,.45);
 }
 .back-btn-floating:hover{border-color:var(--gold); background:var(--bg3);}
 @media(max-width:640px){ .back-btn-floating{ padding:11px 16px; font-size:13px; top:170px; left:16px; } }
@@ -146,15 +149,15 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
 /* ---- Обложка афиши ---- */
 .poster-hero{
   position:relative; width:100%; height:220px; border-radius:var(--radius); overflow:hidden;
-  background:var(--bg3); border:1.5px dashed rgba(255,255,255,.18);
+  background:var(--bg3); border:1.5px dashed rgba(26,28,32,.18);
   display:flex; align-items:center; justify-content:center; margin-bottom:16px; cursor:pointer;
   background-size:cover; background-position:center; transition:border-color .2s;
 }
-.media-type-tab{background:transparent; border:1px solid rgba(201,168,76,.35); color:var(--muted); padding:7px 14px; border-radius:8px; font-size:13px; cursor:pointer; transition:.2s;}
-.media-type-tab.active{border-color:var(--gold); color:var(--gold2); background:rgba(201,168,76,.1);}
+.media-type-tab{background:transparent; border:1px solid rgba(184,149,77,.35); color:var(--muted); padding:7px 14px; border-radius:8px; font-size:13px; cursor:pointer; transition:.2s;}
+.media-type-tab.active{border-color:var(--gold); color:var(--gold2); background:rgba(184,149,77,.1);}
 .media-type-tab:hover{border-color:var(--gold);}
 .poster-hero:hover{border-color:var(--gold);}
-.poster-hero.has-image{border-style:solid; border-color:rgba(201,168,76,.3);}
+.poster-hero.has-image{border-style:solid; border-color:rgba(184,149,77,.3);}
 .poster-hero-empty{display:flex; flex-direction:column; align-items:center; gap:8px; color:var(--muted); text-align:center; padding:16px; pointer-events:none;}
 .poster-hero-empty .icon{font-size:34px; opacity:.7;}
 .poster-hero-empty .txt{font-size:13px;}
@@ -163,7 +166,7 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
   background:linear-gradient(180deg, transparent 50%, rgba(0,0,0,.55) 100%); opacity:0; transition:opacity .2s;
 }
 .poster-hero.has-image:hover .poster-hero-overlay{opacity:1;}
-.poster-hero-overlay span{background:rgba(13,11,26,.85); border:1px solid rgba(255,255,255,.2); border-radius:8px; padding:6px 12px; font-size:12px;}
+.poster-hero-overlay span{background:rgba(13,11,26,.85); border:1px solid rgba(26,28,32,.2); border-radius:8px; padding:6px 12px; font-size:12px;}
 .poster-url-row{margin-top:10px; margin-bottom:16px;}
 .or-divider{text-align:center; color:var(--muted); font-size:12px; margin:8px 0;}
 
@@ -175,7 +178,7 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
 @media(max-width:860px){ .tier-grid{grid-template-columns:1fr 1fr;} }
 @media(max-width:640px){ .tier-grid{grid-template-columns:1fr;} }
 .tier-card{background:var(--bg2); border:2px solid var(--border); border-radius:var(--radius); padding:24px 20px; text-align:center; cursor:pointer; transition:all .18s ease;}
-.tier-card:hover{border-color:var(--gold); background:rgba(201,168,76,.08); transform:translateY(-2px);}
+.tier-card:hover{border-color:var(--gold); background:rgba(184,149,77,.08); transform:translateY(-2px);}
 .tier-card .tier-icon{font-size:36px; display:block; margin-bottom:10px;}
 .tier-card .tier-label{font-size:16px; font-weight:700; margin-bottom:6px;}
 .tier-card .tier-desc{font-size:12px; color:var(--muted); margin-bottom:14px; line-height:1.45; min-height:34px;}
@@ -185,7 +188,7 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
 
 /* ---- Плашка "выбранное место" на экране формы ---- */
 .tier-summary{
-  display:flex; align-items:center; gap:10px; background:var(--bg2); border:1px solid rgba(201,168,76,.25);
+  display:flex; align-items:center; gap:10px; background:var(--bg2); border:1px solid rgba(184,149,77,.25);
   border-radius:999px; padding:10px 18px; margin-bottom:16px; font-size:13px; flex-wrap:wrap;
   position:sticky; top:12px; z-index:20; box-shadow:0 6px 20px rgba(0,0,0,.35);
 }
@@ -194,10 +197,11 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
 
 /* ---- Buttons ---- */
 .btn{padding:10px 20px; border-radius:8px; border:none; cursor:pointer; font-size:14px; font-weight:500; font-family:'Inter',sans-serif; transition:all .2s; display:inline-flex; align-items:center; gap:6px;}
-.btn-primary{background:var(--gold); color:#111;}
+.btn-primary{background:var(--navy); color:#fff;}
+.btn-primary:hover{background:var(--gold); color:#2a2409;}
 .btn-primary:hover{background:var(--gold2);}
 .btn-ghost{background:transparent; color:var(--gold2); border:1px solid var(--gold);}
-.btn-ghost:hover{border-color:var(--gold2); background:rgba(201,168,76,.08);}
+.btn-ghost:hover{border-color:var(--gold2); background:rgba(184,149,77,.08);}
 .btn-ok{background:rgba(76,175,125,.2); color:var(--ok); border:1px solid rgba(76,175,125,.3);}
 .btn-err{background:rgba(224,85,85,.15); color:var(--err); border:1px solid rgba(224,85,85,.3);}
 .btn-sm{padding:6px 12px; font-size:13px;}
@@ -207,14 +211,14 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
 .totals-card{background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; min-width:140px;}
 .totals-card .tc-num{font-size:22px; font-weight:700; color:var(--gold2); font-family:'Playfair Display',serif;}
 .totals-card .tc-lbl{font-size:12px; color:var(--muted); margin-top:2px;}
-.payment-due-card{background:var(--bg2); border:1px solid rgba(201,168,76,.25); border-radius:var(--radius); padding:16px 18px; margin-bottom:20px;}
+.payment-due-card{background:var(--bg2); border:1px solid rgba(184,149,77,.25); border-radius:var(--radius); padding:16px 18px; margin-bottom:20px;}
 .sw-pay-modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:2000; display:flex; align-items:center; justify-content:center; padding:20px;}
-.sw-pay-modal{background:var(--bg2); border:1px solid rgba(201,168,76,.3); border-radius:16px; padding:28px; max-width:340px; width:100%; text-align:center; position:relative;}
+.sw-pay-modal{background:var(--bg2); border:1px solid rgba(184,149,77,.3); border-radius:16px; padding:28px; max-width:340px; width:100%; text-align:center; position:relative;}
 .sw-pay-close{position:absolute; top:10px; right:14px; background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer;}
 .sw-pay-modal h3{margin:0 0 6px;}
-.sw-kp-modal{background:var(--bg2); border:1px solid rgba(201,168,76,.3); border-radius:16px; padding:24px; max-width:640px; width:100%; text-align:left; position:relative;}
+.sw-kp-modal{background:var(--bg2); border:1px solid rgba(184,149,77,.3); border-radius:16px; padding:24px; max-width:640px; width:100%; text-align:left; position:relative;}
 .sw-kp-modal h3{margin:0 0 12px;}
-.sw-kp-modal pre{white-space:pre-wrap; font-family:inherit; font-size:13px; line-height:1.6; color:var(--text); background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:16px; max-height:55vh; overflow-y:auto; margin:0 0 14px;}
+.sw-kp-modal pre{white-space:pre-wrap; font-family:inherit; font-size:13px; line-height:1.6; color:var(--text); background:rgba(26,28,32,.03); border:1px solid rgba(26,28,32,.08); border-radius:10px; padding:16px; max-height:55vh; overflow-y:auto; margin:0 0 14px;}
 .sw-pay-amount{font-size:22px; font-weight:700; color:var(--gold2); margin:0 0 16px;}
 .sw-pay-btn{display:block; width:100%; box-sizing:border-box; margin-bottom:14px; text-decoration:none;}
 .sw-pay-or{font-size:12px; color:var(--muted); margin:0 0 12px;}
@@ -228,17 +232,17 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
 .payment-btn.ghost{background:linear-gradient(135deg,#F5C518,#FFE066); border:none; color:#1a1408; font-weight:700;}
 
 /* ---- Реквизиты Corronyx ---- */
-.platform-req-row{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;margin-bottom:8px;}
+.platform-req-row{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid rgba(26,28,32,.08);border-radius:10px;padding:10px 14px;margin-bottom:8px;}
 .platform-req-label{font-size:11px;color:var(--muted);min-width:110px;flex-shrink:0;}
 .platform-req-value{flex:1;font-size:13px;color:var(--text);font-weight:600;word-break:break-all;}
-.platform-req-copy{background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);color:var(--gold2);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;flex-shrink:0;}
-.platform-req-copy:hover{background:rgba(201,168,76,.3);}
+.platform-req-copy{background:rgba(184,149,77,.15);border:1px solid rgba(184,149,77,.3);color:var(--gold2);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;flex-shrink:0;}
+.platform-req-copy:hover{background:rgba(184,149,77,.3);}
 .platform-req-empty{font-size:12px;color:var(--muted);font-style:italic;}
 .platform-req-bank-title{font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.03em;}
 .platform-req-methods{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
-.platform-req-method-btn{background:var(--bg2);border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.15s;}
-.platform-req-method-btn:hover{border-color:rgba(201,168,76,.4);}
-.platform-req-method-btn.active{background:linear-gradient(135deg,rgba(201,168,76,.22),rgba(201,168,76,.08));border-color:var(--gold2);color:var(--gold2);}
+.platform-req-method-btn{background:var(--bg2);border:1px solid rgba(26,28,32,.1);color:var(--text);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:.15s;}
+.platform-req-method-btn:hover{border-color:rgba(184,149,77,.4);}
+.platform-req-method-btn.active{background:linear-gradient(135deg,rgba(184,149,77,.22),rgba(184,149,77,.08));border-color:var(--gold2);color:var(--gold2);}
 .platform-req-detail{margin-top:12px;}
 
 /* ---- Карточки афиш ---- */
@@ -248,7 +252,7 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
   display:flex; flex-direction:column; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
   opacity:0; transform:translateY(10px); animation:cardIn .4s ease forwards;
 }
-.placement-card:hover{transform:translateY(-3px); box-shadow:0 12px 28px rgba(0,0,0,.28); border-color:rgba(201,168,76,.35);}
+.placement-card:hover{transform:translateY(-3px); box-shadow:0 12px 28px rgba(0,0,0,.28); border-color:rgba(184,149,77,.35);}
 .placement-card .pc-poster{width:100%; height:150px; object-fit:cover; background:var(--bg3); display:block;}
 .placement-card .pc-poster-fallback{width:100%; height:150px; display:flex; align-items:center; justify-content:center; font-size:36px; background:var(--bg3);}
 .placement-card .pc-body{flex:1; padding:16px; display:flex; flex-direction:column; gap:8px;}
@@ -260,14 +264,14 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
 .status-pending{background:rgba(240,168,48,.15); color:var(--warn);}
 .status-active{background:rgba(76,175,125,.15); color:var(--ok);}
 .status-stopped{background:rgba(224,85,85,.15); color:var(--err);}
-.status-expired{background:rgba(255,255,255,.08); color:var(--muted);}
+.status-expired{background:rgba(26,28,32,.08); color:var(--muted);}
 .tier-badge{display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(90,140,230,.15); color:#9bb8f0;}
 .paid-badge{display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(76,175,125,.15); color:var(--ok);}
 .unpaid-badge{display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(240,168,48,.15); color:var(--warn);}
 
 /* ---- Misc ---- */
 .section-title{font-size:20px; margin-bottom:16px; color:var(--gold2);}
-.empty-state{background:var(--bg2); border:1px dashed rgba(255,255,255,.15); border-radius:var(--radius); padding:48px 24px; text-align:center;}
+.empty-state{background:var(--bg2); border:1px dashed rgba(26,28,32,.15); border-radius:var(--radius); padding:48px 24px; text-align:center;}
 .empty-state .es-icon{font-size:40px; margin-bottom:12px; opacity:.7;}
 .empty-state p{color:var(--muted); font-size:14px; margin-bottom:16px;}
 .err-msg{color:var(--err); font-size:13px; margin-top:6px;}
@@ -275,7 +279,7 @@ input[type=datetime-local]::-webkit-calendar-picker-indicator{
 .banner{padding:14px 18px; border-radius:var(--radius); margin-bottom:20px; font-size:14px; line-height:1.5;}
 .banner-info{background:rgba(90,140,230,.12); border:1px solid rgba(90,140,230,.3); color:#9bb8f0;}
 .notif-item{padding:14px 16px; border-bottom:1px solid var(--border); display:flex; flex-direction:column; gap:4px;}
-.notif-item.unread{background:rgba(201,168,76,.05); border-left:3px solid var(--gold);}
+.notif-item.unread{background:rgba(184,149,77,.05); border-left:3px solid var(--gold);}
 .notif-text{font-size:14px; line-height:1.5; white-space:pre-wrap;}
 .notif-time{font-size:11px; color:var(--muted);}
 .hidden{display:none!important;}
@@ -314,20 +318,20 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
 .lang-switch{position:relative; display:inline-block;}
 .lang-btn{
   display:flex; align-items:center; gap:6px; background:var(--bg3);
-  border:1px solid rgba(201,168,76,.18); border-radius:999px; padding:9px 16px;
+  border:1px solid rgba(184,149,77,.18); border-radius:999px; padding:9px 16px;
   color:var(--text,#e8e4f0); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
   min-height:38px; box-sizing:border-box; transition:.2s;
 }
-.lang-btn:hover{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:transparent; transform:translateY(-1px); box-shadow:0 6px 18px rgba(201,168,76,.25); }
+.lang-btn:hover{ color:#15130a; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:transparent; transform:translateY(-1px); box-shadow:0 6px 18px rgba(184,149,77,.25); }
 .lang-dropdown{
   position:absolute; top:calc(100% + 8px); right:0; background:var(--bg3);
-  border:1px solid rgba(255,255,255,.08); border-radius:12px; min-width:150px;
+  border:1px solid rgba(26,28,32,.08); border-radius:12px; min-width:150px;
   overflow:hidden; display:none; box-shadow:0 12px 32px rgba(0,0,0,.5); z-index:200;
   max-height:340px; overflow-y:auto;
 }
 .lang-dropdown.open{display:block;}
 .lang-dropdown div{padding:10px 16px; font-size:13px; cursor:pointer; transition:.15s; display:flex; gap:8px; align-items:center;}
-.lang-dropdown div:hover{background:rgba(201,168,76,.12); color:var(--gold2);}
+.lang-dropdown div:hover{background:rgba(184,149,77,.12); color:var(--gold2);}
 .lang-dropdown .lang-divider{padding:8px 16px 4px; font-size:11px; text-transform:uppercase; color:var(--muted); cursor:default; letter-spacing:1px;}
 .lang-dropdown .lang-divider:hover{background:none; color:var(--muted);}
 .header-gtranslate-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none; }
@@ -464,7 +468,7 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
       <h2 class="font-cormorant gradient-heading section-title" data-t="choose_placement_title">Где вы хотите разместить афишу?</h2>
       <div class="tier-pick-intro" data-t="choose_placement_intro">Цену за размещение устанавливает администратор Corronyx — она уже показана на карточках ниже. После выбора вы заполните саму афишу.</div>
       <div class="payment-noreturn-notice">⚠️ <span data-t="no_refund_notice">После оплаты денежные средства не возвращаются. Взамен вы получаете оплаченное рекламное место на весь срок размещения.</span></div>
-      <div style="font-size:13px; color:var(--muted); background:rgba(255,255,255,.04); border-radius:10px; padding:12px 14px; margin-bottom:16px; line-height:1.5;">
+      <div style="font-size:13px; color:var(--muted); background:rgba(26,28,32,.04); border-radius:10px; padding:12px 14px; margin-bottom:16px; line-height:1.5;">
         📌 <b>Афиша показывается 21 день</b> или до указанной даты события — в зависимости от того, что раньше.
       </div>
       <div class="tier-grid" id="tierGrid"></div>
@@ -479,7 +483,7 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
 
       <div class="tier-summary" id="tierSummary"></div>
 
-      <div id="afishaRulesBox" style="font-size:13px; line-height:1.5; color:var(--text); background:rgba(201,168,76,.06); border:1px solid rgba(201,168,76,.2); border-radius:12px; padding:14px 16px; margin-bottom:18px;">
+      <div id="afishaRulesBox" style="font-size:13px; line-height:1.5; color:var(--text); background:rgba(184,149,77,.06); border:1px solid rgba(184,149,77,.2); border-radius:12px; padding:14px 16px; margin-bottom:18px;">
         <div style="font-weight:600; margin-bottom:6px; color:var(--gold2);">📋 Условия размещения — прочитайте перед публикацией</div>
         <ul style="margin:0; padding-left:18px;">
           <li>Афиша показывается на сайте <b>только после оплаты</b> размещения (кроме случаев, когда администратор Corronyx индивидуально освободил вас от оплаты).</li>
@@ -523,7 +527,7 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
         <div class="form-row">
           <button type="button" class="media-type-tab" onclick="AP.toggleVenueMap()" id="venueMapToggleBtn">📍 Показать карту и выбрать точку <span style="color:#ff6b6b;">*</span></button>
           <div style="font-size:12px; color:var(--muted); margin-top:6px;">Кликните на карте на нужную точку — страна, город и адрес заполнятся автоматически. <b>Точка на карте обязательна</b> — без неё афишу не сохранить.</div>
-          <div id="venueMapBox" class="hidden" style="margin-top:10px; height:280px; border-radius:10px; overflow:hidden; border:1px solid rgba(201,168,76,.3);"></div>
+          <div id="venueMapBox" class="hidden" style="margin-top:10px; height:280px; border-radius:10px; overflow:hidden; border:1px solid rgba(184,149,77,.3);"></div>
           <input type="hidden" id="fLat"><input type="hidden" id="fLng">
         </div>
       </div>
@@ -584,7 +588,7 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
         <input type="checkbox" id="notifSoundToggleAP" checked onchange="toggleNotifSound('afisha', this.checked)">
         🔔 <span data-t="notif_sound_toggle">Звук уведомлений</span>
       </label>
-      <div style="background:var(--bg2); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:14px; margin-bottom:14px; max-width:360px;">
+      <div style="background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:10px; padding:14px; margin-bottom:14px; max-width:360px;">
         <div style="font-size:12px; color:var(--muted); margin-bottom:6px;">Мелодия:</div>
         <select id="notifSoundStyleAP" style="width:100%; margin-bottom:12px;" onchange="LS.set('cx_notif_sound_style_afisha', this.value)"></select>
         <button class="btn btn-sm btn-ghost" onclick="AP.testNotifSound()">🔊 Проверить звук</button>
@@ -1319,17 +1323,17 @@ const AP = {
         // Прошло больше 3 дней с истечения, продление не оплачено — окно закрыто
         // навсегда. Старую заявку на продление (если была) аннулируем визуально —
         // платить за неё больше нельзя, только создать новую афишу.
-        extensionHtml=`<div style="font-size:12px; color:var(--muted); background:rgba(255,255,255,.04); border-radius:8px; padding:8px 10px; margin-top:8px;">🔒 ${LANG==='ru'?'Показ окончательно закрыт — прошло больше 3 дней с истечения срока без продления. Чтобы разместить новое событие, создайте новую афишу.':'Display permanently closed — more than 3 days passed since expiry without extension. Create a new listing to advertise a new event.'}</div>`;
+        extensionHtml=`<div style="font-size:12px; color:var(--muted); background:rgba(26,28,32,.04); border-radius:8px; padding:8px 10px; margin-top:8px;">🔒 ${LANG==='ru'?'Показ окончательно закрыт — прошло больше 3 дней с истечения срока без продления. Чтобы разместить новое событие, создайте новую афишу.':'Display permanently closed — more than 3 days passed since expiry without extension. Create a new listing to advertise a new event.'}</div>`;
       } else if(extNeeded && dispStatus!=='expired' && !card.extensionRequested){
         const perDay=getPricePerDay(card.tier, card.country, card.ownerId);
         if(perDay.amount){
           const minDate=new Date(card.expiresAt); minDate.setDate(minDate.getDate()+1);
           const maxDate=new Date(card.eventDate);
           const minStr=minDate.toISOString().slice(0,10), maxStr=maxDate.toISOString().slice(0,10);
-          extensionHtml=`<div style="font-size:12px; color:var(--muted); background:rgba(255,255,255,.04); border-radius:8px; padding:8px 10px; margin-top:8px;">
+          extensionHtml=`<div style="font-size:12px; color:var(--muted); background:rgba(26,28,32,.04); border-radius:8px; padding:8px 10px; margin-top:8px;">
             📅 ${LANG==='ru'?'Мероприятие позже 21 дня — показ закончится':'Event is more than 21 days away — the ad will stop showing on'} ${expiresStr}.
             <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="AP.toggleExtensionForm('${esc(card.id)}')">${LANG==='ru'?'Продлить показ':'Extend display'}</button>
-            <div id="extForm_${esc(card.id)}" class="hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.08);">
+            <div id="extForm_${esc(card.id)}" class="hidden" style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(26,28,32,.08);">
               <label style="font-size:12px; display:block; margin-bottom:4px;">${LANG==='ru'?'Показывать до какой даты':'Show until date'}</label>
               <input type="date" id="extDate_${esc(card.id)}" min="${minStr}" max="${maxStr}" value="${minStr}" oninput="AP.updateExtensionPreview('${esc(card.id)}')" style="width:100%; margin-bottom:8px;">
               <div id="extPreview_${esc(card.id)}" style="font-size:13px; color:var(--gold2); margin-bottom:8px;"></div>
@@ -1337,7 +1341,7 @@ const AP = {
             </div>
           </div>`;
         } else {
-          extensionHtml=`<div style="font-size:12px; color:var(--muted); background:rgba(255,255,255,.04); border-radius:8px; padding:8px 10px; margin-top:8px;">
+          extensionHtml=`<div style="font-size:12px; color:var(--muted); background:rgba(26,28,32,.04); border-radius:8px; padding:8px 10px; margin-top:8px;">
             📅 ${LANG==='ru'?'Мероприятие позже 21 дня — показ закончится':'Event is more than 21 days away — the ad will stop showing on'} ${expiresStr}. ${LANG==='ru'?'Продление показа пока недоступно — администратор ещё не задал цену размещения для этого тарифа.':"Extension is not available yet — the admin hasn't set a placement price for this tier."}
           </div>`;
         }
@@ -1348,7 +1352,7 @@ const AP = {
         const pausedNote = dispStatus==='expired'
           ? (LANG==='ru'?' Показ сейчас приостановлен — оплатите, чтобы возобновить.':' Display is currently paused — pay to resume it.')
           : '';
-        extensionHtml=`<div style="font-size:12px; color:var(--gold2); background:rgba(201,168,76,.08); border:1px solid rgba(201,168,76,.25); border-radius:8px; padding:8px 10px; margin-top:8px;">⏳ ${LANG==='ru'?'Продление показа ожидает оплаты — см. блок «К оплате» выше.':'Extension is awaiting payment — see the payment block above.'}${pausedNote}</div>`;
+        extensionHtml=`<div style="font-size:12px; color:var(--gold2); background:rgba(184,149,77,.08); border:1px solid rgba(184,149,77,.25); border-radius:8px; padding:8px 10px; margin-top:8px;">⏳ ${LANG==='ru'?'Продление показа ожидает оплаты — см. блок «К оплате» выше.':'Extension is awaiting payment — see the payment block above.'}${pausedNote}</div>`;
       }
       // Золотая рамка (п.11-13, 28.08.2026): статус на карточке + кнопка купить/продлить.
       // Пока афиша на модерации ("pending") предлагать рамку рано — сначала должны
@@ -1359,12 +1363,12 @@ const AP = {
           const acc=LS.getJSON(ACC_KEY,[]).find(a=>a.id===card.ownerId);
           const isOrgWide=!!(acc && acc.unlimitedFrameForAll);
           const untilStr = card.frameUnlimited||isOrgWide ? '' : (LANG==='ru'?' до '+new Date(card.frameExpiresAt).toLocaleDateString('ru-RU'):' until '+new Date(card.frameExpiresAt).toLocaleDateString('en-US'));
-          frameHtml=`<div style="font-size:12px; color:var(--gold2); background:rgba(201,168,76,.08); border:1px solid rgba(201,168,76,.25); border-radius:8px; padding:8px 10px; margin-top:8px;">
+          frameHtml=`<div style="font-size:12px; color:var(--gold2); background:rgba(184,149,77,.08); border:1px solid rgba(184,149,77,.25); border-radius:8px; padding:8px 10px; margin-top:8px;">
             🖼️ ${LANG==='ru'?'Золотая рамка активна':'Gold frame active'}${(card.frameUnlimited||isOrgWide)?(LANG==='ru'?' (бессрочно)':' (unlimited)'):untilStr}
             ${!(card.frameUnlimited||isOrgWide) ? `<button class="btn btn-ghost btn-sm" style="margin-left:6px;" onclick="AP.requestFrame('${esc(card.id)}')">${LANG==='ru'?'Продлить рамку':'Renew frame'}</button>`:''}
           </div>`;
         } else if(card.frameRequested){
-          frameHtml=`<div style="font-size:12px; color:var(--gold2); background:rgba(201,168,76,.08); border:1px solid rgba(201,168,76,.25); border-radius:8px; padding:8px 10px; margin-top:8px;">⏳ ${LANG==='ru'?'Золотая рамка ожидает оплаты — см. блок «К оплате» выше.':'Gold frame awaiting payment — see the payment block above.'}</div>`;
+          frameHtml=`<div style="font-size:12px; color:var(--gold2); background:rgba(184,149,77,.08); border:1px solid rgba(184,149,77,.25); border-radius:8px; padding:8px 10px; margin-top:8px;">⏳ ${LANG==='ru'?'Золотая рамка ожидает оплаты — см. блок «К оплате» выше.':'Gold frame awaiting payment — see the payment block above.'}</div>`;
         } else {
           const price=this.getFramePrice();
           const isRuResident=(card.country==='RU');
@@ -1666,7 +1670,7 @@ const AP = {
     // и гости не увидят афишу к моменту события. Партнёр должен это понимать ДО оплаты.
     const expiresBeforeEvent = new Date(expiresAt).getTime() < new Date(eventDateIso).getTime();
     if(expiresBeforeEvent){
-      hint.innerHTML = confirmLine+`<div style="font-size:13px; color:var(--gold2); background:rgba(201,168,76,.08); border:1px solid rgba(201,168,76,.25); border-radius:8px; padding:8px 10px; margin-top:4px;">ℹ️ Ваше мероприятие состоится позже, чем через 21 день с момента публикации. Афиша провисит все 21 день, но покажется <b>${expStr}</b> в последний раз — к самому событию она уже будет снята с показа. Вы сможете продлить показ самостоятельно из своего кабинета — тот же принцип, ещё 21 день или до даты мероприятия.</div>`;
+      hint.innerHTML = confirmLine+`<div style="font-size:13px; color:var(--gold2); background:rgba(184,149,77,.08); border:1px solid rgba(184,149,77,.25); border-radius:8px; padding:8px 10px; margin-top:4px;">ℹ️ Ваше мероприятие состоится позже, чем через 21 день с момента публикации. Афиша провисит все 21 день, но покажется <b>${expStr}</b> в последний раз — к самому событию она уже будет снята с показа. Вы сможете продлить показ самостоятельно из своего кабинета — тот же принцип, ещё 21 день или до даты мероприятия.</div>`;
     } else {
       hint.innerHTML = confirmLine+`<div style="font-size:12px; color:var(--muted); margin-top:4px;">${t('expiry_hint_prefix')} ${expStr} ${t('expiry_max_note')}</div>`;
     }
@@ -1983,7 +1987,7 @@ const AP = {
     // если что-то пойдёт не так (обратная связь от 13.08.2026: висело 3 минуты без выхода).
     this._videoCompressionCancelled=false;
     empty.innerHTML='<span class="icon">⏳</span><span class="txt">Сжимаем видео (~'+Math.round(duration)+' сек)…</span>'
-      +'<button type="button" style="margin-top:10px; padding:6px 14px; border-radius:8px; border:1px solid rgba(255,255,255,.25); background:transparent; color:var(--text); cursor:pointer; font-size:12px;" onclick="event.stopPropagation(); AP._cancelVideoCompression();">Отменить</button>';
+      +'<button type="button" style="margin-top:10px; padding:6px 14px; border-radius:8px; border:1px solid rgba(26,28,32,.25); background:transparent; color:var(--text); cursor:pointer; font-size:12px;" onclick="event.stopPropagation(); AP._cancelVideoCompression();">Отменить</button>';
     try{
       const {blob}=await this.compressVideoFile(file, duration);
       if(this._videoCompressionCancelled) return; // UI уже сброшен кнопкой «Отменить»
@@ -2301,7 +2305,7 @@ const AP = {
     const block=document.getElementById('docsKpBlock');
     if(!block) return;
     block.innerHTML=`
-      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 16px; background:rgba(201,168,76,.06); border:1px solid rgba(201,168,76,.2); border-radius:12px;">
+      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:12px 16px; background:rgba(184,149,77,.06); border:1px solid rgba(184,149,77,.2); border-radius:12px;">
         <span style="font-size:13px; color:var(--muted); margin-right:4px;">${LANG==='ru'?'Прежде чем начать:':'Before you start:'}</span>
         <a href="afisha-agreement.html" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">📄 ${LANG==='ru'?'Договор для афиши':'Afisha agreement'}</a>
         <button type="button" class="btn btn-ghost btn-sm" onclick="AP.openKPModal()">📋 ${LANG==='ru'?'Коммерческое предложение':'Commercial proposal'}</button>
@@ -2450,7 +2454,7 @@ Contact: Corronyx@gmail.com
         <div class="payment-due-title">💳 ${t('amount_due_title')} (${sign}): ${o.amount.toLocaleString('ru-RU')} ${sign}</div>
         <div style="font-size:12px; color:var(--muted); margin-bottom:6px;">${o.items.length} ${LANG==='ru'?'афиш(и):':'listing(s):'} ${o.items.map(i=>esc(i.title)).join(', ')}</div>
         <div class="payment-noreturn-notice">⚠️ <span>${t('no_refund_notice')}</span></div>
-        ${o.items.some(i=>i.expiresBeforeEvent)?`<div style="font-size:12px; color:var(--gold2); background:rgba(201,168,76,.08); border:1px solid rgba(201,168,76,.25); border-radius:8px; padding:6px 8px; margin-bottom:6px;">ℹ️ ${LANG==='ru'?'У одной или нескольких афиш мероприятие дальше 21 дня — показ закончится раньше события. Продлить показ можно самостоятельно кнопкой в карточке афиши (та же цена, что за размещение).':'One or more listings have an event more than 21 days away — the ad will stop showing before the event. You can extend it yourself with the button on the listing card (same price as placement).'}</div>`:''}
+        ${o.items.some(i=>i.expiresBeforeEvent)?`<div style="font-size:12px; color:var(--gold2); background:rgba(184,149,77,.08); border:1px solid rgba(184,149,77,.25); border-radius:8px; padding:6px 8px; margin-bottom:6px;">ℹ️ ${LANG==='ru'?'У одной или нескольких афиш мероприятие дальше 21 дня — показ закончится раньше события. Продлить показ можно самостоятельно кнопкой в карточке афиши (та же цена, что за размещение).':'One or more listings have an event more than 21 days away — the ad will stop showing before the event. You can extend it yourself with the button on the listing card (same price as placement).'}</div>`:''}
         ${methodsHtml}
         <div class="payment-actions" style="margin-top:10px;">
           ${cur==='USD' && req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${o.amount}, 'Corronyx afisha')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
@@ -2883,7 +2887,7 @@ function cookieChoice(choice){
 <style>
 .ai-widget-btn{position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%;
   background:linear-gradient(135deg,var(--gold),var(--gold2)); display:flex; align-items:center; justify-content:center;
-  font-size:24px; cursor:pointer; box-shadow:0 8px 24px rgba(201,168,76,.4); z-index:900; transition:.2s; border:none;}
+  font-size:24px; cursor:pointer; box-shadow:0 8px 24px rgba(184,149,77,.4); z-index:900; transition:.2s; border:none;}
 .ai-widget-btn:hover{transform:scale(1.08);}
 /* 06.09.2026: Android Chrome сам показывает плавающий кружок загрузки/установки
    PWA в правом нижнем углу — поднимаем кнопку и панель выше на маленьких
@@ -2894,7 +2898,7 @@ function cookieChoice(choice){
   .ai-widget-panel{ bottom:162px; width:calc(100vw - 32px); right:16px; }
 }
 .ai-widget-panel{position:fixed; bottom:90px; right:24px; width:340px; max-height:480px; background:var(--bg2);
-  border:1px solid rgba(201,168,76,.2); border-radius:14px; display:none; flex-direction:column;
+  border:1px solid rgba(184,149,77,.2); border-radius:14px; display:none; flex-direction:column;
   box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:900; overflow:hidden;}
 .ai-widget-panel.open{display:flex;}
 .ai-widget-head{padding:12px 16px; background:var(--bg3); display:flex; justify-content:space-between; align-items:center; font-weight:600; font-size:14px;}
@@ -2903,8 +2907,8 @@ function cookieChoice(choice){
 .ai-widget-msg{max-width:85%; padding:9px 12px; border-radius:10px; font-size:13px; line-height:1.5;}
 .ai-widget-msg.bot{background:var(--bg3); align-self:flex-start;}
 .ai-widget-msg.user{background:var(--gold); color:#15130a; align-self:flex-end;}
-.ai-widget-input{display:flex; border-top:1px solid rgba(255,255,255,.06); padding:8px;}
-.ai-widget-input input{flex:1; background:var(--bg3); border:1px solid rgba(255,255,255,.08); color:var(--text); padding:9px 11px; border-radius:8px; font-family:inherit; font-size:13px;}
+.ai-widget-input{display:flex; border-top:1px solid rgba(26,28,32,.06); padding:8px;}
+.ai-widget-input input{flex:1; background:var(--bg3); border:1px solid rgba(26,28,32,.08); color:var(--text); padding:9px 11px; border-radius:8px; font-family:inherit; font-size:13px;}
 .ai-widget-input button{margin-left:8px; background:var(--gold); border:none; border-radius:8px; padding:0 14px; cursor:pointer; font-weight:700; color:#15130a;}
 </style>
 <button class="ai-widget-btn" id="aiWidgetBtn" onclick="toggleAiWidget()">💬</button>
