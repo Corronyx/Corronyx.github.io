@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" dir="ltr" translate="no">
+<html lang="ru" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -668,6 +668,30 @@ body{top:0 !important; position:relative !important;}
   background-size:250% 100% !important; -webkit-background-clip:text !important; background-clip:text !important;
   -webkit-text-fill-color:transparent !important; color:transparent !important;
   animation:cxShimmer 3.5s linear infinite !important;
+}
+
+/* ===== Мобильное нижнее меню (11.09.2026) — 4 самых частых действия гостя:
+   Главная / Поиск / Афиша / Профиль. Партнёрские ссылки ("Стать партнёром" и
+   т.д.) сюда намеренно не добавлены — это регистрационные ссылки для другой
+   аудитории (владельцы отелей/партнёры), не основной сценарий гостя. Видно
+   только на узких экранах; на десктопе не рендерится и не занимает место. */
+.mobile-bottom-nav{display:none;}
+@media(max-width:760px){
+  .mobile-bottom-nav{
+    display:flex; position:fixed; left:0; right:0; bottom:0; z-index:500;
+    background:var(--bg2); border-top:1px solid var(--line);
+    box-shadow:0 -4px 16px rgba(26,28,32,.06);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .mobile-bottom-nav .mbn-item{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:6px 2px; border:none; background:none; cursor:pointer;
+    font-family:inherit; color:var(--muted); font-size:10.5px; line-height:1.2;
+  }
+  .mobile-bottom-nav .mbn-item .mbn-icon{font-size:20px; line-height:1;}
+  .mobile-bottom-nav .mbn-item.active{color:var(--gold2);}
+  .mobile-bottom-nav .mbn-item .mbn-avatar{width:20px; height:20px; border-radius:50%; object-fit:cover;}
+  body{padding-bottom:60px;} /* чтобы меню не перекрывало нижний контент страницы */
 }
 </style>
 </head>
@@ -1433,88 +1457,10 @@ const COUNTRIES = [
 ];
 const COUNTRY_NAMES = {RU:'Россия',FR:'Франция',AE:'ОАЭ',GB:'Великобритания',US:'США',JP:'Япония',TR:'Турция',GR:'Греция',MA:'Марокко',MX:'Мексика',IT:'Италия',ES:'Испания',DE:'Германия',TH:'Таиланд',CN:'Китай',KR:'Южная Корея',EG:'Египет',PT:'Португалия',NL:'Нидерланды',CH:'Швейцария',AT:'Австрия',CZ:'Чехия',PL:'Польша',AR:'Аргентина',BR:'Бразилия',IN:'Индия',ID:'Индонезия',VN:'Вьетнам',GE:'Грузия',AZ:'Азербайджан',MV:'Мальдивы'};
 
-/* Featured countries grid on the homepage: 18 countries, grouped premium -> mid -> mixed.
-   Russia placed 3rd in the first row (6 per row on desktop). Photos via Unsplash. */
-/* Each slot contains 3 countries that rotate. 6 slots per row × 3 rows = 18 slots.
-   Row 1 = Premium, Row 2 = Mid, Row 3 = Mixed mid/budget.
-   Each slot: [{code, img}, {code, img}, {code, img}] */
-const COUNTRY_SLOTS = [
-  // ====== РЯД 1 — ПРЕМИУМ (слоты 1-6), все 18 стран уникальны, фото проверены через web_fetch ======
-  // Slot 1: Россия / ОАЭ / Мальдивы
-  [ {code:'RU', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=500&q=75'},
-    {code:'AE', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=500&q=75'},
-    {code:'MV', img:'https://images.unsplash.com/photo-1512100254544-47340ba56b5d?w=500&q=75'} ],
-  // Slot 2: США / Франция / Италия
-  [ {code:'US', img:'https://images.unsplash.com/photo-1670811456186-e73d0ace9454?w=500&q=75'},
-    {code:'FR', img:'https://images.unsplash.com/photo-1694716021376-d44da3f54e8a?w=500&q=75'},
-    {code:'IT', img:'https://images.unsplash.com/photo-1745435797226-6a2360de4339?w=500&q=75'} ],
-  // Slot 3: Швейцария / Япония / Великобритания
-  [ {code:'CH', img:'https://images.unsplash.com/photo-1667758682790-c58fa23dc76f?w=500&q=75'},
-    {code:'JP', img:'https://images.unsplash.com/photo-1614733174066-1efe5bf4fa93?w=500&q=75'},
-    {code:'GB', img:'https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=500&q=75'} ],
-  // Slot 4: Испания / Греция / Сингапур
-  [ {code:'ES', img:'https://images.unsplash.com/photo-1563784462030-fe92bbdcf857?w=500&q=75'},
-    {code:'GR', img:'https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=500&q=75'},
-    {code:'SG', img:'https://images.unsplash.com/photo-1744705221117-9c726f9497b0?w=500&q=75'} ],
-  // Slot 5: Австрия / Сейшелы / Маврикий
-  [ {code:'AT', img:'https://images.unsplash.com/photo-1665945203723-d823de195bf4?w=500&q=75'},
-    {code:'SC', img:'https://images.unsplash.com/photo-1557648490-3d27c35dca2b?w=500&q=75'},
-    {code:'MU', img:'https://images.unsplash.com/photo-1562592995-052bd28d6539?w=500&q=75'} ],
-  // Slot 6: Германия / Катар / Исландия
-  [ {code:'DE', img:'https://images.unsplash.com/photo-1557067175-db3159d938ac?w=500&q=75'},
-    {code:'QA', img:'https://images.unsplash.com/photo-1596986343464-332d54fa5702?w=500&q=75'},
-    {code:'IS', img:'https://images.unsplash.com/photo-1744762567611-dee68f42ecc9?w=500&q=75'} ],
-  // ====== РЯД 2 — СРЕДНИЙ КЛАСС (слоты 7-12), все 18 стран уникальны, фото проверены через web_fetch ======
-  // Slot 7: Турция / Португалия / Нидерланды
-  [ {code:'TR', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=500&q=75'},
-    {code:'PT', img:'https://images.unsplash.com/photo-1567369171794-9359e5c76d42?w=500&q=75'},
-    {code:'NL', img:'https://images.unsplash.com/photo-1536880756060-98a6a140f0a7?w=500&q=75'} ],
-  // Slot 8: Чехия / Польша / Хорватия
-  [ {code:'CZ', img:'https://images.unsplash.com/photo-1737641837441-9edae0a027c9?w=500&q=75'},
-    {code:'PL', img:'https://images.unsplash.com/photo-1679254821742-898030e68e63?w=500&q=75'},
-    {code:'HR', img:'https://images.unsplash.com/photo-1565784623522-7fdf499a94a4?w=500&q=75'} ],
-  // Slot 9: Кипр / Мальта / Таиланд
-  [ {code:'CY', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=500&q=75'},
-    {code:'MT', img:'https://images.unsplash.com/photo-1662022994062-6d58ae02b34b?w=500&q=75'},
-    {code:'TH', img:'https://images.unsplash.com/photo-1598255036907-48dc65e2f339?w=500&q=75'} ],
-  // Slot 10: Мексика / Аргентина / Китай
-  [ {code:'MX', img:'https://images.unsplash.com/photo-1713878620016-35be7a276a59?w=500&q=75'},
-    {code:'AR', img:'https://images.unsplash.com/photo-1745409927264-0db48faf407b?w=500&q=75'},
-    {code:'CN', img:'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=500&q=75'} ],
-  // Slot 11: Южная Корея / Грузия / Азербайджан
-  [ {code:'KR', img:'https://images.unsplash.com/photo-1652172175826-4d769c1ffcec?w=500&q=75'},
-    {code:'GE', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=500&q=75'},
-    {code:'AZ', img:'https://images.unsplash.com/photo-1744704015980-9842c2314c43?w=500&q=75'} ],
-  // Slot 12: Вьетнам / Индия / Черногория
-  [ {code:'VN', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=500&q=75'},
-    {code:'IN', img:'https://images.unsplash.com/photo-1747577629840-fb33090c7dd0?w=500&q=75'},
-    {code:'ME', img:'https://images.unsplash.com/photo-1614122027743-50a9e6e8002f?w=500&q=75'} ],
-  // ====== РЯД 3 — СМЕШАННЫЙ СРЕДНИЙ/ЭКОНОМ (слоты 13-18), все 18 стран уникальны, фото проверены через web_fetch ======
-  // Slot 13: Марокко / Египет / Индонезия
-  [ {code:'MA', img:'https://images.unsplash.com/photo-1519594445471-0e5f86b3fb09?w=500&q=75'},
-    {code:'EG', img:'https://images.unsplash.com/photo-1665643956022-ee053e925743?w=500&q=75'},
-    {code:'ID', img:'https://images.unsplash.com/photo-1557093793-d149a38a1be8?w=500&q=75'} ],
-  // Slot 14: Бразилия / Филиппины / Тунис
-  [ {code:'BR', img:'https://images.unsplash.com/photo-1544991337-95176b5233c4?w=500&q=75'},
-    {code:'PH', img:'https://images.unsplash.com/photo-1531761535209-180857e963b9?w=500&q=75'},
-    {code:'TN', img:'https://images.unsplash.com/photo-1607869861980-da5f9b8b4969?w=500&q=75'} ],
-  // Slot 15: Сенегал / Мозамбик / Шри-Ланка
-  [ {code:'SN', img:'https://images.unsplash.com/photo-1621862681248-c891542db4d7?w=500&q=75'},
-    {code:'MZ', img:'https://images.unsplash.com/photo-1544298903-35eee5a95b4d?w=500&q=75'},
-    {code:'LK', img:'https://images.unsplash.com/photo-1657036165933-52a6863153d8?w=500&q=75'} ],
-  // Slot 16: Камбоджа / Мьянма / Алжир
-  [ {code:'KH', img:'https://images.unsplash.com/photo-1565687363630-7a81809a199c?w=500&q=75'},
-    {code:'MM', img:'https://images.unsplash.com/photo-1702226580087-a416fe3e145a?w=500&q=75'},
-    {code:'DZ', img:'https://images.unsplash.com/photo-1580913709631-8de3edebfd2e?w=500&q=75'} ],
-  // Slot 17: Ливия / Куба / Ямайка
-  [ {code:'LY', img:'https://images.unsplash.com/photo-1639722944824-b62d94878ce1?w=500&q=75'},
-    {code:'CU', img:'https://images.unsplash.com/photo-1752702338537-901c0b6295c6?w=500&q=75'},
-    {code:'JM', img:'https://images.unsplash.com/photo-1509233725247-49e657c54213?w=500&q=75'} ],
-  // Slot 18: Албания / Непал / Кения
-  [ {code:'AL', img:'https://images.unsplash.com/photo-1632922241478-bae56bb13994?w=500&q=75'},
-    {code:'NP', img:'https://images.unsplash.com/photo-1685353257830-88af874c0a5f?w=500&q=75'},
-    {code:'KE', img:'https://images.unsplash.com/photo-1518709368567-b22d4217b91f?w=500&q=75'} ]
-];
+/* COUNTRY_SLOTS удалён (12.09.2026) — был источником данных только для
+   чипов "популярные направления", которые владелец ранее решил убрать;
+   с их удалением этот массив (77 строк, фото-ссылки) остался полностью
+   неиспользуемым. renderCategoryCardsGrid() ниже не зависит от него. */
 
 const EXTRA_COUNTRY_NAMES = {
  AD:'Андорра',AF:'Афганистан',AG:'Антигуа и Барбуда',AM:'Армения',
@@ -1961,11 +1907,10 @@ const T = {
  realtors_section_title:{ru:'Хотите купить недвижимость?',en:'Looking to buy property?'},
  realtors_section_sub:{ru:'Агентства недвижимости в городе {city}',en:'Real estate agencies in {city}'},
  nav_login:{ru:'<span class="btn-tilt">Войти</span>',en:'<span class="btn-tilt">Log in</span>'},
+ mbn_home:{ru:'Главная',en:'Home'}, mbn_search:{ru:'Поиск',en:'Search'}, mbn_afisha:{ru:'Афиша',en:'Events'}, mbn_profile:{ru:'Профиль',en:'Profile'},
  hero_title:{ru:'Найдите идеальный отель <span>в любой точке мира</span>', en:'Find the perfect hotel <span>anywhere in the world</span>'},
  hero_sub:{ru:'Более 50 000 отелей в 195 странах. Бронируйте без онлайн-оплаты — платите прямо в отеле при заезде.', en:'Over 50,000 hotels in 195 countries. Book with no online payment — pay directly at the hotel on arrival.'},
  lbl_country:{ru:'Страна',en:'Country'}, ph_country:{ru:'Выберите страну',en:'Select country'},
- tab_hotels:{ru:'Отели',en:'Hotels'}, tab_afisha:{ru:'Афиши',en:'Events'}, tab_partners:{ru:'Партнёры',en:'Partners'},
- lbl_partner_category:{ru:'Категория',en:'Category'},
  lbl_city:{ru:'Город',en:'City'}, ph_city:{ru:'Выберите город',en:'Select city'},
  lbl_checkin:{ru:'Заезд',en:'Check-in'}, lbl_checkout:{ru:'Выезд',en:'Check-out'},
  btn_search:{ru:'Найти →',en:'Search →'},
@@ -1973,14 +1918,14 @@ const T = {
  stat_commission:{ru:'комиссия платформы',en:'platform commission'}, stat_payout:{ru:'дней цикл выплат',en:'day payout cycle'},
  events_title:{ru:'Мировые события рядом с отелями',en:'World events near our hotels'},
  events_sub:{ru:'Спланируйте поездку под яркое событие — мы подберём отели в том же городе',en:'Plan your trip around a great event — we will suggest hotels in the same city'},
- ref_title:{ru:'Делитесь роскошью',en:'Share the Luxury'},
- ref_sub:{ru:'Приглашайте друзей — получайте 3% с каждой их брони бонусными баллами. Баллы отображаются в личном кабинете через 10 дней',en:'Invite friends — earn 3% in bonus points on every booking they make. Points appear in your account after 10 days'},
+ ref_title:{ru:'Реферальная программа',en:'Referral Program'},
+ ref_sub:{ru:'Приглашайте друзей — Corronyx может подарить вам бонусные баллы за их бронирования. Баллы отображаются в личном кабинете через 10 дней и по желанию платформы могут быть обменены на подарок в USDT (сеть TON)',en:'Invite friends — Corronyx may gift you bonus points for their bookings. Points appear in your account after 10 days and may, at the platform\'s discretion, be exchanged for a gift in USDT (TON network)'},
  ref_btn:{ru:'Получить реферальную ссылку →',en:'Get your referral link →'},
  back_home:{ru:'Назад',en:'Back'},
  footer_text:{ru:'Бронирование с оплатой в отеле.',en:'Booking with payment at the hotel.'},
  concierge_name:{ru:'Corronyx Agent',en:'Corronyx Agent'},
  concierge_ph:{ru:'Спросите о поездке...',en:'Ask about your trip...'},
- concierge_greet:{ru:'Здравствуйте! Я Corronyx Agent, ассистент платформы. Чем могу помочь?',en:'Hello! I am Corronyx Agent, the platform assistant. How can I help?'},
+ concierge_greet:{ru:'Здравствуйте! Я Corronyx Agent, консьерж Corronyx 🎩 Помогу выбрать отель — спросите про страну, город или подскажите ваши пожелания.',en:'Hello! I am Corronyx Agent, the Corronyx concierge 🎩 I can help you choose a hotel — ask about a country, city, or tell me your preferences.'},
  concierge_fallback:{ru:'Я могу помочь подобрать отель по стране, городу, классу (3★–5★) или вашим пожеланиям — например: «пляж и спа», «бюджетный вариант», «романтика», «отдых с детьми». Расскажите, что вам важно!',en:'I can help find a hotel by country, city, class (3★–5★), or your preferences — for example: "beach and spa", "budget option", "romantic getaway", "family trip". Tell me what matters to you!'},
  pay_at_hotel:{ru:'Оплата напрямую в отеле — онлайн-платёж не требуется',en:'Pay directly at the hotel — no online payment required'},
  // breadcrumbs / steps
@@ -3008,12 +2953,28 @@ const CX = {
     if(match && match!==this._searchCity){ this.pickCity(match); return; }
     if(raw!==this._searchCity) this.pickCity(raw);
   },
-
   /* ---------- Вкладки поиска на главной: Отели/Афиши/Партнёры (06.09.2026) ----------
      Отели — уже существовавшая логика выше, без изменений. Афиша и Партнёры —
      НЕ новый поиск с нуля: переиспользуют уже готовые и проверенные CX.showAfisha()
      и CX.gotoCat() (тот же путь, что и у карточек-категорий на главной), просто с
      полями страна/город прямо в hero, а не через клик по карточке. */
+  /* ---------- Мобильное нижнее меню (11.09.2026) ---------- */
+  setMobileNavActive(name){
+    document.querySelectorAll('.mobile-bottom-nav .mbn-item').forEach(el=>el.classList.toggle('active', el.dataset.mbn===name));
+  },
+  mobileNavSearch(){
+    this.setMobileNavActive('search');
+    this.goHome();
+    const tabs=document.getElementById('homeSearchTabs');
+    if(tabs) tabs.scrollIntoView({behavior:'smooth', block:'center'});
+  },
+  mobileNavProfile(){
+    this.setMobileNavActive('profile');
+    const session=LS.getJSON('cx_user_session', null);
+    if(session?.email){ document.getElementById('navLoginBtn').click(); }
+    else { LS.set('cx_auth_mode','login'); this.openModal('login'); }
+  },
+
   switchSearchTab(tab){
     document.querySelectorAll('#homeSearchTabs .search-tab').forEach(el=>el.classList.toggle('active', el.dataset.tab===tab));
     ['Hotels','Afisha','Partners'].forEach(name=>{
@@ -3921,25 +3882,42 @@ function translateBtnHtml(text){
 function sortBoostedFirst(arr){
   const now=Date.now();
   const GRACE_MS = 3*24*60*60*1000; // 3 дня гарантированного топа
-  const boostInfo=x=>{
-    if(!x.boostedUntil) return null;
-    const until=new Date(x.boostedUntil).getTime();
-    if(until<=now) return null; // буст истёк — обычная карточка
-    // boostStartedAt появился 16.08.2026; у карточек, забустенных ДО этой
-    // правки, этого поля нет — восстанавливаем момент старта оценочно как
-    // "until минус полный срок буста", чтобы такие карточки не зависали
-    // вечно в 3-дневном гарантийном окне.
-    const start = x.boostStartedAt ? new Date(x.boostStartedAt).getTime() : (until - 30*24*60*60*1000);
+  const info=(x, untilKey, startKey)=>{
+    if(!x[untilKey]) return null;
+    const until=new Date(x[untilKey]).getTime();
+    if(until<=now) return null;
+    const start = x[startKey] ? new Date(x[startKey]).getTime() : (until - 30*24*60*60*1000);
     return { start, inGrace: (now-start) <= GRACE_MS };
   };
+  const boostInfo=x=>info(x,'boostedUntil','boostStartedAt');
+  // Бриллиантовый буст (05.09.2026) — тот же принцип, приоритет выше золотого.
+  const diamondInfo=x=>info(x,'diamondBoostedUntil','diamondBoostStartedAt');
   return [...arr].sort((a,b)=>{
+    const da=diamondInfo(a), db=diamondInfo(b);
+    if(da && !db) return -1;
+    if(!da && db) return 1;
+    if(da && db){
+      if(da.inGrace!==db.inGrace) return da.inGrace ? -1 : 1;
+      return db.start-da.start;
+    }
     const ba=boostInfo(a), bb=boostInfo(b);
     if(!ba && !bb) return 0;
     if(!ba) return 1;
     if(!bb) return -1;
     if(ba.inGrace!==bb.inGrace) return ba.inGrace ? -1 : 1;
-    return bb.start-ba.start; // новее буст — выше, и внутри гарантии, и после неё
+    return bb.start-ba.start;
   });
+}
+function isDiamondBoosted(r){ return !!(r.diamondBoostedUntil && new Date(r.diamondBoostedUntil).getTime()>Date.now()); }
+function partnerFrameClass(r){
+  if(isDiamondBoosted(r)) return 'card-diamond-frame';
+  if(r.boostedUntil && new Date(r.boostedUntil).getTime()>Date.now()) return 'card-gold-frame';
+  return '';
+}
+function partnerFrameBadge(r){
+  if(isDiamondBoosted(r)) return `<div class="card-frame-badge diamond">💎 ${LANG==='ru'?'В приоритете':'Top pick'}</div>`;
+  if(r.boostedUntil && new Date(r.boostedUntil).getTime()>Date.now()) return `<div class="card-frame-badge gold">🚀 ${LANG==='ru'?'Рекомендуем':'Recommended'}</div>`;
+  return '';
 }
 function getPartnersOfCat(catKey){
   const cfg=CLIENT_PARTNER_CATS[catKey]; if(!cfg) return [];
@@ -3949,14 +3927,13 @@ function getPartnersOfCat(catKey){
 function partnerCatCardHtml(r, catKey){
   const cfg=CLIENT_PARTNER_CATS[catKey];
   const icon = r.logo ? `<img src="${esc2(r.logo)}" style="width:28px; height:28px; object-fit:cover; border-radius:6px; vertical-align:middle; margin-right:6px;">` : cfg.icon+' ';
-  const now=Date.now();
-  const isBoosted = r.boostedUntil && new Date(r.boostedUntil).getTime()>now;
   const subLabel = (r.subgroups&&r.subgroups[0] && (cfg.subgroups||[]).find(s=>s.key===r.subgroups[0]));
   const hours = r.work24 ? (LANG==='ru'?'Круглосуточно':'24 hours') : (r.workFrom&&r.workTo ? `${r.workFrom}–${r.workTo}` : '');
+  const frameClass = partnerFrameClass(r);
   return `
-  <div class="card${isBoosted?' boosted':''}">
+  <div class="card ${frameClass}" style="position:relative;">
+    ${partnerFrameBadge(r)}
     <div class="card-body">
-      ${isBoosted?`<div class="boost-badge">🚀 ${LANG==='ru'?'Рекомендуем':'Recommended'}</div>`:''}
       ${subLabel?`<div class="subgroup-badge">${subLabel.icon} ${LANG==='ru'?subLabel.ru:subLabel.en}</div>`:''}
       <h3>${icon}${esc2(r.name)}</h3>
       <p><span class="card-desc-text">${esc2(r.desc||'')}</span></p>
@@ -3972,11 +3949,11 @@ function partnerCatCardHtml(r, catKey){
 function getRealtors(){ return LS.getJSON('cx_realtors', []).filter(r=>r.status!=='stopped'&&r.status!=='pending'); }
 function realtorCardHtml(r){
   const icon = r.logo ? `<img src="${esc2(r.logo)}" style="width:28px; height:28px; object-fit:cover; border-radius:6px; vertical-align:middle; margin-right:6px;">` : '\ud83c\udfe2 ';
-  const isBoosted = r.boostedUntil && new Date(r.boostedUntil).getTime()>Date.now();
+  const frameClass = partnerFrameClass(r);
   return `
-  <div class="card${isBoosted?' boosted':''}">
+  <div class="card ${frameClass}" style="position:relative;">
+    ${partnerFrameBadge(r)}
     <div class="card-body">
-      ${isBoosted?`<div class="boost-badge">\ud83d\ude80 ${LANG==='ru'?'Рекомендуем':'Recommended'}</div>`:''}
       <h3>${icon}${esc2(r.name)}</h3>
       <p><span class="card-desc-text">${esc2(r.desc||'')}</span></p>
       ${translateBtnHtml(r.desc||'')}
@@ -4069,6 +4046,34 @@ function getFramePriorityTs(e){
   const acc=LS.getJSON('cx_afisha_accounts', []).find(a=>a.id===e.ownerId);
   return (acc && acc.frameGrantedAt) ? new Date(acc.frameGrantedAt).getTime() : 0;
 }
+// Бриллиантовая рамка (05.09.2026) — тот же принцип, что и золотая, но приоритет выше.
+// Синхронизировать при изменениях с зеркальными функциями в afisha-portal.html/admin-dashboard.html.
+function isDiamondFrameActive(e){
+  if(e.diamondFrameUnlimited) return true;
+  const acc=LS.getJSON('cx_afisha_accounts', []).find(a=>a.id===e.ownerId);
+  if(acc && acc.unlimitedDiamondFrameForAll) return true;
+  return !!(e.diamondFrameExpiresAt && new Date(e.diamondFrameExpiresAt) > new Date());
+}
+function getDiamondFramePriorityTs(e){
+  if(e.diamondFramePurchasedAt) return new Date(e.diamondFramePurchasedAt).getTime();
+  const acc=LS.getJSON('cx_afisha_accounts', []).find(a=>a.id===e.ownerId);
+  return (acc && acc.diamondFrameGrantedAt) ? new Date(acc.diamondFrameGrantedAt).getTime() : 0;
+}
+// Единая сортировка витрины: бриллиант → золото → остальные, внутри группы — по дате
+// события (ближайшие выше). Раньше в 5 местах ниже стояла обычная сортировка по дате,
+// которая тихо перечёркивала приоритет рамки сразу после getAfishaEventsRaw() — баг
+// найден и исправлен 05.09.2026.
+function frameAwareEventSort(a,b){
+  const da=isDiamondFrameActive(a), db=isDiamondFrameActive(b);
+  if(da && !db) return -1;
+  if(!da && db) return 1;
+  if(da && db){ const d=getDiamondFramePriorityTs(b)-getDiamondFramePriorityTs(a); if(d) return d; }
+  const fa=isFrameActive(a), fb=isFrameActive(b);
+  if(fa && !fb) return -1;
+  if(!fa && fb) return 1;
+  if(fa && fb){ const d=getFramePriorityTs(b)-getFramePriorityTs(a); if(d) return d; }
+  return new Date(a.eventDate||0)-new Date(b.eventDate||0);
+}
 function getAfishaEventsRaw(){
   const accounts=LS.getJSON('cx_afisha_accounts', []);
   const filtered=LS.getJSON('cx_afisha_events', []).filter(e=>{
@@ -4082,9 +4087,13 @@ function getAfishaEventsRaw(){
     if(!unlimited && (!e.expiresAt || new Date(e.expiresAt) <= new Date())) return false;
     return true;
   });
-  // П.11 (28.08.2026): афиши с активной золотой рамкой — всегда выше, между собой
-  // сортируются по свежести покупки/продления рамки (кто позже — тот выше).
+  // Приоритет показа: бриллиант → золото → остальные (по свежести покупки/продления
+  // внутри группы). См. frameAwareEventSort — используем ту же логику здесь.
   filtered.sort((a,b)=>{
+    const da=isDiamondFrameActive(a), db=isDiamondFrameActive(b);
+    if(da && !db) return -1;
+    if(!da && db) return 1;
+    if(da && db) return getDiamondFramePriorityTs(b)-getDiamondFramePriorityTs(a);
     const fa=isFrameActive(a), fb=isFrameActive(b);
     if(fa && !fb) return -1;
     if(!fa && fb) return 1;
@@ -4140,9 +4149,14 @@ function afishaCardHtml(e){
   const dateStr = e.eventDate ? new Date(e.eventDate).toLocaleString(LANG==='ru'?'ru-RU':'en-US',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
   const priceStr = e.free ? t('afisha_free') : esc2(e.price||'');
   const framed = isFrameActive(e);
+  const diamondFramed = isDiamondFrameActive(e);
+  const frameClass = diamondFramed ? 'card-diamond-frame' : (framed ? 'card-gold-frame' : '');
+  const frameBadge = diamondFramed
+    ? `<div class="card-frame-badge diamond">💎 ${LANG==='ru'?'В приоритете':'Top pick'}</div>`
+    : (framed ? `<div class="card-frame-badge gold">🖼️ ${LANG==='ru'?'В рамке':'Featured'}</div>` : '');
   return `
-  <div class="card" style="padding:0; overflow:hidden; ${framed?'border:2px solid var(--gold2); box-shadow:0 0 0 1px var(--gold2), 0 4px 20px rgba(184,149,77,.25); position:relative;':''}">
-    ${framed?`<div style="position:absolute; top:8px; right:8px; z-index:2; background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#15130a; font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; box-shadow:0 2px 8px rgba(0,0,0,.3);">🖼️ ${LANG==='ru'?'В рамке':'Featured'}</div>`:''}
+  <div class="card ${frameClass}" style="padding:0; overflow:hidden; position:relative;">
+    ${frameBadge}
     ${posterHtml}
     <div class="card-body">
       <h3>${esc2(e.title)}</h3>
@@ -4151,7 +4165,7 @@ function afishaCardHtml(e){
       <p style="margin-top:8px; font-weight:600;">${priceStr?'💰 '+priceStr:''}</p>
       ${e.phone?`<p style="margin-top:6px;">📞 <a href="tel:${esc2(e.phone)}">${esc2(e.phone)}</a></p>`:''}
       ${e.contact?`<p>💬 ${esc2(e.contact)}</p>`:''}
-      ${(e.lat!=null&&e.lng!=null)?`<iframe style="width:100%; height:140px; border:1px solid var(--line); border-radius:8px; margin-top:8px;" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${e.lng-0.01}%2C${e.lat-0.007}%2C${e.lng+0.01}%2C${e.lat+0.007}&layer=mapnik&marker=${e.lat}%2C${e.lng}"></iframe>`:''}
+      ${(e.lat!=null&&e.lng!=null)?`<iframe style="width:100%; height:140px; border:1px solid rgba(26,28,32,.08); border-radius:8px; margin-top:8px;" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${e.lng-0.01}%2C${e.lat-0.007}%2C${e.lng+0.01}%2C${e.lat+0.007}&layer=mapnik&marker=${e.lat}%2C${e.lng}"></iframe>`:''}
     </div>
   </div>`;
 }
@@ -4189,7 +4203,7 @@ function renderAfishaList(country, city){
     wrap.innerHTML=emptyStateHtml(t('afisha_in_city',{city}), t('afisha_none'));
     return;
   }
-  events.sort((a,b)=>new Date(a.eventDate||0)-new Date(b.eventDate||0));
+  events.sort(frameAwareEventSort);
   wrap.innerHTML=`<div class="grid-cards">${events.map(e=>afishaCardHtml(e)).join('')}</div>`;
 }
 
@@ -4227,17 +4241,17 @@ function renderAfishaHomeSection(){
     grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1; text-align:center; padding:32px; color:var(--muted,#9a97ad);">${emptyText}</div>`;
     return;
   }
-  events.sort((a,b)=>new Date(a.eventDate||0)-new Date(b.eventDate||0));
+  events.sort(frameAwareEventSort);
   grid.innerHTML=events.slice(0,12).map(e=>afishaCardHtml(e)).join('');
 }
 
 /* ---------- Афиша, встроенная в остальные разделы (мир/страна) ----------
    По решению владельца: "мировые новости"/"новости по стране" (готовые
    шпаргалки — REALTY_NEWS_BY_COUNTRY и т.д.) убраны из отображения на сайте,
-   на их месте теперь виджеты Афиши соответствующего уровня. Сами массивы
-   новостей физически НЕ удалены (оставлены в файле ниже, просто больше
-   нигде не рендерятся) — на случай, если понадобятся обратно, не пришлось
-   бы заново курировать 576 карточек по 16 странам. */
+   на их месте теперь виджеты Афиши соответствующего уровня. Обновление
+   11.09.2026: массивы новостей владелец попросил удалить полностью (раньше
+   были оставлены "про запас" — теперь физически убраны из файла; при
+   необходимости восстановить см. архивную копию до этой правки). */
 function renderAfishaWorldWidget(containerId){
   const wrap=document.getElementById(containerId);
   if(!wrap) return;
@@ -4246,7 +4260,7 @@ function renderAfishaWorldWidget(containerId){
     wrap.innerHTML=`<div class="section-head"><h2 class="font-cormorant gradient-heading">🎫 ${t('afisha_widget_world_title')}</h2><p>${t('afisha_home_empty')}</p></div>`;
     return;
   }
-  events.sort((a,b)=>new Date(a.eventDate||0)-new Date(b.eventDate||0));
+  events.sort(frameAwareEventSort);
   wrap.innerHTML=`<div class="section-head"><h2 class="font-cormorant gradient-heading">🎫 ${t('afisha_widget_world_title')}</h2></div><div class="grid-cards">${events.slice(0,12).map(e=>afishaCardHtml(e)).join('')}</div>`;
 }
 function renderAfishaCountryWidget(containerId, country){
@@ -4258,7 +4272,7 @@ function renderAfishaCountryWidget(containerId, country){
     wrap.innerHTML=`<div class="section-head"><h2 class="font-cormorant gradient-heading">🎫 ${title}</h2><p>${t('afisha_none_country')}</p></div>`;
     return;
   }
-  events.sort((a,b)=>new Date(a.eventDate||0)-new Date(b.eventDate||0));
+  events.sort(frameAwareEventSort);
   wrap.innerHTML=`<div class="section-head"><h2 class="font-cormorant gradient-heading">🎫 ${title}</h2></div><div class="grid-cards">${events.map(e=>afishaCardHtml(e)).join('')}</div>`;
 }
 // Третий уровень — "по городу" (tier='city'). Раньше при выборе конкретного города
@@ -4275,244 +4289,8 @@ function renderAfishaCityWidget(containerId, country, city){
     wrap.innerHTML=`<div class="section-head"><h2 class="font-cormorant gradient-heading">🎫 ${title}</h2><p>${t('afisha_none')}</p></div>`;
     return;
   }
-  events.sort((a,b)=>new Date(a.eventDate||0)-new Date(b.eventDate||0));
+  events.sort(frameAwareEventSort);
   wrap.innerHTML=`<div class="section-head"><h2 class="font-cormorant gradient-heading">🎫 ${title}</h2></div><div class="grid-cards">${events.map(e=>afishaCardHtml(e)).join('')}</div>`;
-}
-
-/* ---------- недвижимость: новостная лента (World / по стране) ----------
-   Контент ниже курируется вручную через веб-поиск (реальные статьи, реальные фото, реальные
-   ссылки) — сайт статический, живого автообновления из интернета без бэкенда быть не может.
-   Обновляется по запросу владельца. REALTY_NEWS_WORLD — 18 карточек глобально, каждая привязана
-   к своей стране. REALTY_NEWS_BY_COUNTRY[код] — до 9 карточек конкретно по этой стране. */
-const REALTY_NEWS_WORLD = [
-  {country:'AE', city:'Дубай', title:'Спрос на элитную недвижимость Дубая остаётся высоким в 2026 году', desc:'Население Дубая превысило 4 млн человек, а рост цен по итогам года прогнозируется на уровне 5–8% — умереннее, чем в 2024–2025 годах.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://sandsofwealth.com/blogs/news/dubai-price-forecasts'},
-  {country:'AE', city:'Дубай', title:'Дубай: более 250 000 инвесторов получили «Золотую визу» с 2021 года', desc:'Программа резидентства через инвестиции в недвижимость продолжает формировать базу долгосрочных покупателей вместо спекулятивных сделок.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://geem.com/blog/real-estate-prices-in-dubai-are-climbing-in-2026'},
-  {country:'TR', city:'Анталья', title:'Анталья остаётся одним из самых популярных направлений у иностранных покупателей', desc:'Доходность аренды в районах Кепез и Аланья достигает 8–10% годовых, а покупка от $400 000 даёт право на турецкое гражданство.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://forsaleinturkey.com/antalya-property-investment-complete-guide-for-foreign-buyers-in-2026/'},
-  {country:'TR', city:'Стамбул', title:'Турция вводит обязательное сопровождение сделок через эскроу-счета', desc:'С 1 июля 2026 года расчёты по сделкам с недвижимостью в Турции проходят дополнительную проверку — это должно защитить иностранных покупателей от мошенничества.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://idealestates.com/real-estate-market-analysis/antalya-real-estate-prices-2026-guide/'},
-  {country:'GE', city:'Батуми', title:'Батуми: рекордный рост числа сделок с недвижимостью среди иностранцев', desc:'В Батуми доля иностранных покупателей превысила половину всех сделок — на "Черноморский Лас-Вегас" приходится основной приток инвестиций в Грузии.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:'https://arcisge.com/en/batumi-real-estate/'},
-  {country:'GE', city:'Тбилиси', title:'Грузия усиливает связи с инвесторами из стран Персидского залива', desc:'На форуме в Тбилиси девелоперы представили проекты для покупателей из ОАЭ и Саудовской Аравии — Грузия позиционирует себя как мост между Европой и Азией.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:'https://www.qatar-tribune.com/article/223956/business/georgia-strengthens-investment-links-with-gulf-markets-at-2026-international-real-estate-forum/amp'},
-  {country:'CY', city:'Лимасол', title:'Кипр: рынок недвижимости обновил исторический рекорд в апреле 2026 года', desc:'Число сделок превысило показатели 2007 года — пикового докризисного периода. Иностранные покупатели формируют более 40% всего рынка.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://www.astons.com/blog/cyprus-real-estate-market-reaches-new-all-time-high/'},
-  {country:'ME', city:'Будва', title:'Черногория: побережье Будвы остаётся самым востребованным у иностранных покупателей', desc:'Иностранцы обеспечивают до двух третей сделок на побережье — квартиры с видом на море в Будве и Которе продаются быстрее всего.', img:'https://images.unsplash.com/photo-1614122027743-50a9e6e8002f?w=600&q=80', url:'https://investropa.com/blogs/news/montenegro-real-estate-market'},
-  {country:'TH', city:'Пхукет', title:'Пхукет: цены на недвижимость могут обогнать Бангкок уже в 2026 году', desc:'Аналитики прогнозируют рост цен на Пхукете на 8–10% за год — вдвое быстрее, чем в Бангкоке, на фоне интереса покупателей из России, Австралии и Китая.', img:'https://images.unsplash.com/photo-1598255036907-48dc65e2f339?w=600&q=80', url:'https://www.asiapropertyawards.com/en/phuket-property-prices-set-to-rival-bangkok-and-global-cities-by-2026/'},
-  {country:'TH', city:'Бангкок', title:'Таиланд снижает пошлины при покупке жилья для стимулирования рынка', desc:'Госпошлина за регистрацию сделки временно снижена почти до нуля для объектов дешевле 7 млн бат — мера действует до июня 2026 года.', img:'https://images.unsplash.com/photo-1598255036907-48dc65e2f339?w=600&q=80', url:'https://www.siam-legal.com/realestate/thailand-property-outlook.php'},
-  {country:'ID', city:'Бали', title:'Бали: рынок недвижимости острова вышел на новый уровень зрелости', desc:'После бурного роста 2022–2024 годов цены стабилизировались — медианная стоимость виллы держится около $299 000, а спрос на аренду обновил рекорд.', img:'https://images.unsplash.com/photo-1557093793-d149a38a1be8?w=600&q=80', url:'https://investlandbali.com/bali-real-estate-market'},
-  {country:'ES', city:'Коста-дель-Соль', title:'Испания отменила «золотую визу» через покупку недвижимости', desc:'С апреля 2025 года покупка жилья в Испании больше не даёт права на резидентство — программа закрыта, но интерес покупателей к побережью не снизился.', img:'https://images.unsplash.com/photo-1563784462030-fe92bbdcf857?w=600&q=80', url:'https://protectyourwealth.com/golden-visa-spain/'},
-  {country:'ES', city:'Мадрид', title:'Коста-дель-Соль и Балеарские острова остаются точками притяжения для покупателей жилья', desc:'Мадрид и Барселона привлекают арендной доходностью, а побережье Малаги — курортным образом жизни: спрос распределяется по регионам страны неравномерно.', img:'https://images.unsplash.com/photo-1563784462030-fe92bbdcf857?w=600&q=80', url:'https://www.martin-realestate.com/news/golden-visa-2026-updates-essential-investor-guide-to-spain'},
-  {country:'GR', city:'Афины', title:'Греция: заявки на «золотую визу» снижаются, но одобрения растут', desc:'Число новых заявок упало на 43% за первые месяцы 2026 года, однако темпы одобрения ускорились — минимальный порог инвестиций начинается от €250 000.', img:'https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=600&q=80', url:'https://getgoldenvisa.com/ultimate-guide-to-greece-golden-visa'},
-  {country:'GR', city:'Санторини', title:'Афины признаны одним из самых быстрорастущих рынков недвижимости Европы', desc:'Цены на жильё в Афинах выросли почти на 12% за год — это второй результат среди крупных европейских городов после Лиссабона.', img:'https://images.unsplash.com/photo-1560703649-e3055f28bcf8?w=600&q=80', url:'https://etias.com/articles/lisbon-real-estate-continues-growth'},
-  {country:'PT', city:'Лиссабон', title:'Португалия отменила недвижимость как способ получить «золотую визу»', desc:'С октября 2023 года покупка жилья больше не даёт права на резидентство, но цены в Лиссабоне и Порту продолжают расти двузначными темпами.', img:'https://images.unsplash.com/photo-1567369171794-9359e5c76d42?w=600&q=80', url:'https://connaughtlaw.com/portugal-golden-visa-real-estate-eliminated/'},
-  {country:'PT', city:'Алгарве', title:'Алгарве: цены на недвижимость выросли на 15% за год', desc:'Курортный регион юга Португалии показывает один из самых быстрых темпов роста цен в стране благодаря стабильному туристическому спросу.', img:'https://images.unsplash.com/photo-1567369171794-9359e5c76d42?w=600&q=80', url:'https://connaughtlaw.com/portugal-golden-visa-real-estate-eliminated/'},
-  {country:'US', city:'Майами', title:'США: рынок жилья в 2026 году балансирует между низкими ставками и высокими ценами', desc:'Ставки по ипотеке немного снизились, но рост цен остаётся сдержанным — около 1% за год — из-за нехватки предложения на вторичном рынке.', img:'https://images.unsplash.com/photo-1670811456186-e73d0ace9454?w=600&q=80', url:'https://finance.yahoo.com/personal-finance/mortgages/article/housing-market-predictions-2026-165905235.html'}
-];
-const REALTY_NEWS_BY_COUNTRY = {
-  RU: [
-    {country:'RU', city:'Сочи', title:'Юг России разделился: Сочи и Анапа сжимаются, Геленджик и Новороссийск растут', desc:'В феврале 2026 года объём предложения на вторичном рынке Сочи снизился на 22%, в Анапе — на 25%, тогда как Геленджик и Новороссийск, наоборот, наращивают экспозицию.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://kubnews.ru/amp/obshchestvo/2026/03/10/yug-razdelilsya-sochi-i-anapa-szhimayutsya-gelendzhik-i-novorossiysk-rastut/'},
-    {country:'RU', city:'Сочи', title:'Средняя цена вторичного жилья в Сочи снизилась до 13,6 млн рублей', desc:'Несмотря на сокращение предложения, дефицит не привёл к росту средней цены — эксперты называют это структурным изменением южного рынка недвижимости.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://kubnews.ru/amp/obshchestvo/2026/03/10/yug-razdelilsya-sochi-i-anapa-szhimayutsya-gelendzhik-i-novorossiysk-rastut/'},
-    {country:'RU', city:'Геленджик', title:'Геленджик дорожает: его называют «русским Монако»', desc:'Средняя стоимость жилья в Геленджике выросла с 13,5 до 15 млн рублей — город благоустраивается, строится марина для яхт и новый пятизвёздочный отель.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://www.frontdesk.ru/article/sochi-gelendzhik-i-anapa-po-prezhnemu-vostrebovany-u-tekh-kto-otdykhaet-vnutri-strany'},
-    {country:'RU', city:'Сочи', title:'Продажи новостроек в Сочи рухнули втрое в первом полугодии 2026 года', desc:'Рынок первичного жилья критически зависит от курортного спроса и инвесторов, которые заняли выжидательную позицию — вторичный рынок при этом просел не так сильно.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://kubnews.ru/amp/obshchestvo/2026/07/02/prodazhi-novostroek-v-sochi-rukhnuli-v-pervom-polugodii/'},
-    {country:'RU', city:'Анапа', title:'В Анапе число сделок с новостройками выросло на 45% за год', desc:'На фоне общего охлаждения курортного рынка Анапа показывает противоположную динамику — сказывается восстановление доверия туристов после экологического инцидента 2024 года.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://kubnews.ru/amp/obshchestvo/2026/07/02/prodazhi-novostroek-v-sochi-rukhnuli-v-pervom-polugodii/'},
-    {country:'RU', city:'Сочи', title:'Цена квадратного метра на вторичном рынке Сочи — 320 500 рублей', desc:'Это самый высокий показатель среди городов Краснодарского края — для сравнения, в Краснодаре квадратный метр стоит около 134 тысяч рублей.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://kubnews.ru/amp/obshchestvo/2026/07/02/prodazhi-novostroek-v-sochi-rukhnuli-v-pervom-polugodii/'},
-    {country:'RU', city:'Геленджик', title:'Курортная недвижимость Кубани подорожала почти в 4 раза за 5 лет', desc:'Эксперты называют курортное жильё юга России одним из самых стабильных активов для инвестирования, несмотря на текущее охлаждение спроса в отдельных городах.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://newtambov.ru/novosti-rossii/24874'},
-    {country:'RU', city:'Краснодар', title:'С 1 июля 2026 года в России запускается механизм дистанционных сделок с недвижимостью', desc:'Новый порядок должен упростить покупку и продажу жилья без личного присутствия сторон — особенно актуально для курортной недвижимости, которую часто покупают из других регионов.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://kuban.bfm.ru/news/56261'},
-    {country:'RU', city:'Краснодар', title:'Краснодарский край вошёл в топ-5 регионов по льготной ипотеке в апреле 2026 года', desc:'Регион продолжает оставаться одним из самых активных по объёму льготного ипотечного кредитования в стране.', img:'https://images.unsplash.com/photo-1517319171438-331463d07047?w=600&q=80', url:'https://kuban.bfm.ru/news/56261'}
-  ],
-  GE: [
-    {country:'GE', city:'Батуми', title:'Грузия — одна из немногих стран без ограничений на покупку жилья иностранцами', desc:'Единственное существенное исключение — сельскохозяйственные земли: жилую недвижимость иностранцы могут покупать наравне с гражданами Грузии.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''},
-    {country:'GE', city:'Тбилиси', title:'Регистрация сделки с недвижимостью в Грузии занимает всего один день', desc:'Простота и скорость оформления остаются одним из главных аргументов в пользу грузинского рынка недвижимости для иностранных покупателей.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''},
-    {country:'GE', city:'Батуми', title:'Небоскрёбы у моря — самый востребованный формат жилья среди иностранных покупателей Батуми', desc:'Высотные комплексы с видом на Чёрное море остаются приоритетом для инвесторов, ищущих курортную недвижимость с арендным потенциалом.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''},
-    {country:'GE', city:'Тбилиси', title:'Ваке и Сабуртало — самые популярные районы Тбилиси для покупки квартиры для жизни', desc:'Эти районы сочетают развитую инфраструктуру с относительной близостью к центру, что делает их приоритетом среди покупателей, переезжающих в Грузию.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''},
-    {country:'GE', city:'Батуми', title:'Грузия не облагает налогом доход с продажи недвижимости при владении более 2 лет', desc:'Мягкий налоговый режим остаётся одним из факторов, привлекающих иностранных инвесторов на рынок недвижимости страны.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''},
-    {country:'GE', city:'Батуми', title:'Батуми привлекает покупателей более низким порогом входа, чем курорты Европы', desc:'Стоимость квадратного метра в Батуми остаётся заметно ниже, чем в сопоставимых по климату курортах Средиземноморья.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''},
-    {country:'GE', city:'Тбилиси', title:'Русскоязычные покупатели остаются одной из крупнейших групп на рынке недвижимости Грузии', desc:'Визовая доступность страны и отсутствие языкового барьера продолжают поддерживать интерес к покупке жилья среди русскоязычных инвесторов.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''},
-    {country:'GE', city:'Тбилиси', title:'Тбилиси показывает рост цен на новостройки на фоне притока иностранных резидентов', desc:'Спрос на современное жильё в столице продолжает расти вместе с числом иностранцев, выбирающих Грузию для долгосрочного проживания.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''},
-    {country:'GE', city:'Батуми', title:'Аренда квартир в Батуми и Тбилиси остаётся одной из самых доступных среди курортных городов региона', desc:'Это делает Грузию привлекательной не только для покупки, но и для инвестиций под сдачу в аренду туристам и долгосрочным жильцам.', img:'https://images.unsplash.com/photo-1643792412669-f7900db4e0c1?w=600&q=80', url:''}
-  ],
-  AE: [
-    {country:'AE', city:'Дубай', title:'Dubai Hills Estate, DIFC и Palm Jumeirah — лидеры роста цен', desc:'В этих районах цены растут на 12–18% в год благодаря ограниченному предложению и стабильному спросу состоятельных покупателей.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://sandsofwealth.com/blogs/news/dubai-price-forecasts'},
-    {country:'AE', city:'Дубай', title:'Дубай перешагнул отметку в 4 миллиона жителей', desc:'Рост населения на 208 000 человек за год остаётся главным структурным драйвером спроса на жильё.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://geem.com/blog/real-estate-prices-in-dubai-are-climbing-in-2026'},
-    {country:'AE', city:'Абу-Даби', title:'Абу-Даби: рост арендных ставок замедлился до 12% в 2026 году', desc:'Для сравнения — годом ранее рост составлял почти 22%. Рынок аренды постепенно приходит к более сбалансированным темпам.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://www.globalpropertyguide.com/middle-east/united-arab-emirates/price-history'},
-    {country:'AE', city:'Абу-Даби', title:'Число сделок с недвижимостью в Абу-Даби выросло на 119% за год', desc:'В первом квартале 2026 года зафиксировано около 7800 сделок — рекордный скачок, а средние цены на квартиры и виллы прибавили 32% и 21% годовых соответственно.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://www.arabianbusiness.com/real-estate/dubai-abu-dhabi-real-estate-markets-enter-more-mature-phase-after-2025-boom'},
-    {country:'AE', city:'Шарджа', title:'Шарджа лидирует по числу новых объектов недвижимости в ОАЭ', desc:'В первом квартале 2026 года в эмирате запущено около 1700 новых единиц жилья — больше, чем в Рас-эль-Хайме, Аджмане и Умм-эль-Кайвайне вместе взятых, благодаря доступным ценам входа.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://4frealty.com/uae-real-estate-market-update-july-2026-2/'},
-    {country:'AE', city:'Дубай', title:'В 2026 году в Дубае планируется сдать более 130 000 новых объектов', desc:'Основной объём новостроек придётся на районы Business Bay, Dubai South и Dubai Science Park.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://valustrat.com/products/dubai-real-estate-market-outlook-2026'},
-    {country:'AE', city:'Дубай', title:'Дубай остаётся одним из немногих мировых центров без налога на недвижимость', desc:'Нулевой налог на имущество и 100% иностранное владение в специальных зонах остаются главным преимуществом эмирата для инвесторов.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://www.dubayt.ae/blog-details/dubai-real-estate-market-outlook-2026-prices-yields-hotspots'},
-    {country:'AE', city:'Рас-эль-Хайма', title:'Рас-эль-Хайма: цены на недвижимость выросли почти на 15% за год', desc:'Апартаменты подорожали на 15,5%, обогнав виллы — эмират уверенно превращается из тихого места отдыха в самостоятельный инвестиционный хаб ОАЭ.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://economymiddleeast.com/news/ras-al-khaimah-real-estate-market-surges-as-rising-property-values-and-high-yields-drive-record-investor-confidence/'},
-    {country:'AE', city:'Дубай', title:'Экономика ОАЭ вырастет примерно на 5% в 2026 году', desc:'МВФ прогнозирует ОАЭ самый высокий темп роста среди стран Персидского залива — это поддерживает уверенность инвесторов в недвижимость.', img:'https://images.unsplash.com/photo-1723539584805-16e92ecb9272?w=600&q=80', url:'https://www.engelvoelkers.com/ae/en/resources/dubai-real-estate-prices-decline'}
-  ],
-  TR: [
-    {country:'TR', city:'Анталья', title:'Доходность аренды в Кепезе и Аланье достигает 8–10% годовых', desc:'Более доступные цены входа при сохранении высокого туристического спроса делают эти районы привлекательными для доходной недвижимости.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://forsaleinturkey.com/antalya-property-investment-complete-guide-for-foreign-buyers-in-2026/'},
-    {country:'TR', city:'Стамбул', title:'Порог для турецкого гражданства через недвижимость — от $400 000', desc:'Инвестиция должна удерживаться минимум три года — за это время объект можно сдавать в аренду.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://www.globalcitizensolutions.com/buying-property-in-turkey/'},
-    {country:'TR', city:'Стамбул', title:'Средняя цена за м² в Стамбуле — около $3094, в Анталье — $2530', desc:'Бодрум остаётся самым дорогим прибрежным рынком страны — около $3309 за квадратный метр.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://www.globalcitizensolutions.com/buying-property-in-turkey/'},
-    {country:'TR', city:'Анталья', title:'Ослабление лиры делает турецкую недвижимость выгоднее для покупателей в валюте', desc:'Покупатели, использующие доллары, евро или фунты, получают заметное преимущество при текущем курсе лиры.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://forsaleinturkey.com/antalya-property-investment-complete-guide-for-foreign-buyers-in-2026/'},
-    {country:'TR', city:'Стамбул', title:'С 1 июля 2026 года сделки с недвижимостью в Турции проходят через эскроу-счета', desc:'Новый порядок расчётов направлен на защиту покупателей, включая иностранных, от мошенничества при сделках.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://idealestates.com/real-estate-market-analysis/antalya-real-estate-prices-2026-guide/'},
-    {country:'TR', city:'Анталья', title:'Проверка на военные ограничения для иностранных покупателей занимает 2–6 недель', desc:'Это стандартная процедура при оформлении сделки — она подтверждает, что участок не находится в закрытой зоне.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://www.investment.com.tr/buying-property-in-antalya-foreigners/'},
-    {country:'TR', city:'Анталья', title:'Российские, немецкие и украинские покупатели остаются лидерами на рынке Антальи', desc:'В последние годы к ним активно присоединяются инвесторы из ОАЭ, Саудовской Аравии и Кувейта.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://forsaleinturkey.com/antalya-property-investment-complete-guide-for-foreign-buyers-in-2026/'},
-    {country:'TR', city:'Стамбул', title:'Госпошлина при оформлении сделки для иностранцев выросла почти втрое', desc:'Иностранные покупатели теперь платят около 21 000 турецких лир административных сборов за сделку — заметно больше, чем граждане Турции.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://investropa.com/blogs/news/turkey-foreigner'},
-    {country:'TR', city:'Стамбул', title:'Стамбул, Анталья и Бодрум остаются главными точками притяжения капитала', desc:'Стамбул привлекает ликвидностью крупного города, а прибрежные Анталья и Бодрум — курортным образом жизни и сезонной арендой.', img:'https://images.unsplash.com/photo-1636463386915-33919c8bdbfb?w=600&q=80', url:'https://internationalpropertyalerts.com/turkey-property-market-2026-insights-for-overseas-buyers/'}
-  ],
-  FR: [
-    {country:'FR', city:'Париж', title:'Иностранцы могут свободно покупать недвижимость во Франции', desc:'Гражданство или вид на жительство для этого не требуются — иностранный покупатель имеет те же права на приобретение жилья, что и гражданин Франции.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://iworld.com/ru/blog/real-estate-france'},
-    {country:'FR', city:'Ницца', title:'Нотариус — единственный обязательный участник сделки, а не риелтор', desc:'По закону покупатель может обойтись без агента, но нотариуса обязан привлечь всегда — именно он проверяет юридическую чистоту сделки. Гонорар нотариуса — от 0,8% до 3,87% от стоимости объекта.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://prian.ru/pub/2247.html'},
-    {country:'FR', city:'Канны', title:'После подписания предварительного договора есть 10 дней на отказ', desc:'Французский закон даёт покупателю право передумать в течение 10 дней после подписания compromis de vente — без объяснения причин и без потери задатка.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://prian.ru/pub/2247.html'},
-    {country:'FR', city:'Лион', title:'Иностранцам доступна ипотека во французских банках', desc:'При соблюдении ряда условий и предоставлении полного пакета документов иностранный покупатель может получить кредит на покупку недвижимости, как и резидент страны.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://immigrantinvest.com/ru/blog/real-estate-in-france/'},
-    {country:'FR', city:'Бордо', title:'Ежегодный налог на недвижимость обязателен для всех собственников', desc:'Taxe foncière платят все владельцы жилья во Франции независимо от гражданства и от того, проживают ли они в стране — размер зависит от кадастровой стоимости объекта.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://www.estateservice.ru/nalogi-na-nedvizhimost-vo-francii-pokupka-prodazha-arenda/'},
-    {country:'FR', city:'Париж', title:'Полная стоимость сделки обычно на 7-8% выше цены объекта', desc:'Для вторичного жилья налоги, гонорар нотариуса и сборы добавляют около 7-8% к цене; для новостроек эта надбавка заметно меньше — около 2-3%.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://www.estateservice.ru/france-pokupka.php'},
-    {country:'FR', city:'Ницца', title:'Занижение цены в договоре — серьёзный повод насторожиться', desc:'Во Франции практика занижения официальной цены сделки не распространена и незаконна. Если продавец предлагает доплатить часть суммы отдельно от договора — это риск, а не экономия.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://www.estateservice.ru/france-pokupka.php'},
-    {country:'FR', city:'Марсель', title:'Услуги риелтора не обязательны по закону, но снижают риски для иностранца', desc:'Формально сделку можно провести самостоятельно, оплатив только нотариуса. Но без знания французского языка и местного рынка агентское сопровождение оказывается практичнее.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://prian.ru/pub/2247.html'},
-    {country:'FR', city:'Канны', title:'Сделку можно оформить дистанционно, не приезжая во Францию', desc:'Если покупатель не может лично присутствовать на подписании — это допустимо оформить через доверенное лицо по нотариально заверенной доверенности.', img:'https://images.unsplash.com/photo-1592651563903-4b13924f3c06?w=600&q=80', url:'https://iworld.com/ru/blog/real-estate-france'}
-  ],
-  EG: [
-    {country:'EG', city:'Хургада', title:'Покупка от $300 000 даёт право на получение египетского гражданства', desc:'Указ №548 от 2005 года позволяет инвестору с семьёй переехать в страну и получить паспорт Египта при инвестициях в недвижимость от этой суммы.', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://immigrantinvest.com/ru/blog/egypt-property-guide/'},
-    {country:'EG', city:'Каир', title:'Покупка любого объекта позволяет оформить резидентскую визу', desc:'Сначала виза выдаётся на полгода, затем её можно продлевать сроком до 5 лет — независимо от суммы инвестиций.', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://immigrantinvest.com/ru/blog/egypt-property-guide/'},
-    {country:'EG', city:'Шарм-эль-Шейх', title:'Налог на собственность для иностранцев в Египте символический', desc:'Около $0,13 за квадратный метр в год — то есть порядка $13 в год за квартиру площадью 100 кв.м.', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://www.homesoverseas.ru/articles/11248'},
-    {country:'EG', city:'Хургада', title:'Регистрация собственности необязательна, но иностранцам настоятельно рекомендуется', desc:'Зарегистрировать объект можно у нотариуса — этого достаточно, чтобы стать полноправным собственником.', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://prian.ru/pub/6832.html'},
-    {country:'EG', city:'Каир', title:'В Египте нет налога на наследство и налога на прирост капитала', desc:'Покупателю нужно оплатить только сбор за регистрацию объекта в собственность — дополнительных налогов на этом этапе не возникает.', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://inter-aktiv.ru/guide/egipet-gid-pokupatelya.html'},
-    {country:'EG', city:'Хургада', title:'Green Contract — главная гарантия прав иностранного собственника', desc:'Этот документ подтверждает, что объект официально зарегистрирован государством на имя иностранца, и возможен только если такой же контракт есть у застройщика.', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://inter-aktiv.ru/guide/egipet-gid-pokupatelya.html'},
-    {country:'EG', city:'Шарм-эль-Шейх', title:'Через 5 лет владения инвестор может продать объект, сохранив гражданство', desc:'Полученное за инвестиции гражданство остаётся даже после продажи и возврата вложенных средств.', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://immigrantinvest.com/ru/blog/egypt-property-guide/'},
-    {country:'EG', city:'Каир', title:'Оформлять сделку самостоятельно через "знакомых" или частных посредников не стоит', desc:'Юридические риски высоки — надёжнее работать с проверенными застройщиками и агентствами, специализирующимися на новостройках высокого класса.', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://inter-aktiv.ru/guide/egipet-gid-pokupatelya.html'},
-    {country:'EG', city:'Хургада', title:'Главная обязанность собственника — вовремя платить налоги и коммунальные счета', desc:'За неуплату грозит штраф, а в отдельных случаях — конфискация имущества, поэтому платежи стоит вносить строго по срокам (до 1 июня и 31 декабря).', img:'https://images.unsplash.com/photo-1600520611035-84157ad4084d?w=600&q=80', url:'https://www.homesoverseas.ru/articles/11248'}
-  ],
-  TH: [
-    {country:'TH', city:'Пхукет', title:'Иностранец может владеть кондоминиумом в полной собственности, но не землёй', desc:'Земельный кодекс Таиланда прямо запрещает иностранцам владеть землёй — а вот квартиру в кондоминиуме купить в полный фрихолд можно.', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://kalinka-thailand.ru/blog/thailand-property-ownership-laws-foreigners-guide-seo-1776303843776'},
-    {country:'TH', city:'Паттайя', title:'Квота иностранного владения в одном кондоминиуме — не более 49% площади', desc:'Расчёт ведётся не по числу квартир, а по общей площади всех единиц — при превышении лимита сделку просто не зарегистрируют.', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://www.sostav.ru/blogs/256595/67490'},
-    {country:'TH', city:'Чиангмай', title:'Деньги на покупку кондо обязательно должны прийти из-за рубежа через тайский банк', desc:'Банк выдаёт документ FET (Foreign Exchange Transaction Form) — без него Земельный департамент не зарегистрирует сделку.', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://kalinka-thailand.ru/blog/thailand-property-ownership-laws-foreigners-guide-seo-1776303843776'},
-    {country:'TH', city:'Пхукет', title:'Для виллы с землёй доступен только лизхолд — долгосрочная аренда до 30 лет', desc:'Купить землю под виллой напрямую иностранец не может — только оформить долгосрочную аренду или использовать структуру с тайской компанией.', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://prian.ru/pub/18766.html'},
-    {country:'TH', city:'Пхукет', title:'В 2025 году Верховный суд Таиланда постановил, что продление лизхолда не гарантировано', desc:'Пункты договора о возможности продления признаны необязательными — арендодатель вправе отказать или потребовать значительно больше денег.', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://altyn-sapa.kz/nedvizhimost-v-tailande/'},
-    {country:'TH', city:'Паттайя', title:'Покупка недвижимости не даёт права на долгосрочную визу', desc:'Владение кондоминиумом никак не связано с визовым статусом — для проживания в стране нужно оформлять отдельную визу (например, Elite, рабочую или пенсионную).', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://kalinka-thailand.ru/blog/thailand-property-ownership-laws-foreigners-guide-seo-1776303843776'},
-    {country:'TH', city:'Чиангмай', title:'Дополнительные расходы на сделку — около 4-6% сверх цены объекта', desc:'Сбор за передачу (2%), налоги и независимая юридическая проверка документов в сумме добавляют заметную часть к базовой стоимости.', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://indreamsphuket.ru/articlelist/how-to-buy-property-in-thailand-as-a-foreigner'},
-    {country:'TH', city:'Пхукет', title:'Независимого юриста лучше нанимать до подписания любых документов', desc:'Земельный департамент ведёт документооборот на тайском языке — без сопровождения разобраться в тонкостях сделки самостоятельно рискованно.', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://kalinka-thailand.ru/blog/thailand-property-ownership-laws-foreigners-guide-seo-1776303843776'},
-    {country:'TH', city:'Пхукет', title:'Квоту иностранного владения в конкретном здании нужно проверять ДО внесения депозита', desc:'Депозит обычно невозвратен — а квота к моменту оформления документов может оказаться уже исчерпанной другими покупателями.', img:'https://images.unsplash.com/photo-1747396379098-714c21bde6f7?w=600&q=80', url:'https://vitvet.com/articles/strany/thailand/tailand-nedvizhimost/'}
-  ],
-  VN: [
-    {country:'VN', city:'Хошимин', title:'Иностранцы могут владеть квартирой или домом во Вьетнаме сроком до 50 лет', desc:'Срок можно продлевать — при этом собственно право собственности на жильё бессрочно, продлевается лишь право пользования землёй под ним.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://vitvet.com/articles/strany/vietnam/vietnam-nedvizhimost/'},
-    {country:'VN', city:'Ханой', title:'Земля во Вьетнаме остаётся государственной собственностью', desc:'Иностранец получает право пользования землёй, а не право собственности на сам участок — это касается любого типа жилья.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://vitvet.com/articles/strany/vietnam/vietnam-nedvizhimost/'},
-    {country:'VN', city:'Дананг', title:'Иностранцы совокупно не могут владеть более 30% квартир в одном доме', desc:'В проектах вилл и таунхаусов доля иностранных владельцев не должна превышать 10% — при исчерпанной квоте сделка не пройдёт регистрацию.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://fasttur.ru/nedvizhimost_vietnam'},
-    {country:'VN', city:'Нячанг', title:'Купить землю под индивидуальное строительство иностранцу напрямую нельзя', desc:'Доступны только квартиры в многоквартирных домах и отдельные дома в жилых комплексах, но не голые земельные участки.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://novosibdom.ru/yuridicheskie-aspekty-pokupki-nedvizhimosti-vo-vetname-dlya-inostrancev'},
-    {country:'VN', city:'Хошимин', title:'Квартиры площадью менее 30 кв.м. по закону не продаются иностранцам', desc:'На такие небольшие объекты просто не выдают документ о праве собственности — на практике минимальный размер студии начинается от 34 кв.м.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://duan.asia/ru/art/realestate'},
-    {country:'VN', city:'Хойан', title:'Для покупки нужна действующая въездная виза или вид на жительство', desc:'Гражданство значения не имеет — россияне, украинцы, казахстанцы и другие граждане СНГ подпадают под общий режим для иностранных физлиц.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://vitvet.com/articles/strany/vietnam/vietnam-nedvizhimost/'},
-    {country:'VN', city:'Ханой', title:'При покупке недвижимости платятся НДС 10%, налог на регистрацию 0,5% и налог на доход при продаже 2%', desc:'Эти три сбора — основная налоговая нагрузка на сделку, помимо самой цены объекта.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://novosibdom.ru/yuridicheskie-aspekty-pokupki-nedvizhimosti-vo-vetname-dlya-inostrancev'},
-    {country:'VN', city:'Дананг', title:'Брак с гражданином Вьетнама даёт расширенные права на владение недвижимостью', desc:'Совместно приобретённая недвижимость оформляется на обоих супругов, но такая схема несёт риски при разводе и наследовании.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://vitvet.com/articles/strany/vietnam/vietnam-nedvizhimost/'},
-    {country:'VN', city:'Нячанг', title:'Право собственности подтверждается "розовой книгой" — оформление может занять 2-3 года', desc:'До получения этого документа купить квартиру в новом доме юридически невозможно, даже если деньги застройщику уже переданы.', img:'https://images.unsplash.com/photo-1634951412593-b2cdca1ae519?w=600&q=80', url:'https://zimavteple.ru/catalog/zakon-vo-vetname-o-nedvizhimosti-dlya-inostrancev'}
-  ],
-  ES: [
-    {country:'ES', city:'Мадрид', title:'Испания больше не выдаёт "золотую визу" за инвестиции в недвижимость с апреля 2025 года', desc:'Из-за жилищного кризиса в стране программу закрыли — теперь инвестиции в жильё не дают автоматического права на ВНЖ по этой схеме.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://passportivity.com/ru/blog/spain-golden-visa/'},
-    {country:'ES', city:'Барселона', title:'НДС на новое жильё составляет 10% от суммы сделки плюс гербовый сбор 1,5%', desc:'За вторичное жильё вместо НДС покупатель платит налог на передачу прав — от 6 до 10% от кадастровой стоимости объекта.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://imin-malta.com/ru/blog/residence-in-spain/'},
-    {country:'ES', city:'Валенсия', title:'Налог на доход нерезидентов от сдачи жилья в аренду — 19% для граждан ЕС, 24% для остальных', desc:'Резиденты Испании платят этот налог по прогрессивной шкале — иностранцу-нерезиденту ставка фиксированная и выше.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://passportivity.com/ru/blog/buying-real-estate-in-spain/'},
-    {country:'ES', city:'Малага', title:'Некоторые муниципалитеты вводят налог на пустующее жильё для юрлиц', desc:'Например, в Эстремадуре его платят компании, у которых в собственности более пяти домов, пустующих без уважительной причины более года.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://passportivity.com/ru/blog/buying-real-estate-in-spain/'},
-    {country:'ES', city:'Мадрид', title:'Сделку можно провести полностью дистанционно через доверенное лицо', desc:'Подбор объекта возможен как лично, так и удалённо по фото и видео от риелторов, а юрист по доверенности готовит и подаёт все документы.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://dmitriivisa.news/services/vid-na-zhitelstvo/vnzh-v-ispanii/vnzh-ispanii-po-zolotoj-vize-investora/'},
-    {country:'ES', city:'Аликанте', title:'Для оформления сделки нужен индивидуальный номер налогоплательщика (NIE)', desc:'Его получает для покупателя юрист по доверенности — без этого номера зарегистрировать недвижимость на своё имя невозможно.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://dmitriivisa.news/services/vid-na-zhitelstvo/vnzh-v-ispanii/vnzh-ispanii-po-zolotoj-vize-investora/'},
-    {country:'ES', city:'Аликанте', title:'Приморские провинции остаются самыми популярными среди иностранных покупателей', desc:'На них приходится около 20% всех сделок с иностранцами — Аликанте лидирует среди прибрежных направлений.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://imin-malta.com/ru/blog/residence-in-spain/'},
-    {country:'ES', city:'Барселона', title:'ВНЖ по владению недвижимостью всё ещё доступен для объектов от 500 000 евро', desc:'Хотя новую золотую визу больше не выдают, уже действующая схема ВНЖ для собственников таких объектов пока сохраняется.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://passportivity.com/ru/blog/buying-real-estate-in-spain/'},
-    {country:'ES', city:'Мадрид', title:'Доля сделок с иностранцами на рынке недвижимости Испании — около 8,78%', desc:'Это заметная часть рынка, отражающая устойчивый интерес зарубежных покупателей к испанской недвижимости.', img:'https://images.unsplash.com/photo-1745186487192-09eccb385169?w=600&q=80', url:'https://imin-malta.com/ru/blog/residence-in-spain/'}
-  ],
-  CY: [
-    {country:'CY', city:'Лимассол', title:'Правительство Кипра не ограничивает продажу недвижимости иностранцам', desc:'Но покупателю нужно получить разрешение на сделку в местной администрации — это стандартная процедура подтверждения благонадёжности.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://immigrantinvest.com/ru/blog/cyprus-property-investment-for-permanent-residence/'},
-    {country:'CY', city:'Никосия', title:'НДС по ставке 19% платят покупатели новой недвижимости на Кипре', desc:'Для тех, кто переезжает на Кипр и покупает жильё для собственного проживания, действует льготная ставка НДС в размере 5%.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://investment-cyprus.com/ru/service/nalogi-na-nedvizhimost/'},
-    {country:'CY', city:'Пафос', title:'Отдельного налога на недвижимое имущество на Кипре нет', desc:'Вместо него собственники платят гербовый сбор при сделке и другие связанные платежи — но не ежегодный имущественный налог, как во многих других странах.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://passportivity.com/ru/blog/cyprus-permanent-residence-by-property/'},
-    {country:'CY', city:'Лимассол', title:'Гербовый сбор нужно заплатить в течение 30 дней после сделки', desc:'Для объектов дороже 171 000 евро ставка составляет 0,2% от стоимости недвижимости.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://passportivity.com/ru/blog/cyprus-permanent-residence-by-property/'},
-    {country:'CY', city:'Ларнака', title:'ВНЖ можно получить при покупке новой недвижимости от 300 000 евро', desc:'Дополнительное требование — годовой стабильный зарубежный доход от 50 000 евро и справка об отсутствии судимости.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://gk-lawfirm.com/ru/praktiki/immigratsiya/vnzh-kipra-pri-pokupke-nedvizhimosti/'},
-    {country:'CY', city:'Никосия', title:'Обладателям инвестиционного ВНЖ Кипра запрещено официально работать на острове', desc:'По сути это скорее инвестиционный статус ПМЖ, чем классический рабочий вид на жительство.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://gk-lawfirm.com/ru/praktiki/immigratsiya/vnzh-kipra-pri-pokupke-nedvizhimosti/'},
-    {country:'CY', city:'Пафос', title:'Налоговым резидентом Кипра нужно физически находиться на острове более 183 дней в году', desc:'Только при выполнении этого условия применяются налоговые льготы, доступные резидентам страны.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://immigrantinvest.com/ru/blog/cyprus-taxes-for-individuals/'},
-    {country:'CY', city:'Айя-Напа', title:'Рынок недвижимости Кипра стабильно растёт — с 2021 года объём продаж вырос на 12%', desc:'Доля сделок с иностранными покупателями тоже увеличивается год от года — интерес к острову остаётся высоким.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://immigrantinvest.com/ru/blog/cyprus-property-investment-for-permanent-residence/'},
-    {country:'CY', city:'Лимассол', title:'Компании на Кипре платят корпоративный налог на прибыль по ставке 12,5%', desc:'Это один из самых низких показателей в Евросоюзе — что также влияет на привлекательность острова для бизнес-инвесторов.', img:'https://images.unsplash.com/photo-1560860446-c821e910a0a7?w=600&q=80', url:'https://immigrantinvest.com/ru/blog/cyprus-property-investment-for-permanent-residence/'}
-  ],
-  ME: [
-    {country:'ME', city:'Подгорица', title:'С мая 2026 года сделки с недвижимостью от €10 000 проходят только через черногорские банки', desc:'Наличные расчёты вне банковской системы для таких сумм теперь не допускаются — это ужесточение направлено на прозрачность сделок.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://prian.ru/pub/15395.html'},
-    {country:'ME', city:'Будва', title:'С начала 2026 года минимальный порог для получения ВНЖ при покупке жилья вырос до €150 000', desc:'Раньше получить статус резидента можно было при покупке любого объекта без привязки к цене — правила заметно ужесточились.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://prian.ru/pub/15395.html'},
-    {country:'ME', city:'Котор', title:'ВНЖ не выдают за покупку земельного участка', desc:'Право на резидентство даёт только жилая или коммерческая недвижимость — голая земля под этот критерий не подходит.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://passportivity.com/ru/blog/buying-property-in-montenegro/'},
-    {country:'ME', city:'Херцег-Нови', title:'Землю сельскохозяйственного назначения иностранец может купить только через юрлицо', desc:'Для этого нужно зарегистрировать компанию в Черногории — напрямую на физическое лицо-иностранца такие участки не оформляются.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://passportivity.com/ru/blog/buying-property-in-montenegro/'},
-    {country:'ME', city:'Будва', title:'Заявление на ВНЖ рассматривают около 40 календарных дней после подписания договора', desc:'Это относительно короткий срок по сравнению с некоторыми другими европейскими программами резидентства через недвижимость.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://passportivity.com/ru/blog/buying-property-in-montenegro/'},
-    {country:'ME', city:'Тиват', title:'Недвижимость на стадии строительства не даёт права на ВНЖ', desc:'Для получения статуса резидента объект должен быть полностью достроен и готов к проживанию — этап котлована или монолита не подходит.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://passportivity.com/ru/blog/montenegro-residence-for-real-estate/'},
-    {country:'ME', city:'Подгорица', title:'У объекта не должно быть обременений — ипотеки, долгов, судебных тяжб', desc:'Перед покупкой стоит обязательно проверить недвижимость на чистоту — долги по налогам и коммунальным платежам тоже считаются обременением.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://passportivity.com/ru/blog/montenegro-residence-for-real-estate/'},
-    {country:'ME', city:'Котор', title:'С 2026 года продление ВНЖ напрямую связано с уплатой налога на недвижимость', desc:'Чтобы продлить резидентство, нужно подтвердить оплату всех местных налогов — задолженность может стать причиной отказа в продлении.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://montenegro-real-estate.com/ru/%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C-%D0%B2-%D1%87%D0%B5%D1%80%D0%BD%D0%BE%D0%B3%D0%BE%D1%80%D0%B8%D0%B8-%D0%B8-%D0%BF%D0%BE%D0%BB%D1%83%D1%87%D0%B5%D0%BD%D0%B8/'},
-    {country:'ME', city:'Будва', title:'Черногория не признаёт второе гражданство для получателей ВНЖ по этой схеме', desc:'От других паспортов приходится официально отказываться — исключение делают только для людей с исключительными достижениями в культуре, науке или спорте.', img:'https://images.unsplash.com/photo-1664958451522-90ce9fd47b2c?w=600&q=80', url:'https://passportivity.com/ru/residence-by-investment/montenegro-residence-by-real-estate/'}
-  ],
-  RS: [
-    {country:'RS', city:'Белград', title:'ВНЖ через покупку недвижимости — официальное основание с 2023 года', desc:'Достаточно приобрести жильё любой стоимости и подтвердить право собственности — привязки к минимальной сумме, в отличие от многих других стран, нет.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://visateka.ru/vnzh-serbii-pri-pokupke-nedvizhimosti-v-godu'},
-    {country:'RS', city:'Нови-Сад', title:'Единое разрешение (jedinstvena dozvola) объединяет ВНЖ и разрешение на работу', desc:'Выдаётся на срок до 3 лет с возможностью продления ещё на такой же срок — один документ закрывает сразу два вопроса.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://v-serbii.com/housing/buy-property'},
-    {country:'RS', city:'Белград', title:'Через 3 года проживания появляется право на ПМЖ (stalni boravak)', desc:'А после получения ПМЖ можно подавать документы на гражданство Сербии — понятная и предсказуемая лестница легализации.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://v-serbii.com/housing/buy-property'},
-    {country:'RS', city:'Нови-Сад', title:'Городские земельные участки под жилую или коммерческую застройку иностранцы приобретать вправе', desc:'Это отдельно закреплено в местном законе о недвижимости — ограничение касается в первую очередь сельскохозяйственных земель.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://vitvet.com/articles/strany/serbia/pokupka_nedvizhimosti_v_serbii/'},
-    {country:'RS', city:'Белград', title:'Ежегодный налог на квартиру стоимостью €100 000 — около €200-400 в год', desc:'Размер зависит от муниципалитета и точной оценочной стоимости объекта — расчёт стоит уточнять при покупке конкретного жилья.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://v-serbii.com/housing/buy-property'},
-    {country:'RS', city:'Ниш', title:'При владении квартирой более 10 лет как основным жильём налог на прирост при продаже не взимается', desc:'Освобождение также действует, если реинвестировать средства в другую сербскую недвижимость в течение 90 дней после продажи.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://v-serbii.com/housing/buy-property'},
-    {country:'RS', city:'Белград', title:'Ипотеку иностранцам сербские банки дают неохотно без ВНЖ и местного дохода', desc:'Ставки обычно 3,5-6% годовых в евро, первоначальный взнос — от 20% стоимости объекта.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://v-serbii.com/housing/buy-property'},
-    {country:'RS', city:'Нови-Сад', title:'Расчёты по сделкам формально в динарах, но на практике широко используются евро', desc:'Перевод крупных сумм из-за рубежа проходит через банковский контроль — стоит заранее уточнить требования банка к подтверждению источника средств.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://vitvet.com/articles/strany/serbia/pokupka_nedvizhimosti_v_serbii/'},
-    {country:'RS', city:'Белград', title:'За последние 3 года 60% купленной иностранцами недвижимости в Сербии принадлежит россиянам', desc:'Лояльные условия ВНЖ и относительно низкий порог входа делают Сербию особенно привлекательной именно для русскоговорящих покупателей.', img:'https://images.unsplash.com/photo-1665397323958-909c64f2e306?w=600&q=80', url:'https://visateka.ru/vnzh-serbii-pri-pokupke-nedvizhimosti-v-godu'}
-  ],
-  AM: [
-    {country:'AM', city:'Ереван', title:'Иностранцы могут покупать жилую и коммерческую недвижимость в Армении без ограничений по гражданству', desc:'Это прямо следует из закона о государственной регистрации прав на имущество — гражданин России может приобрести жильё в Армении наравне с местными жителями.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://vitvet.com/articles/strany/armenia/armeniya-nedvizhimost/'},
-    {country:'AM', city:'Гюмри', title:'Владение недвижимостью само по себе НЕ даёт права на ВНЖ или гражданство Армении', desc:'В отличие от некоторых других стран, инвестиционной программы "недвижимость за резидентство" в Армении официально не существует.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://migrate.club/services/vnzh-armenii-za-nedvizhimost'},
-    {country:'AM', city:'Ереван', title:'Землю сельхозназначения иностранец может купить только через зарегистрированное в Армении юрлицо', desc:'На жильё и коммерческую недвижимость это ограничение не распространяется — покупать их можно напрямую, как физическое лицо.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://armenian-lawyer.com/ru/business-immigration/armenia-property-buying-taxes-fees-guide/'},
-    {country:'AM', city:'Дилижан', title:'С 1 ноября 2026 года вступает поправка в Земельный кодекс о владении сельхозземлёй', desc:'Обладатели "особого вида на жительство" смогут владеть землёй любой категории, включая сельскохозяйственную — раньше это было недоступно почти никому из иностранцев.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://armenian-lawyer.com/ru/real-estate/'},
-    {country:'AM', city:'Ереван', title:'Налога на покупку недвижимости в Армении нет', desc:'Это выгодно отличает страну от многих европейских юрисдикций, где покупатель платит существенный гербовый сбор или НДС уже на этапе сделки.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://residentarmenia.com/%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D1%8C-%D0%B2-%D0%B0%D1%80%D0%BC%D0%B5%D0%BD%D0%B8%D0%B8/'},
-    {country:'AM', city:'Ванадзор', title:'Ежегодный налог на имущество минимальный — от 0,1% до 1% для жилой недвижимости', desc:'Для коммерческой недвижимости ставка составляет 0,3% — расчёт ведётся от кадастровой стоимости, которая обычно ниже рыночной.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://armenian-lawyer.com/ru/business-immigration/armenia-property-buying-taxes-fees-guide/'},
-    {country:'AM', city:'Ереван', title:'Сдача жилья в аренду с уплатой налогов может стать веским фактором при рассмотрении заявки на ВНЖ', desc:'Формально нужно зарегистрировать предпринимательскую деятельность — это рассматривается как один из путей легализации в стране, хотя и не напрямую через саму покупку.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://habr.com/ru/articles/669666/'},
-    {country:'AM', city:'Ереван', title:'Доход от продажи недвижимости нерезидентом облагается налогом у источника', desc:'Точная ставка зависит от срока владения объектом и статуса продавца — стоит уточнять актуальные условия перед сделкой у местного юриста.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://vitvet.com/articles/strany/armenia/armeniya-nedvizhimost/'},
-    {country:'AM', city:'Ереван', title:'Доля нерезидентов среди покупателей недвижимости в Армении продолжает расти', desc:'Во второй половине 2023 года она выросла с 8,6% до 9,4% — это один из факторов роста цен на жильё по всей стране.', img:'https://images.unsplash.com/photo-1688280506107-8fa36172ae4f?w=600&q=80', url:'https://migronium.com/kak-kupit-nedvizhimost-v-armenii/'}
-  ],
-  AZ: [
-    {country:'AZ', city:'Баку', title:'Иностранец может купить недвижимость в Азербайджане, кроме земельного участка', desc:'Дом, виллу, квартиру и другое имущество можно приобрести на тех же правах, что и местные жители — ограничение касается именно земли.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://www.caspianlegalcenter.az/ru/insights/more/foreigners-buy-property-Azerbaijan'},
-    {country:'AZ', city:'Гянджа', title:'Купить землю иностранцу заметно сложнее, чем жильё', desc:'В ряде случаев это возможно лишь через аренду или особые правовые схемы, а не напрямую в собственность.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://oceanworldwide.ru/kak-kupit-nedvizhimost-v-azerbajdzhane-rossiyaninu-ogranicheniya-czeny-nyuansy-dlya-praktichnogo-vybora/'},
-    {country:'AZ', city:'Баку', title:'ВНЖ на 1 год можно получить при покупке недвижимости от $60 000', desc:'Документы подают в миграционную службу не позднее 30 дней до истечения срока легального пребывания в стране.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://relokatz.com/country/az/legalization/real-estate?tab=info'},
-    {country:'AZ', city:'Сумгайыт', title:'Такой ВНЖ можно продлить ещё на 1 год, а после 2 лет проживания — подать на ПМЖ', desc:'Дальнейший путь к гражданству требует уже 5 и более лет проживания в стране, а также сдачи экзамена на знание азербайджанского языка.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://relokatz.com/country/az/legalization/real-estate?tab=info'},
-    {country:'AZ', city:'Баку', title:'Проверка документов и репутации застройщика или продавца перед сделкой обязательна', desc:'Юридический due diligence — не формальность, а реальная защита от рисков мошенничества на рынке недвижимости.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://smeltd.az/ru/yuridicheskij-chek-list-i-rukovodstvo-po-due-diligence-dlya-inostrannyh-pokupatelej-v-azerbajdzhane/'},
-    {country:'AZ', city:'Баку', title:'Ипотека иностранцу в Азербайджане доступна, но на более жёстких условиях', desc:'Банки предъявляют к нерезидентам более строгие требования, чем к местным заёмщикам — стоит заранее уточнить конкретные условия у выбранного банка.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://oceanworldwide.ru/kak-kupit-nedvizhimost-v-azerbajdzhane-rossiyaninu-ogranicheniya-czeny-nyuansy-dlya-praktichnogo-vybora/'},
-    {country:'AZ', city:'Гянджа', title:'Владение недвижимостью не даёт автоматической миграционной привилегии', desc:'ВНЖ оформляется отдельной процедурой при соблюдении ценового порога — сама по себе покупка автоматически ничего не гарантирует.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://oceanworldwide.ru/kak-kupit-nedvizhimost-v-azerbajdzhane-rossiyaninu-ogranicheniya-czeny-nyuansy-dlya-praktichnogo-vybora/'},
-    {country:'AZ', city:'Баку', title:'При получении гражданства Азербайджана государство признаёт человека исключительно своим гражданином', desc:'Это действует независимо от наличия у него другого гражданства — стоит учитывать эту особенность при планировании натурализации.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://relokatz.com/country/az/legalization/real-estate?tab=info'},
-    {country:'AZ', city:'Баку', title:'Статус резидента также доступен при открытии депозита в местном банке от $59 000', desc:'Это альтернативный путь к резидентству помимо покупки недвижимости — банковский вклад засчитывается на схожих условиях.', img:'https://images.unsplash.com/photo-1743587592116-d6d3220fb17c?w=600&q=80', url:'https://international.business/az/vnzh-v-azerbajdzhane/'}
-  ],
-  KZ: [
-    {country:'KZ', city:'Алматы', title:'Иностранцы-нерезиденты могут свободно владеть коммерческой недвижимостью в Казахстане', desc:'Офисы, склады и торговые площади доступны для покупки без дополнительных требований — в отличие от жилой недвижимости.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://buh-center.kz/informatsiya-dlya-predprinimateley/nedvizhimost-v-kazahstane-dlya-nerezidentov-chto-razresheno-v-2026-godu'},
-    {country:'KZ', city:'Астана', title:'Для покупки жилой недвижимости обязательно наличие ВНЖ', desc:'Купить квартиру или дом на своё имя без вида на жительство иностранец не может — это ключевое отличие от коммерческой недвижимости.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://buh-center.kz/informatsiya-dlya-predprinimateley/nedvizhimost-v-kazahstane-dlya-nerezidentov-chto-razresheno-v-2026-godu'},
-    {country:'KZ', city:'Шымкент', title:'Купить объект на сельскохозяйственной земле иностранцу недопустимо', desc:'Перед покупкой важно проверить назначение земельного участка — жилое, коммерческое или иное.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://colliers.kz/poshagovoe-rukovodstvo-kak-inostrannomu-investoru-kupit-nedvizhimost-v-kazahstane/'},
-    {country:'KZ', city:'Алматы', title:'С 2026 года введена прогрессивная шкала налоговых ставок при продаже недвижимости', desc:'Также увеличены сроки владения объектом, необходимые для освобождения от налога — изменения направлены на стимулирование долгосрочного владения жильём.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://buh-center.kz/informatsiya-dlya-predprinimateley/nedvizhimost-v-kazahstane-dlya-nerezidentov-chto-razresheno-v-2026-godu'},
-    {country:'KZ', city:'Астана', title:'Нерезиденты платят 15% подоходного налога с прироста стоимости при продаже', desc:'Расчёт ведётся с разницы между ценой покупки и ценой продажи объекта.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://femida-justice.com/uslugi/migraczionnyij-yurist/inostranczyi-v-kazaxstane-v-voprosax-nedvizhimosti/'},
-    {country:'KZ', city:'Алматы', title:'Для резидентов Казахстана ставка налога с прироста стоимости снижается до 10%', desc:'А если недвижимость продаётся спустя год и более после покупки, обязанность по уплате налога вовсе не возникает.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://www.defacto.kz/ru/content/inostrantsy-v-kazakhstane-priobretenie-nedvizhimosti'},
-    {country:'KZ', city:'Астана', title:'Ипотеку в казахстанском банке иностранцу дают на практике только при наличии ВНЖ', desc:'Банки также требуют подтверждение стабильного дохода на территории страны за последние 6-12 месяцев.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://femida-justice.com/uslugi/migraczionnyij-yurist/inostranczyi-v-kazaxstane-v-voprosax-nedvizhimosti/'},
-    {country:'KZ', city:'Алматы', title:'Оформление ВНЖ занимает 45-70 дней', desc:'Процесс требует подтверждения платёжеспособности, прохождения дактилоскопии и медосмотра, а также наличия адреса проживания в стране.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://integrokz.com/real-estate/krycocsye1-kak-inostrantsu-kupit-nedvizhimost-v-kaz'},
-    {country:'KZ', city:'Шымкент', title:'Оформить недвижимость на супруга без собственного ВНЖ законодательство напрямую не позволяет', desc:'Даже если у второго супруга есть ВНЖ — этот нюанс стоит уточнять с местным юристом перед сделкой.', img:'https://images.unsplash.com/photo-1677842296338-eeb8c866d22c?w=600&q=80', url:'https://integrokz.com/real-estate/krycocsye1-kak-inostrantsu-kupit-nedvizhimost-v-kaz'}
-  ],
-  MV: [
-    {country:'MV', city:'Мале', title:'Конституция Мальдив прямо запрещает иностранцам владеть землёй в полную собственность', desc:'Право на фрихолд (полную собственность на землю) закреплено исключительно за гражданами Мальдив.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://www.mauritiusproperty.org/investmentmaldives.html'},
-    {country:'MV', city:'Мале', title:'Иностранцам доступна долгосрочная аренда (лизхолд) сроком до 99 лет', desc:'Это основной легальный способ инвестировать в мальдивскую недвижимость — покупка "в вечное владение" для иностранцев не предусмотрена.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://www.mauritiusproperty.org/investmentmaldives.html'},
-    {country:'MV', city:'Мале', title:'Все сделки с недвижимостью с участием иностранцев требуют одобрения правительства', desc:'Это регулируется Инвестиционным законом Мальдив — без государственного согласования оформить сделку невозможно.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://www.mauritiusproperty.org/investmentmaldives.html'},
-    {country:'MV', city:'Мале', title:'По закону об особых экономических зонах возможны права, приравненные к полной собственности', desc:'Но порог инвестиций начинается от $150 млн — это касается крупных застройщиков, а не частных покупателей отдельной виллы.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://resortlife.travel/maldives-real-estate-investment'},
-    {country:'MV', city:'Мале', title:'В редких случаях возможно владение землёй при инвестициях от $1 млрд', desc:'Дополнительное условие — минимум 70% земли должно быть намыто (реклэймед) из моря — на практике это доступно лишь крупнейшим корпоративным инвесторам.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://thepropzy.com/can-foreigners-buy-property-in-the-maldives-rules-restrictions-investment-options/'},
-    {country:'MV', city:'Мале', title:'Большинство иностранных инвесторов покупают недвижимость внутри одобренных курортных проектов', desc:'Попытка приобрести землю самостоятельно, вне таких проектов, практически нереализуема для частного лица.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://tropicalriviera.com/can-foreigners-buy-property-in-the-maldives/'},
-    {country:'MV', city:'Мале', title:'Страта-титул позволяет иностранцу владеть отдельной виллой внутри одобренного проекта', desc:'Закон об этажной собственности (Condominium Ownership Act) даёт держателю такого титула долгосрочное право на конкретный юнит с государственной регистрацией.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://internationalpropertyalerts.com/can-you-actually-own-land-in-the-maldives/'},
-    {country:'MV', city:'Мале', title:'Договор аренды не даёт права собственности на саму землю, здание или встроенные конструкции', desc:'Держатель страта-титула получает право пользования юнитом на длительный срок, но не право собственности на землю под ним.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://bnilaw.co/legal-considerations-for-long-term-leasing-of-villas-and-apartments-in-maldives-resorts-a-guide-for-buyers/'},
-    {country:'MV', city:'Мале', title:'Всё движимое имущество внутри виллы считается личной собственностью держателя аренды', desc:'Мебель и элементы интерьера юридически принадлежат арендатору, даже если сама земля и здание — нет.', img:'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=600&q=80', url:'https://bnilaw.co/legal-considerations-for-long-term-leasing-of-villas-and-apartments-in-maldives-resorts-a-guide-for-buyers/'}
-  ]
-};
-function realtyNewsCardHtml(n){
-  const clickAttr = n.agencyMatch
-    ? `onclick="CX.showRealtors('${esc2(n.agencyMatch.country)}','${esc2(n.agencyMatch.city)}')"`
-    : (n.country ? `onclick="CX.showRealtors('${esc2(n.country)}')"` : '');
-  return `<div class="card" ${clickAttr} style="${clickAttr?'':'cursor:default;'}">
-    <div class="card-img"><img src="${esc2(n.img)}" alt="" loading="lazy"></div>
-    <div class="card-body">
-      <span class="tag">${flagEmoji(n.country)} ${esc2(countryDisplayName(n.country))}${n.city?', '+esc2(n.city):''}</span>
-      <h3>${esc2(n.title)}</h3>
-      <p style="margin-top:6px;">${esc2(n.desc||'')}</p>
-      ${n.url?`<div style="margin-top:10px;"><a class="tag" style="color:var(--gold2); border:1px solid var(--gold);" href="${esc2(n.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${t('news_read_source')}</a></div>`:''}
-    </div>
-  </div>`;
-}
-function renderRealtorWorldNews(){
-  const wrap=document.getElementById('realtorNewsWrap'); if(!wrap) return;
-  if(!REALTY_NEWS_WORLD.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML=`<div class="section-head" style="margin-bottom:16px;">
-      <h2 class="font-cormorant gradient-heading" style="font-size:22px;">${t('realty_news_world_title')}</h2>
-      <p>${t('realty_news_world_sub')}</p>
-    </div>
-    <div class="grid-cards">${REALTY_NEWS_WORLD.map(realtyNewsCardHtml).join('')}</div>`;
-}
-function renderRealtorCountryNews(country){
-  const wrap=document.getElementById('realtorNewsWrap'); if(!wrap) return;
-  const items=REALTY_NEWS_BY_COUNTRY[country]||[];
-  if(!items.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML=`<div class="section-head" style="margin-bottom:16px;">
-      <h2 class="font-cormorant gradient-heading" style="font-size:22px;">${t('realty_news_country_title',{country:countryDisplayName(country)})}</h2>
-    </div>
-    <div class="grid-cards">${items.map(realtyNewsCardHtml).join('')}</div>`;
 }
 
 /* ---------- travel agencies: shared rendering helpers (mirrors realtors) ---------- */
@@ -6210,73 +5988,9 @@ function conciergeGo(country, city, cls){
   document.getElementById('conciergePanel').classList.remove('open');
 }
 
-/* City landmark photos (Unsplash) — replaces emoji on card grids */
-const CITY_PHOTOS = {
-  'Москва':       'https://images.unsplash.com/photo-1513326738677-b964603b136d?w=400&q=70',
-  'Санкт-Петербург': 'https://images.unsplash.com/photo-1548834925-e48f8a27f8f5?w=400&q=70',
-  'Сочи':         'https://images.unsplash.com/photo-1519451241324-20b4ea2c4220?w=400&q=70',
-  'Сириус':       'https://images.unsplash.com/photo-1530841344095-c1b5328c70d9?w=400&q=70',
-  'Анапа':        'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=70',
-  'Геленджик':    'https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=400&q=70',
-  'Казань':       'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400&q=70',
-  'Екатеринбург': 'https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?w=400&q=70',
-  'Крым':         'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=400&q=70',
-  'Ейск':         'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=70',
-  'Должанская':   'https://images.unsplash.com/photo-1439405326-bda5e0de61b9?w=400&q=70',
-  'Дубай':        'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=400&q=70',
-  'Абу-Даби':     'https://images.unsplash.com/photo-1505664194779-8beaceb93744?w=400&q=70',
-  'Мальдивы (Южный Мале Атолл)': 'https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=400&q=70',
-  'Майами':       'https://images.unsplash.com/photo-1514214246283-d8a933049049?w=400&q=70',
-  'Нью-Йорк':     'https://images.unsplash.com/photo-1546436836-07a91091f160?w=400&q=70',
-  'Лос-Анджелес': 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=400&q=70',
-  'Париж':        'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&q=70',
-  'Ницца':        'https://images.unsplash.com/photo-1557093793-e196ae071479?w=400&q=70',
-  'Лион':         'https://images.unsplash.com/photo-1598282164892-e8e5979de965?w=400&q=70',
-  'Лондон':       'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=400&q=70',
-  'Манчестер':    'https://images.unsplash.com/photo-1523731407965-2430cd12f5e4?w=400&q=70',
-  'Токио':        'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=70',
-  'Осака':        'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=400&q=70',
-  'Стамбул':      'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=400&q=70',
-  'Анталья':      'https://images.unsplash.com/photo-1565876427310-b24b563e3bc5?w=400&q=70',
-  'Афины':        'https://images.unsplash.com/photo-1555993539-1732b0258235?w=400&q=70',
-  'Санторини':    'https://images.unsplash.com/photo-1512632578888-169bbbc64f33?w=400&q=70',
-  'Рим':          'https://images.unsplash.com/photo-1529260830199-42c24126f198?w=400&q=70',
-  'Венеция':      'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?w=400&q=70',
-  'Милан':        'https://images.unsplash.com/photo-1513581166391-887a96ddeafd?w=400&q=70',
-  'Барселона':    'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&q=70',
-  'Мадрид':       'https://images.unsplash.com/photo-1543783207-ec64e4d95325?w=400&q=70',
-  'Берлин':       'https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?w=400&q=70',
-  'Мюнхен':       'https://images.unsplash.com/photo-1595867818082-083862f3d630?w=400&q=70',
-  'Бангкок':      'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=400&q=70',
-  'Пхукет':       'https://images.unsplash.com/photo-1589394815349-58eebe3a7c3b?w=400&q=70',
-  'Тбилиси':      'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=400&q=70',
-  'Батуми':       'https://images.unsplash.com/photo-1591598407947-c4e45aaa13b7?w=400&q=70',
-  'Баку':         'https://images.unsplash.com/photo-1566041510639-8d95a2490bfb?w=400&q=70',
-  'Марракеш':     'https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=400&q=70',
-  'Касабланка':   'https://images.unsplash.com/photo-1559386484-97dfc0e15539?w=400&q=70',
-  'Каир':         'https://images.unsplash.com/photo-1539768942893-daf53e448371?w=400&q=70',
-  'Шарм-эль-Шейх':'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=400&q=70',
-  'Лиссабон':     'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=400&q=70',
-  'Порту':        'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=400&q=70',
-  'Амстердам':    'https://images.unsplash.com/photo-1534351590666-13e3e96b5702?w=400&q=70',
-  'Цюрих':        'https://images.unsplash.com/photo-1530841344095-c1b5328c70d9?w=400&q=70',
-  'Женева':       'https://images.unsplash.com/photo-1530841344095-c1b5328c70d9?w=400&q=70',
-  'Вена':         'https://images.unsplash.com/photo-1516550893923-42d28e5677af?w=400&q=70',
-  'Прага':        'https://images.unsplash.com/photo-1541849546-216549ae216d?w=400&q=70',
-  'Варшава':      'https://images.unsplash.com/photo-1519197924294-4ba991a11128?w=400&q=70',
-  'Гоа':          'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&q=70',
-  'Дели':         'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400&q=70',
-  'Бали':         'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=400&q=70',
-  'Нячанг':       'https://images.unsplash.com/photo-1509023464722-18d996393ca8?w=400&q=70',
-  'Сеул':         'https://images.unsplash.com/photo-1538669715315-155098f0fb1d?w=400&q=70',
-  'Мехико':       'https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=400&q=70',
-  'Канкун':       'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=400&q=70',
-  'Буэнос-Айрес': 'https://images.unsplash.com/photo-1619881590738-a111d176d906?w=400&q=70',
-  'Рио-де-Жанейро':'https://images.unsplash.com/photo-1516306580123-e6e52b1b7b5f?w=400&q=70',
-  'Шанхай':       'https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?w=400&q=70',
-  'Пекин':        'https://images.unsplash.com/photo-1508804052814-cd3ba865a116?w=400&q=70'
-};
-function getCityPhoto(city){ return CITY_PHOTOS[city] || CITY_PLACEHOLDER_IMG; }
+/* Фото городов отключены по решению владельца (11.09.2026) — getCityPhoto() всегда
+   возвращает нейтральную заглушку, реальные фото городов нигде в проекте не нужны. */
+function getCityPhoto(city){ return CITY_PLACEHOLDER_IMG; }
 
 function getCountryName(code){
   return COUNTRY_NAMES[code] || EXTRA_COUNTRY_NAMES[code] || code;
@@ -6285,32 +5999,6 @@ function getCountryName(code){
    в раздел — страна/город выбираются уже там (см. решение при интеграции Афиши:
    "сразу в раздел, как сейчас у Агентств и Афиши"). Список сознательно вынесен в
    массив — новые разделы добавляются одной строкой. */
-/* Чипы "популярные направления" под hero-поиском — берём первую страну из каждого
-   слота COUNTRY_SLOTS (тот же курированный список, что раньше показывался фото-карточками),
-   чтобы не дублировать курирование заново. Клик = CX.selectCountry(), тот же обработчик,
-   что был у фото-карточек — поведение не меняется, меняется только форма. */
-/* Чипы популярных направлений на главной. По решению владельца — не топ-10 из
-   курированного COUNTRY_SLOTS (та фото-карточная система теперь не привязана
-   к чипам), а конкретный список элитных направлений. Две позиции — города
-   (Майами, Ницца), не страны целиком, поэтому у них отдельный обработчик
-   CX.selectCountryCity(), который подставляет и страну, и город сразу. */
-const POPULAR_DESTINATION_CHIPS = [
-  {code:'RU'}, {code:'MC'}, {code:'AE'}, {code:'SG'}, {code:'MV'}, {code:'SC'},
-  {code:'US', city:'Майами', cityEn:'Miami'},
-  {code:'QA'}, {code:'BS'}, {code:'KY'}, {code:'PT'}, {code:'IT'},
-  {code:'FR', city:'Ницца', cityEn:'Nice'}
-];
-function renderPopularDestinations(){
-  const wrap=document.getElementById('popularDestinations');
-  if(!wrap) return;
-  wrap.innerHTML=POPULAR_DESTINATION_CHIPS.map(d=>{
-    if(d.city){
-      const cityName = LANG==='ru'? d.city : (d.cityEn||d.city);
-      return `<span class="pd-chip" onclick="CX.selectCountryCity('${d.code}','${esc2(cityName)}')">${flagEmoji(d.code)} ${cityName}</span>`;
-    }
-    return `<span class="pd-chip" onclick="CX.selectCountry('${d.code}')">${flagEmoji(d.code)} ${getCountryName(d.code)}</span>`;
-  }).join('');
-}
 // Опциональная подсказка выбора класса отеля на главной — появляется только
 // когда город уже введён (CX._searchCity). Чисто подсказка, ничего не ломает,
 // если её проигнорировать: обычный клик "Найти" работает как раньше.
@@ -6369,9 +6057,10 @@ function renderCategoryCardsGrid(){
   });
 }
 /* renderCountryCards/initCardRotation/rotateSlot удалены — фото-карточки стран
-   заменены карточками-разделами (renderCategoryCardsGrid) и чипами популярных
-   направлений (renderPopularDestinations), которые переиспользуют те же данные
-   COUNTRY_SLOTS. Сам массив COUNTRY_SLOTS оставлен — источник данных для чипов. */
+   заменены карточками-разделами (renderCategoryCardsGrid). Чипы "популярные
+   направления" (renderPopularDestinations) и COUNTRY_SLOTS, их источник
+   данных, тоже удалены впоследствии (12.09.2026) — см. комментарий у бывшего
+   места объявления COUNTRY_SLOTS. */
 // ── Отмена брони самим гостем (личный кабинет) ────────────────────────────
 // Раньше отменить бронь мог только отель со своей стороны — если гость
 // передумал, единственный способ был звонить/писать в отель напрямую, а до
@@ -6472,7 +6161,7 @@ function renderModal(type){
           // и заезд по которой ещё не наступил — отменять уже начавшееся или
           // прошедшее проживание смысла нет, это вопрос уже не к сайту, а к отелю.
           const canCancel = (b.status==='pending'||b.status==='confirmed') && new Date(b.checkin) > new Date();
-          return `<div style="border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:10px;">
+          return `<div style="border-bottom:1px solid rgba(26,28,32,.08); padding-bottom:10px; margin-bottom:10px;">
             <div style="display:flex; justify-content:space-between; gap:10px;">
               <b>${esc2(b.hotelName)||esc2(b.hotelId)}</b>
               <span style="font-size:12px; padding:2px 8px; border-radius:6px; background:rgba(184,149,77,.15); color:var(--gold); white-space:nowrap;">${t(statusKey)}</span>
@@ -6591,7 +6280,7 @@ function renderModal(type){
               const sign = r.type==='spend' ? '−' : '+';
               const color = r.type==='spend' ? 'var(--muted)' : 'var(--gold2)';
               const d=new Date(r.ts);
-              return `<div style="display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px solid var(--line); font-size:12.5px;">
+              return `<div style="display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px solid rgba(26,28,32,.06); font-size:12.5px;">
                 <span style="color:var(--muted);">${d.toLocaleDateString('ru-RU')} · ${esc2(r.description||'')}</span>
                 <span style="color:${color}; white-space:nowrap;">${sign}${Math.abs(r.amount).toFixed(0)} ₽</span>
               </div>`;
@@ -6608,7 +6297,7 @@ function renderModal(type){
       // Карточка-счётчик "кого привёл" (не деньги, а список имён при раскрытии)
       function countCard(icon, title, count, names, emptyText){
         const rowsHtml = names.length
-          ? names.map(n=>`<div style="padding:4px 0; border-bottom:1px solid var(--line); font-size:12.5px; color:var(--text);">${esc2(n)}</div>`).join('')
+          ? names.map(n=>`<div style="padding:4px 0; border-bottom:1px solid rgba(26,28,32,.06); font-size:12.5px; color:var(--text);">${esc2(n)}</div>`).join('')
           : `<div style="color:var(--muted); font-size:12.5px; padding:6px 0;">${emptyText}</div>`;
         return `<details class="stat-card">
           <summary><div class="num">${count}</div><div class="lbl">${icon} ${title} ▾</div></summary>
@@ -7047,18 +6736,22 @@ function removeCabinetPhoto(){
 function updateNavLoginBtn(){
   const btn=document.getElementById('navLoginBtn'); if(!btn) return;
   const session=LS.getJSON('cx_user_session', null);
+  const mbnIcon=document.getElementById('mbnProfileIcon');
   if(session?.email){
     const users=LS.getJSON('cx_users',[]);
     const u=users.find(x=>x.email===session.email);
     if(u && u.photo){
       btn.innerHTML = `<img src="${u.photo}" style="width:18px; height:18px; border-radius:50%; object-fit:cover; vertical-align:-4px; margin-right:4px;">${esc2(u.name.split(' ')[0])}`;
+      if(mbnIcon) mbnIcon.outerHTML = `<img class="mbn-avatar" id="mbnProfileIcon" src="${u.photo}">`;
     } else if(u){
       btn.textContent = '👤 '+u.name.split(' ')[0];
+      if(mbnIcon && mbnIcon.tagName==='IMG') mbnIcon.outerHTML = `<span class="mbn-icon" id="mbnProfileIcon">👤</span>`;
     } else {
       btn.innerHTML = t('nav_login');
     }
   } else {
     btn.innerHTML = t('nav_login');
+    if(mbnIcon && mbnIcon.tagName==='IMG') mbnIcon.outerHTML = `<span class="mbn-icon" id="mbnProfileIcon">👤</span>`;
   }
 }
 
@@ -7174,38 +6867,6 @@ function doRefRegister(){
 }
 
 /* =========================================================
-   STARFIELD CANVAS — отключено 06.09.2026 при переходе на светлую тему
-   (ТЗ "Light Luxury"). Функция оставлена неиспользуемой на случай, если
-   тёмный вариант темы понадобится вернуть позже, а не вызывается.
-   ========================================================= */
-function initStarfield(){
-  const canvas=document.getElementById('starfield');
-  const ctx=canvas.getContext('2d');
-  function resize(){ canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight; }
-  resize(); window.addEventListener('resize', resize);
-  const stars=[];
-  for(let i=0;i<170;i++){
-    stars.push({
-      x:Math.random()*canvas.width, y:Math.random()*canvas.height,
-      r:Math.random()*1.6+0.4, gold: Math.random()<0.15,
-      phase: Math.random()*Math.PI*2, speed: 0.02+Math.random()*0.03
-    });
-  }
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    stars.forEach(s=>{
-      s.phase+=s.speed;
-      const alpha=0.4+Math.abs(Math.sin(s.phase))*0.6;
-      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle = s.gold ? `rgba(201,164,94,${alpha})` : `rgba(255,255,255,${alpha*0.8})`;
-      ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
-
-/* =========================================================
    GOOGLE TRANSLATE WIDGET (covers all other languages)
    ========================================================= */
 function googleTranslateElementInit(){
@@ -7250,7 +6911,6 @@ function init(){
   renderTicker();
   fetchAndRenderLiveTicker();
   renderCategoryCardsGrid();
-  renderPopularDestinations();
   renderAfishaHomeSection();
   updateNavLoginBtn();
   seedRealtorsIfEmpty();
@@ -7297,17 +6957,13 @@ window.addEventListener('DOMContentLoaded', init);
     <a href="loyalty-referral-policy.html" target="_blank" rel="noopener" style="color:var(--muted);">Программа лояльности</a>
     <a href="crypto-payments-policy.html" target="_blank" rel="noopener" style="color:var(--muted);">Расчёты в криптовалюте</a>
   </div>
-  <p style="text-align:center; margin-bottom:10px; font-size:13px;">✉️ <a href="mailto:Corronyx@gmail.com" style="color:var(--muted);">Corronyx@gmail.com</a></p>
   <div style="display:flex; justify-content:center; gap:14px; margin-bottom:10px;">
-    <!-- TODO: реальная ссылка -->
     <a href="[TELEGRAM_URL]" target="_blank" rel="noopener" aria-label="Telegram" style="display:inline-flex;">
       <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#26A5E4"/><path fill="#fff" d="M17.94 8.19l-1.9 8.95c-.14.63-.51.78-1.04.49l-2.88-2.12-1.39 1.34c-.15.15-.28.28-.58.28l.21-2.94 5.36-4.84c.23-.21-.05-.32-.36-.12l-6.62 4.17-2.85-.89c-.62-.19-.63-.62.13-.92l11.14-4.29c.51-.19.96.12.79.89z"/></svg>
     </a>
-    <!-- TODO: реальная ссылка -->
     <a href="[VK_URL]" target="_blank" rel="noopener" aria-label="VK" style="display:inline-flex;">
       <svg width="22" height="22" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#0077FF"/><text x="12" y="16.3" font-family="Arial, sans-serif" font-weight="700" font-size="10.5" fill="#fff" text-anchor="middle">VK</text></svg>
     </a>
-    <!-- TODO: реальная ссылка -->
     <a href="[FACEBOOK_URL]" target="_blank" rel="noopener" aria-label="Facebook" style="display:inline-flex;">
       <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#1877F2"/><path fill="#fff" d="M13.5 21v-7.2h2.4l.36-2.8h-2.76V9.2c0-.81.22-1.36 1.39-1.36h1.48V5.34C15.9 5.24 15.02 5.16 14 5.16c-2.13 0-3.6 1.3-3.6 3.68v2.06H8v2.8h2.4V21h3.1z"/></svg>
     </a>
@@ -7359,5 +7015,20 @@ function positionConciergeBtn(bannerVisible){
 })();
 </script>
 
+<!-- Мобильное нижнее меню — см. CSS выше и initMobileBottomNav() в основном скрипте -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+  <button class="mbn-item active" data-mbn="home" onclick="CX.goHome(); CX.setMobileNavActive('home');">
+    <span class="mbn-icon">🏠</span><span data-t="mbn_home">Главная</span>
+  </button>
+  <button class="mbn-item" data-mbn="search" onclick="CX.mobileNavSearch();">
+    <span class="mbn-icon">🔍</span><span data-t="mbn_search">Поиск</span>
+  </button>
+  <button class="mbn-item" data-mbn="afisha" onclick="CX.showAfisha(); CX.setMobileNavActive('afisha');">
+    <span class="mbn-icon">🎭</span><span data-t="mbn_afisha">Афиша</span>
+  </button>
+  <button class="mbn-item" data-mbn="profile" id="mbnProfileBtn" onclick="CX.mobileNavProfile();">
+    <span class="mbn-icon" id="mbnProfileIcon">👤</span><span data-t="mbn_profile">Профиль</span>
+  </button>
+</nav>
 </body>
 </html>

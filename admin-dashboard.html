@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" dir="ltr" translate="no">
+<html lang="ru" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -392,11 +392,32 @@ tr:last-child td{border-bottom:none;}
 
 @media(max-width:900px){
   #app.open{flex-direction:column;}
-  .sidebar{width:100%; height:auto; position:relative; flex-direction:row; overflow-x:auto; padding:10px;}
-  .sidebar .brand,.sidebar-foot{display:none;}
-  .nav-item{border-left:none; border-bottom:3px solid transparent; white-space:nowrap;}
-  .nav-item.active{border-bottom-color:var(--gold);}
+  /* ===== Мобильное меню-гамбургер (11.09.2026) ===== 13 разделов админки не
+     помещаются ни в нижнее меню, ни удобно в горизонтальную прокрутку сверху
+     (старое решение) — стандартный паттерн для такого числа разделов:
+     выдвижная боковая панель по кнопке ☰, с оверлеем для закрытия по тапу
+     мимо. На десктопе всё остаётся как было (постоянный боковой список). */
+  .sidebar{
+    position:fixed; top:0; left:0; bottom:0; width:280px; height:100vh;
+    z-index:600; transform:translateX(-100%); transition:transform .25s ease;
+    box-shadow:4px 0 24px rgba(26,28,32,.15); overflow-y:auto;
+    flex-direction:column; padding:20px 0;
+  }
+  .sidebar.mobile-open{transform:translateX(0);}
+  .sidebar .brand,.sidebar-foot{display:block;}
+  .nav-item{border-left:3px solid transparent; border-bottom:none; white-space:normal;}
+  .nav-item.active{border-bottom-color:transparent; border-left-color:var(--gold);}
+  .mobile-sidebar-overlay{
+    display:none; position:fixed; inset:0; background:rgba(26,28,32,.4); z-index:599;
+  }
+  .mobile-sidebar-overlay.open{display:block;}
+  .mobile-hamburger-btn{display:flex !important;}
   .main{padding:16px;}
+}
+.mobile-hamburger-btn{
+  display:none; align-items:center; justify-content:center;
+  width:36px; height:36px; border:none; background:none; cursor:pointer;
+  font-size:22px; color:var(--text); margin-right:8px;
 }
 
 .font-cormorant{font-family:'Cormorant Garamond',serif !important; font-style:italic !important; font-weight:700 !important; display:inline-block; transform:skewX(-10.89deg);}
@@ -461,13 +482,9 @@ tr:last-child td{border-bottom:none;}
       <div style="text-align:right; margin-top:10px;">
         <button class="link-btn" onclick="ADM.showForgot()">Забыли пароль?</button>
       </div>
-      <!-- Демо-подсказка с паролем прямо на экране входа убрана 06.09.2026 —
-           это было критической уязвимостью: ЛЮБОЙ посетитель сайта видел готовый
-           пароль от полного доступа к админке без всякого чтения кода. Пароль по
-           умолчанию (запасной вариант, если cx_admin_password не задан в этом
-           браузере) сохранён только в переменной ADMIN_PASSWORD выше — сообщён
-           владельцу отдельно, не публикуется на странице. Полноценное решение —
-           серверная проверка пароля (см. проект сервера), это временная мера. -->
+      <div id="loginHint" style="margin-top:14px; font-size:12px; color:var(--muted); background:var(--bg3); border-radius:8px; padding:10px;">
+        <b data-t="demo_access">Демо-пароль:</b> admin2026
+      </div>
     </div>
 
     <!-- Восстановление по секретной фразе-ключу (без email — админ один, сервера нет) -->
@@ -498,6 +515,7 @@ tr:last-child td{border-bottom:none;}
 <!-- ============ APP ============ -->
 <div id="app">
   <div class="topbar">
+    <button class="mobile-hamburger-btn" onclick="ADM.toggleMobileSidebar()" aria-label="Меню">☰</button>
     <div class="hp-header-info">
       <span class="hp-hotel-name" style="font-family:'Playfair Display',serif; color:var(--gold2);">Corronyx <span style="font-size:12px; color:var(--muted); font-family:'DM Sans',sans-serif;">Admin</span></span>
     </div>
@@ -511,16 +529,12 @@ tr:last-child td{border-bottom:none;}
       <button class="btn btn-ghost btn-sm" onclick="ADM.logout()" data-t="btn_logout">Выйти</button>
     </div>
   </div>
+  <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay" onclick="ADM.toggleMobileSidebar(false)"></div>
   <div class="sidebar">
     <div class="brand"><span class="cx-letter">C</span><span class="cx-o"></span><span class="cx-letter">r</span><span class="cx-letter">r</span><span class="cx-o"></span><span class="cx-letter">nyx</span></div>
     <div class="nav-item active" data-section="dashboard" onclick="ADM.nav('dashboard')"><span class="nl">📊 <span data-t="nav_dashboard">Дашборд</span></span></div>
     <div class="nav-item" data-section="bookings" onclick="ADM.nav('bookings')"><span class="nl">📅 <span data-t="nav_bookings">Все брони</span></span></div>
     <div class="nav-item" data-section="hotels" onclick="ADM.nav('hotels')"><span class="nl">🏨 <span data-t="nav_hotels">Отели</span></span></div>
-    <!-- Заявки туроператоров (05.09.2026): форма заявки уже есть в hotel-portal.html
-         (регистрация → тип «Туроператор»), пишет в cx_hotel_accounts с accType:'touroperator'
-         и статусом cx_hotel_status_<id>==='pending_verification'. Этого раздела для
-         одобрения/отклонения раньше не было — заявки висели без интерфейса модерации. -->
-    <div class="nav-item" data-section="touroperators" onclick="ADM.nav('touroperators')"><span class="nl">🧳 <span data-t="nav_touroperators">Заявки туроператоров</span></span><span class="nav-badge hidden" id="touropBadge">0</span></div>
     <div class="nav-item" data-section="payouts" onclick="ADM.nav('payouts')"><span class="nl">💰 <span data-t="nav_payouts">Выплаты</span></span></div>
     <div class="nav-item" data-section="referrals" onclick="ADM.nav('referrals')"><span class="nl">🤝 <span data-t="nav_referrals">Рефералы</span></span><span class="nav-badge hidden" id="referralsBadge">0</span></div>
     <div class="nav-item" data-section="notifications" onclick="ADM.nav('notifications')"><span class="nl">🔔 <span data-t="nav_notifications">Уведомления</span></span><span class="nav-badge hidden" id="notifBadge">0</span></div>
@@ -528,17 +542,13 @@ tr:last-child td{border-bottom:none;}
     <div class="nav-item" data-section="partners" onclick="ADM.nav('partners')"><span class="nl">🗂️ <span data-t="nav_partners">Партнёры</span></span><span class="nav-badge hidden" id="partnersBadge">0</span></div>
     <div class="nav-item" data-section="afisha" onclick="ADM.nav('afisha')"><span class="nl">🎫 <span data-t="nav_afisha">Афиша</span></span><span class="nav-badge hidden" id="afishaBadge">0</span></div>
     <div class="nav-item" data-section="documents" onclick="ADM.nav('documents')"><span class="nl">📄 <span data-t="nav_documents">Документы</span></span></div>
+    <div class="nav-item" data-section="freeframes" onclick="ADM.nav('freeframes')"><span class="nl">🎁 <span data-t="nav_freeframes">Бесплатные рамки</span></span></div>
     <!-- Тревоги ИИ-агента (перенесено из Corronyx-версии, 28.08.2026) — случаи,
          когда ИИ-агент отказался отвечать из-за подозрения на взлом/обход
          защиты, см. aiEscalateSecurityThreat в index.html/hotel-portal.html/
          partner-portal.html/afisha-portal.html. -->
     <div class="nav-item" data-section="security" onclick="ADM.nav('security')"><span class="nl">🛡️ <span data-t="nav_security">Тревоги ИИ-агента</span></span><span class="nav-badge hidden" id="securityBadge">0</span></div>
     <div class="nav-item" data-section="secret" onclick="ADM.nav('secret')"><span class="nl">🔒 <span data-t="nav_secret">Секретная информация</span></span></div>
-    <!-- Резервная копия (05.09.2026) — экспорт/импорт всего localStorage этого браузера
-         одним файлом. Нужно для переезда на новый домен без потери тестовых данных
-         ЭТОГО браузера — но НЕ решает проблему разных устройств/людей (см. HANDOFF,
-         "Критично: все данные сейчас в localStorage браузера..."). -->
-    <div class="nav-item" data-section="backup" onclick="ADM.nav('backup')"><span class="nl">💾 <span data-t="nav_backup">Резервная копия</span></span></div>
   </div>
 
   <div class="main">
@@ -634,21 +644,6 @@ tr:last-child td{border-bottom:none;}
         </select>
       </div>
       <div class="hotel-grid" id="hotelsGrid"></div>
-    </div>
-
-    <!-- TOUR OPERATOR APPLICATIONS (05.09.2026) -->
-    <div class="section" id="sec-touroperators">
-      <div class="page-title" data-t="nav_touroperators">Заявки туроператоров</div>
-      <div class="page-sub">Проверьте номер в Едином федеральном реестре туроператоров и финансовое обеспечение перед одобрением (132-ФЗ). Одобренная заявка получает статус «active» и доступ к кабинету наравне с отелем; отклонённая — «rejected».</div>
-      <div class="filter-bar" style="margin-bottom:14px;">
-        <select id="touropStatusFilter" onchange="ADM.renderTourOperators()">
-          <option value="pending_verification">🟡 Ожидают проверки</option>
-          <option value="active">✅ Одобренные</option>
-          <option value="rejected">❌ Отклонённые</option>
-          <option value="all">Все</option>
-        </select>
-      </div>
-      <div class="hotel-grid" id="touropGrid"></div>
     </div>
 
     <!-- PAYOUTS -->
@@ -828,6 +823,13 @@ tr:last-child td{border-bottom:none;}
            направлений сразу. Теперь всё, что касается партнёра КАК ТАКОВОГО
            (а не отдельного размещения) — здесь, одним списком. -->
       <div id="allPartnersBlock" style="margin-bottom:20px;"></div>
+
+      <!-- Срок действия буста — общий на все категории партнёров (не по категориям,
+           в отличие от цены), отдельно для золотого и бриллиантового яруса
+           (11.09.2026, по просьбе владельца сделать тайминг независимым как у Афиши).
+           Рендерится через JS (renderBoostDaysBlock) — см. ниже, а не статикой,
+           чтобы подставить уже сохранённые значения из localStorage. -->
+      <div id="boostDaysBlock" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; padding:14px 16px; background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:12px;"></div>
 
       <!-- Вкладки категорий — генерируются из cx_partner_categories, а не зашиты в HTML.
            Раньше на каждую категорию был отдельный <div class="section">, отдельные функции
@@ -1040,6 +1042,44 @@ tr:last-child td{border-bottom:none;}
         <tr><td style="padding:8px 6px;">Внутренняя спецификация ИИ-агента</td><td>границы и логика эскалации ИИ-модератора</td><td>1.0</td></tr>
         <tr><td style="padding:8px 6px;">Правила сообщества</td><td>публикуется в соцсетях (Telegram/VK/Facebook)</td><td>1.0</td></tr>
       </table>
+
+      <!-- Полная резервная копия данных (11.09.2026) — раньше в проекте был только
+           CSV-экспорт броней для отчётности; полного бэкапа/восстановления всех
+           данных платформы (отели, партнёры, афиши, брони, пользователи и т.д.)
+           не было вообще. Экспорт берёт ВСЕ ключи localStorage с префиксом cx_
+           through сканирование в рантайме (а не жёсткий список — ключей с
+           динамическими суффиксами вроде cx_photos_<id> слишком много, чтобы
+           перечислять руками, и список неизбежно устареет). Импорт проверяет
+           формат файла и просит подтверждения — операция затирает текущие
+           данные теми же ключами из файла. -->
+      <div class="page-title" style="font-size:15px; margin-top:10px;">Резервная копия всех данных платформы</div>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:16px;">Полный снимок всех данных (отели, партнёры, афиши, брони, пользователи, рефералы и т.д.) в один файл — для переноса на сервер в будущем или на случай непредвиденной потери данных браузера.</p>
+      <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+        <button class="btn btn-primary" onclick="ADM.exportFullBackup()">💾 Скачать полную резервную копию</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('backupFileInput').click()">📤 Восстановить из файла</button>
+        <input type="file" id="backupFileInput" accept="application/json" style="display:none;" onchange="ADM.handleBackupFileSelect(event)">
+      </div>
+      <div id="backupStatusMsg" style="font-size:12.5px; color:var(--muted);"></div>
+    </div>
+
+    <!-- FREE FRAMES (05-06.09.2026): бесплатный ярус приоритета — отдельно от платного,
+         управляется только админом (счётчик + дата + флаги unlimited/pinned на каждого
+         получателя). См. подробный принцип в комментарии перед renderFreeFramesSection. -->
+    <div class="section" id="sec-freeframes">
+      <div class="page-title">🎁 Бесплатные рамки</div>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:20px;">
+        Кому вы разрешили пользоваться золотой/бриллиантовой рамкой бесплатно — с ограничением
+        по количеству одновременно активных рамок и/или по дате. Управление полностью
+        ручное: система сама гасит рамку по истечении даты, но лимит и дату меняете только вы.
+      </p>
+      <div class="tabs-login" id="ffTabsRow" style="max-width:640px; margin-bottom:20px;">
+        <button class="tab-login active" onclick="ADM.switchFreeFrameTab('afisha_gold')" data-ff-tab="afisha_gold">Афиша · Золото</button>
+        <button class="tab-login" onclick="ADM.switchFreeFrameTab('afisha_diamond')" data-ff-tab="afisha_diamond">Афиша · Бриллиант</button>
+        <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_gold')" data-ff-tab="partner_gold">Партнёры · Золото</button>
+        <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_diamond')" data-ff-tab="partner_diamond">Партнёры · Бриллиант</button>
+      </div>
+      <div id="ffGrantNewBlock" style="margin-bottom:20px;"></div>
+      <div id="ffListBlock"></div>
     </div>
 
     <!-- SECRET -->
@@ -1050,31 +1090,6 @@ tr:last-child td{border-bottom:none;}
         <button class="btn btn-ghost btn-sm" onclick="ADM.clearSecurityAlerts()">🗑 Очистить все</button>
       </div>
       <div id="securityAlertsList"></div>
-    </div>
-
-    <!-- РЕЗЕРВНАЯ КОПИЯ (05.09.2026). Не требует пароля "Секретной информации" —
-         просто выгрузка/загрузка localStorage ЭТОГО браузера одним JSON-файлом.
-         Не путать с полноценным бэкапом сервера — сервера пока нет. -->
-    <div class="section" id="sec-backup">
-      <div class="page-title" data-t="nav_backup">Резервная копия</div>
-      <div class="page-sub">
-        Скачивает ВСЕ данные, которые сейчас хранятся в этом браузере (отели, брони, партнёры,
-        рефералы, секретные ключи и т.д.), в один файл. Пригодится при переезде на новый домен —
-        иначе на новом домене у браузера будет пустая память, как будто сайт открыли впервые.
-        <br><br>
-        <b>Важно понимать:</b> это резервная копия только ЭТОГО браузера на ЭТОМ устройстве.
-        Она не «собирает» данные с телефонов и компьютеров других людей (гостей, отелей,
-        партнёров) — у каждого из них данные хранятся отдельно, в их собственном браузере.
-        Чтобы объединить все устройства в одну базу, нужен настоящий сервер (это отдельная,
-        более крупная задача).
-      </div>
-      <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:18px;">
-        <button class="btn btn-primary" onclick="ADM.exportBackup()">📦 Скачать резервную копию</button>
-        <label class="btn btn-ghost" style="cursor:pointer;">
-          📥 Загрузить резервную копию
-          <input type="file" accept="application/json,.json" style="display:none;" onchange="ADM.importBackupFile(this)">
-        </label>
-      </div>
     </div>
 
     <div class="section" id="sec-secret">
@@ -1096,15 +1111,6 @@ tr:last-child td{border-bottom:none;}
           <div class="form-row"><label data-t="secret_emailjs_template_booking">EmailJS: Template ID (подтверждение брони)</label><input type="text" id="secretEmailjsTemplateBooking" placeholder="template_booking_xxx"></div>
           <div class="form-row"><label data-t="secret_emailjs_template_recovery">EmailJS: Template ID (код восстановления пароля)</label><input type="text" id="secretEmailjsTemplateRecovery" placeholder="template_recovery_xxx"></div>
           <div class="form-row"><label data-t="secret_emailjs_public">EmailJS: Public Key</label><input type="text" id="secretEmailjsPublic" placeholder="public_xxx"></div>
-          <!-- ЮKassa/ЮMoney (05.09.2026) — ключей ещё нет, поля заранее готовы под тот же
-               паттерн, что EmailJS: сохраняются в cx_secrets, читаются getYookassaConfig()/
-               getYoomoneyConfig() в hotel-portal.html/admin-dashboard.html. Без бэкенда
-               Secret Key нельзя использовать для реального создания платежа (это серверная
-               операция) — пока UI работает в тестовом режиме с явной пометкой, см. HANDOFF. -->
-          <div class="form-row"><label>ЮKassa: Shop ID</label><input type="text" id="secretYookassaShopId" placeholder="напр. 123456"></div>
-          <div class="form-row"><label>ЮKassa: Secret Key (понадобится только когда появится сервер)</label><input type="password" id="secretYookassaSecretKey" placeholder="live_..." autocomplete="new-password"></div>
-          <div class="form-row"><label>ЮMoney: номер кошелька для выплат рефералам</label><input type="text" id="secretYoomoneyWallet" placeholder="41001..."></div>
-          <div class="form-row"><label>ЮMoney: API-токен (для будущей автовыплаты)</label><input type="password" id="secretYoomoneyToken" placeholder="токен" autocomplete="new-password"></div>
           <!-- Поля для ИИ-агента (перенесено из Corronyx-версии, 28.08.2026, слияние) —
                email для тревожных уведомлений об угрозах и кодовая фраза входа в
                admin-режим через чат. -->
@@ -1148,19 +1154,6 @@ tr:last-child td{border-bottom:none;}
 </div>
 
 <div class="toast-wrap" id="toastWrap"></div>
-
-<footer style="text-align:center; padding:14px 10px; font-size:12px; color:var(--muted);">
-  <div style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px; margin-bottom:6px;">
-    <a href="mailto:Corronyx@gmail.com" style="color:var(--muted);">✉️ Corronyx@gmail.com</a>
-    <span style="color:var(--muted);">·</span>
-    <!-- TODO: реальная ссылка -->
-    <a href="#" target="_blank" rel="noopener" style="color:var(--muted);">Telegram</a>
-    <span style="color:var(--muted);">·</span>
-    <!-- TODO: реальная ссылка -->
-    <a href="#" target="_blank" rel="noopener" style="color:var(--muted);">VK</a>
-  </div>
-  <p style="margin:0;">© 2026 Corronyx</p>
-</footer>
 
 <script>
 // Короткий двойной сигнал через Web Audio API — без внешних файлов и без
@@ -1413,11 +1406,18 @@ function adjustForWeekend(date){
   if(day===0) d.setDate(d.getDate()+1);
   return d;
 }
-// Запасной пароль на случай входа с НОВОГО устройства/браузера, где ещё не задан
-// свой пароль (cx_admin_password) — сообщён владельцу отдельно (не публикуется в
-// интерфейсе, см. комментарий у #loginScreen). Сменить на постоянный так же просто,
-// как обычный пароль — «Секретная информация» после входа.
-const ADMIN_PASSWORD = 'ozF0PctluxZzXyAm';
+const ADMIN_PASSWORD = 'admin2026';
+/* ---------- RBAC — заготовка (11.09.2026) ----------
+   Сейчас в проекте один общий пароль на всю админку, без отдельных аккаунтов —
+   менять сам механизм входа сейчас не стали (завязан на восстановление по
+   секретной фразе, трогать без чёткого ТЗ на полноценную многопользовательскую
+   систему рискованно). Это только задел на будущее: поле роли в структуре
+   данных и функции чтения/записи, чтобы при появлении реальных отдельных
+   аккаунтов администраторов не пришлось менять формат хранения задним числом.
+   Пока используется всегда одна роль — 'owner' (полный доступ, как сейчас). */
+const ADMIN_ROLES = ['owner','manager','support']; // возможные роли на будущее — прав по ним пока нигде не разграничено
+function getAdminRole(){ return LS.get('cx_admin_role') || 'owner'; }
+function setAdminRole(role){ if(ADMIN_ROLES.includes(role)) LS.set('cx_admin_role', role); }
 async function sha256Hex(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -1456,8 +1456,6 @@ const T = {
  demo_label:{ru:'демо',en:'demo'},
  nav_dashboard:{ru:'Дашборд',en:'Dashboard'}, nav_bookings:{ru:'Все брони',en:'All bookings'},
  nav_hotels:{ru:'Отели',en:'Hotels'}, nav_payouts:{ru:'Выплаты',en:'Payouts'},
- nav_touroperators:{ru:'Заявки туроператоров',en:'Tour operator applications'},
- nav_backup:{ru:'Резервная копия',en:'Backup'},
  nav_payouts_title:{ru:'Комиссия отелей Corronyx',en:"Corronyx hotel commission"},
  nav_referrals:{ru:'Рефералы',en:'Referrals'}, nav_notifications:{ru:'Уведомления',en:'Notifications'},
  nav_kp:{ru:'КП отелям',en:'Hotel offers'}, nav_secret:{ru:'Секретная информация',en:'Secret info'},
@@ -1467,6 +1465,7 @@ const T = {
  nav_partners:{ru:'Партнёры',en:'Partners'},
  nav_afisha:{ru:'Афиша',en:'Afisha'},
  nav_documents:{ru:'Документы',en:'Documents'},
+ nav_freeframes:{ru:'Бесплатные рамки',en:'Free frames'},
  afisha_sub:{ru:'Объявления о событиях от пользователей (afisha-portal.html) — разовая оплата за размещение, автоистечение через 21 день или по дате события.',en:'User-submitted event listings (afisha-portal.html) — one-time placement fee, auto-expires after 21 days or on the event date.'},
  afisha_filter_all_status:{ru:'Все статусы',en:'All statuses'},
  afisha_filter_all_tier:{ru:'Все места размещения',en:'All placements'},
@@ -1565,9 +1564,9 @@ const T = {
  secret_emailjs_template_recovery:{ru:'EmailJS: Template ID (код восстановления пароля)',en:'EmailJS: Template ID (password recovery code)'},
  secret_emailjs_public:{ru:'EmailJS: Public Key',en:'EmailJS: Public Key'},
  btn_save:{ru:'Сохранить',en:'Save'}, secrets_saved:{ru:'Сохранено',en:'Saved'},
- ai_name:{ru:'Corronyx Agent (админ)',en:'Corronyx Agent (admin)'},
- ai_ph:{ru:'Спросите про заявки, выплаты, отели...',en:'Ask about applications, payouts, hotels...'},
- ai_greet:{ru:'Здравствуйте! Я Corronyx Agent — вижу все данные платформы (заявки, выплаты, отели, рефералы) и могу выполнять действия по вашей команде. Любое действие — только после вашего подтверждения.',en:'Hello! I am Corronyx Agent — I can see all platform data (applications, payouts, hotels, referrals) and can perform actions on your instruction. Any action requires your confirmation first.'},
+ ai_name:{ru:'ИИ-аналитик',en:'AI Analyst'},
+ ai_ph:{ru:'Спросите про выручку, отели, выплаты...',en:'Ask about revenue, hotels, payouts...'},
+ ai_greet:{ru:'Здравствуйте! Я помогу с аналитикой по платформе: выручка, отели, выплаты, рефералы.',en:'Hello! I can help with platform analytics: revenue, hotels, payouts, referrals.'},
  ai_fallback:{ru:'Пока не могу ответить на этот вопрос — попробуйте переформулировать.',en:'I cannot answer that right now — try rephrasing.'}
 };
 let LANG = LS.get('cx_admin_lang') || 'ru';
@@ -1649,6 +1648,20 @@ const ADM = {
     const registered = LS.getJSON('cx_hotel_accounts', []).map(a=>({id:a.id, country:a.country||'RU', name:a.name, city:a.city, stars:a.stars}));
     return [...BUILTIN_HOTELS, ...registered];
   },
+
+  /* ---------- Заявки туроператоров (11.09.2026) ----------
+     Регистрация уже полностью готова со стороны hotel-portal.html: новый
+     туроператор сохраняется в cx_hotel_accounts с accType:'touroperator',
+     получает статус 'pending_verification' и админу уходит уведомление —
+     см. HP.register() там. Не хватало только этих трёх функций на стороне
+     админки: ИИ-агент (ADMIN_AI_ACTIONS ниже) и buildAdminAiContext() уже
+     ссылались на них, а сами функции никогда не были написаны — заявки
+     реально "висели" без возможности их одобрить или отклонить. */
+  getTourOperatorApplications(){
+    return LS.getJSON('cx_hotel_accounts', []).filter(a=>a.accType==='touroperator');
+  },
+  approveTourOperator(id){ this.setHotelStatus(id, 'active'); },
+  rejectTourOperator(id){ this.setHotelStatus(id, 'off'); },
 
   getHotelStatus(id){ return LS.get('cx_hotel_status_'+id) || 'active'; },
   // Ручная смена статуса админом — сбрасывает причину "overdue_commission",
@@ -1994,9 +2007,20 @@ const ADM = {
     document.querySelectorAll('.lang-dropdown.open').forEach(d=>d.classList.remove('open'));
     document.getElementById('aiBody').innerHTML=''; addAI(t('ai_greet'));
   },
+  /* ---------- Мобильное меню-гамбургер (11.09.2026) ---------- */
+  toggleMobileSidebar(force){
+    const sidebar=document.querySelector('.sidebar');
+    const overlay=document.getElementById('mobileSidebarOverlay');
+    if(!sidebar||!overlay) return;
+    const open = force!==undefined ? force : !sidebar.classList.contains('mobile-open');
+    sidebar.classList.toggle('mobile-open', open);
+    overlay.classList.toggle('open', open);
+  },
+
   nav(section){
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.section===section));
     document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active', s.id==='sec-'+section));
+    this.toggleMobileSidebar(false);
     // Раньше нормализация уведомлений (id/дата/текст) шла только один раз, при
     // renderAll() (логин/смена языка) — если за это время hotel-portal.html
     // в соседней вкладке дописывал новые "сырые" записи, они висели
@@ -2008,7 +2032,7 @@ const ADM = {
     if(section==='kp') this.renderKP();
     if(section==='partners') this.renderPartnerSection();
     if(section==='afisha') this.renderAfishaSection();
-    if(section==='touroperators') this.renderTourOperators();
+    if(section==='freeframes') this.renderFreeFramesSection();
     // Запоминаем раздел, чтобы обновление страницы (F5) не сбрасывало
     // админа обратно на "Дашборд" посреди работы, например, в "Партнёрах".
     LS.set('cx_admin_last_section', section);
@@ -2024,7 +2048,6 @@ const ADM = {
     this.renderBookingFilters();
     this.renderBookings();
     this.renderHotels();
-    this.updateTourOpBadge();
     this.renderPayouts();
     this.renderReferrals();
     this._cleanupNotifications();
@@ -2239,7 +2262,8 @@ const ADM = {
       attBlock.innerHTML = `<div class="banner banner-warn"><b>${t('attention_title')}</b><br>` +
         attention.map(h=>{
           const st=this.getHotelStatus(h.id);
-          return `${esc(h.name)} (${esc(h.city)}) — ${t(st==='pause'?'attention_paused':'attention_off')}`;
+          const label = st==='pause' ? t('attention_paused') : st==='pending_verification' ? (LANG==='ru'?'ожидает проверки (туроператор)':'awaiting verification (tour operator)') : t('attention_off');
+          return `${esc(h.name)} (${esc(h.city)}) — ${label}`;
         }).join('<br>') + `</div>`;
     } else attBlock.innerHTML='';
 
@@ -2442,6 +2466,64 @@ const ADM = {
       </tr>`;
     }).join('') : `<tr><td colspan="8" style="text-align:center; color:var(--muted); padding:24px;">${t('empty_bookings')}</td></tr>`;
   },
+  /* ---------- Полная резервная копия (11.09.2026) ---------- */
+  exportFullBackup(){
+    const data = {};
+    for(let i=0;i<localStorage.length;i++){
+      const key = localStorage.key(i);
+      if(key && key.startsWith('cx_')) data[key] = localStorage.getItem(key);
+    }
+    const payload = {
+      _meta: { app:'Corronyx', exportedAt:new Date().toISOString(), keyCount:Object.keys(data).length },
+      data
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], {type:'application/json;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().slice(0,10);
+    const a = document.createElement('a'); a.href=url; a.download=`corronyx_backup_${stamp}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    const msg = document.getElementById('backupStatusMsg');
+    if(msg) msg.textContent = `Резервная копия сохранена: ${payload._meta.keyCount} ключей, ${new Date().toLocaleString('ru')}.`;
+    toast(LANG==='ru'?'Резервная копия скачана':'Backup downloaded');
+  },
+  handleBackupFileSelect(event){
+    const file = event.target.files[0];
+    event.target.value = ''; // чтобы повторный выбор того же файла снова сработал
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      let payload;
+      try{ payload = JSON.parse(e.target.result); }
+      catch(err){
+        toast(LANG==='ru'?'Файл повреждён или это не JSON':'File is corrupted or not JSON');
+        return;
+      }
+      // Проверка целостности — это не файл резервной копии Corronyx?
+      if(!payload || typeof payload!=='object' || !payload._meta || payload._meta.app!=='Corronyx' || !payload.data || typeof payload.data!=='object' || Array.isArray(payload.data)){
+        toast(LANG==='ru'?'Это не похоже на резервную копию Corronyx':'This does not look like a Corronyx backup');
+        return;
+      }
+      const keys = Object.keys(payload.data);
+      if(!keys.length || !keys.every(k=>k.startsWith('cx_'))){
+        toast(LANG==='ru'?'Файл повреждён — неверный формат ключей':'File is corrupted — invalid key format');
+        return;
+      }
+      const exportedAt = payload._meta.exportedAt ? new Date(payload._meta.exportedAt).toLocaleString('ru') : '?';
+      const sure = confirm(
+        (LANG==='ru'
+          ? `Восстановить данные из резервной копии?\n\nСоздана: ${exportedAt}\nКлючей в файле: ${keys.length}\n\nВНИМАНИЕ: текущие данные по этим ключам будут заменены. Ключи, которых нет в файле, не тронутся. Это действие нельзя отменить.`
+          : `Restore data from this backup?\n\nCreated: ${exportedAt}\nKeys in file: ${keys.length}\n\nWARNING: current data for these keys will be overwritten. Keys not present in the file are left untouched. This cannot be undone.`)
+      );
+      if(!sure) return;
+      keys.forEach(k=>localStorage.setItem(k, payload.data[k]));
+      toast(LANG==='ru'?'Восстановлено, перезагрузка…':'Restored, reloading…');
+      setTimeout(()=>location.reload(), 800);
+    };
+    reader.onerror = ()=> toast(LANG==='ru'?'Не удалось прочитать файл':'Could not read the file');
+    reader.readAsText(file);
+  },
+
   exportCSV(){
     const bookings=this.getAllBookings();
     const header=['booking_id','hotel','guest','email','phone','room','checkin','checkout','nights','total','commission','status'];
@@ -2572,125 +2654,6 @@ const ADM = {
     }).join('');
     document.getElementById('hotelsGrid').innerHTML = html || `<div style="color:var(--muted); text-align:center; padding:40px;">Нет активных отелей</div>`;
   },
-
-  /* ---- Заявки туроператоров (05.09.2026) ----
-     Отдельно от обычных отелей: аккаунты с accType:'touroperator' в cx_hotel_accounts,
-     статус проверки — тот же cx_hotel_status_<id>, что и у отелей ('pending_verification'
-     сразу при подаче заявки в hotel-portal.html, дальше 'active'/'rejected' здесь).
-     Не переиспользуем ADM.setHotelStatus() — там 'active'/'pause'/'off' и другой тост/логика,
-     смешивать словари статусов отеля и туроператора не стоит. */
-  getTourOperatorApplications(){
-    return LS.getJSON('cx_hotel_accounts', []).filter(a=>a.accType==='touroperator');
-  },
-  updateTourOpBadge(){
-    const pending = this.getTourOperatorApplications().filter(a=>this.getHotelStatus(a.id)==='pending_verification').length;
-    const b=document.getElementById('touropBadge');
-    if(b){ b.textContent=pending; b.classList.toggle('hidden', pending===0); }
-  },
-  TOUROP_SFERA_LABEL:{inbound:'Въездной туризм', domestic:'Внутренний туризм', outbound:'Выездной туризм'},
-  renderTourOperators(){
-    const filter = document.getElementById('touropStatusFilter')?.value || 'pending_verification';
-    const apps = this.getTourOperatorApplications().filter(a=>{
-      const st=this.getHotelStatus(a.id);
-      return filter==='all' ? true : st===filter;
-    }).sort((a,b)=> (+(''+b.id).replace(/\D/g,'') ) - (+(''+a.id).replace(/\D/g,'')) );
-    const cards = apps.map(a=>{
-      const status=this.getHotelStatus(a.id);
-      const reason=LS.get('cx_touroperator_reject_reason_'+a.id);
-      const badge = status==='pending_verification' ? '🟡 Ожидает проверки' : status==='active' ? '✅ Одобрена' : status==='rejected' ? '❌ Отклонена' : status;
-      return `<div class="hotel-card" id="topcard_${a.id}">
-        <h3>${esc(a.name||'—')}</h3>
-        <div class="meta">${badge} · ${this.TOUROP_SFERA_LABEL[a.sfera]||a.sfera||'—'}</div>
-        <div style="font-size:12px; color:var(--muted); line-height:1.7; margin-top:8px;">
-          <div><b>ИНН:</b> ${esc(a.inn||'—')}</div>
-          <div><b>Реестровый №:</b> ${esc(a.reestrNumber||'—')}</div>
-          <div><b>Фин. обеспечение:</b> ${esc(a.finObespechenie||'—')}</div>
-          <div><b>Email:</b> ${esc(a.email||'—')}</div>
-          <div><b>Заявка подана:</b> ${a.agreedToTermsAt ? new Date(a.agreedToTermsAt).toLocaleDateString('ru-RU') : '—'}</div>
-          ${status==='rejected' && reason ? `<div style="margin-top:6px; color:var(--err);"><b>Причина отклонения:</b> ${esc(reason)}</div>` : ''}
-        </div>
-        ${status==='pending_verification' ? `
-        <div style="display:flex; gap:6px; margin-top:12px;">
-          <button class="btn btn-ok btn-sm" style="flex:1;" onclick="ADM.approveTourOperator('${a.id}')">✅ Одобрить</button>
-          <button class="btn btn-err btn-sm" style="flex:1;" onclick="ADM.rejectTourOperator('${a.id}')">❌ Отклонить</button>
-        </div>` : ''}
-      </div>`;
-    }).join('');
-    document.getElementById('touropGrid').innerHTML = cards || `<div style="color:var(--muted); text-align:center; padding:40px;">Нет заявок в этой категории</div>`;
-    this.updateTourOpBadge();
-  },
-  approveTourOperator(id){
-    const acc=this.getTourOperatorApplications().find(a=>a.id===id);
-    if(!acc) return;
-    if(!confirm(`Одобрить заявку туроператора «${acc.name}»? Реестровый номер и финансовое обеспечение проверены?`)) return;
-    LS.set('cx_hotel_status_'+id, 'active');
-    LS.remove('cx_touroperator_reject_reason_'+id);
-    const notes=LS.getJSON('cx_admin_notifications', []);
-    notes.unshift({id:'N'+Date.now(), text:`Заявка туроператора «${acc.name}» одобрена — доступ к кабинету активирован.`, read:true, createdAt:new Date().toISOString()});
-    LS.setJSON('cx_admin_notifications', notes);
-    this.renderTourOperators(); this.updateNotifBadge();
-    toast('Туроператор одобрен');
-  },
-  rejectTourOperator(id){
-    const acc=this.getTourOperatorApplications().find(a=>a.id===id);
-    if(!acc) return;
-    if(!confirm(`Отклонить заявку туроператора «${acc.name}»?`)) return;
-    const reason=prompt('Причина отклонения (необязательно, отель её не увидит автоматически — только для внутренней справки):','') || '';
-    LS.set('cx_hotel_status_'+id, 'rejected');
-    if(reason.trim()) LS.set('cx_touroperator_reject_reason_'+id, reason.trim());
-    else LS.remove('cx_touroperator_reject_reason_'+id);
-    const notes=LS.getJSON('cx_admin_notifications', []);
-    notes.unshift({id:'N'+Date.now(), text:`Заявка туроператора «${acc.name}» отклонена.`, read:true, createdAt:new Date().toISOString()});
-    LS.setJSON('cx_admin_notifications', notes);
-    this.renderTourOperators(); this.updateNotifBadge();
-    toast('Заявка отклонена');
-  },
-
-  // ── Резервная копия (05.09.2026) ─────────────────────────────────────────
-  // Простой экспорт/импорт ВСЕГО localStorage одним JSON-файлом. Не путать с
-  // синхронизацией между устройствами — это чисто локальная копия одного
-  // браузера, нужна на случай смены домена (см. HANDOFF: смена домена/адреса
-  // обнуляет localStorage, т.к. он привязан к origin).
-  exportBackup(){
-    const data={};
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      data[k]=localStorage.getItem(k);
-    }
-    const blob=new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;
-    a.download='corronyx_backup_'+new Date().toISOString().slice(0,10)+'.json';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    toast('Резервная копия скачана');
-  },
-  importBackupFile(input){
-    const file = input.files && input.files[0];
-    if(!file) return;
-    if(!confirm('Это ЗАМЕНИТ все текущие данные в этом браузере данными из файла резервной копии. Отменить это действие после подтверждения нельзя. Продолжить?')){
-      input.value='';
-      return;
-    }
-    const reader=new FileReader();
-    reader.onload=(e)=>{
-      try{
-        const data=JSON.parse(e.target.result);
-        if(typeof data!=='object' || data===null || Array.isArray(data)) throw new Error('bad format');
-        Object.keys(data).forEach(k=>localStorage.setItem(k, data[k]));
-        alert('Импорт завершён успешно. Страница сейчас перезагрузится, чтобы показать загруженные данные.');
-        location.reload();
-      }catch(err){
-        alert('Не удалось прочитать файл. Убедитесь, что вы выбрали именно файл резервной копии Corronyx (.json), созданный кнопкой «Скачать резервную копию» — не какой-то другой файл.');
-      }
-    };
-    reader.readAsText(file);
-    input.value='';
-  },
-
   jumpToHotelCountry(cc){
     if(!cc) return;
     const el=document.querySelector(`[data-country-anchor="${cc}"]`);
@@ -3178,28 +3141,6 @@ const ADM = {
     }).join('');
   },
   // ── Рублёвая очередь (резиденты РФ) — своя, без крипты вообще.
-  // ЮMoney-выплата (05.09.2026): реального автосписания нет (нет API-токена,
-  // а без сервера токен и небезопасно хранить в клиентском JS) — кнопка ниже
-  // явно показывает тестовый режим вместо того, чтобы делать вид, что деньги
-  // ушли. Реальный перевод администратор всё ещё делает сам вручную.
-  getYoomoneyConfig(){
-    const s=LS.getJSON('cx_secrets', {});
-    return { wallet:s.yoomoneyWallet||'', token:s.yoomoneyToken||'' };
-  },
-  payoutViaYoomoneyTest(id){
-    const requests=LS.getJSON('cx_referral_payout_requests_rub', []);
-    const g=requests.find(x=>x.id===id); if(!g) return;
-    const cfg=this.getYoomoneyConfig();
-    if(!cfg.token){
-      alert('Тестовый режим ЮMoney: API-токен ещё не подключён (см. «Секретная информация»).\n'
-        +'В боевой версии здесь произойдёт автоматический перевод '+g.amountRub.toFixed(2)+' ₽ на '+(g.payoutRub||'указанные реквизиты')+'.\n'
-        +'Пока переведите вручную через ЮMoney/СБП и нажмите «Отправлено».');
-      return;
-    }
-    // Ключ есть, но реальный вызов ЮMoney API требует сервера (secret-токен нельзя
-    // дергать напрямую из браузера в проде) — до появления бэкенда флоу всё ещё тестовый.
-    alert('ЮMoney: токен сохранён, но реальная автовыплата подключается только вместе с сервером (см. HANDOFF, п.5). Переведите вручную и нажмите «Отправлено».');
-  },
   _renderRubRequests(){
     const el=document.getElementById('giftRequestsRub');
     if(!el) return;
@@ -3218,10 +3159,7 @@ const ADM = {
             <td>${esc(g.refCode)}</td>
             <td>${esc(g.payoutRub||'—')}</td>
             <td>${g.amountRub.toFixed(2)} ₽</td>
-            <td style="display:flex; gap:6px;">
-              <button class="btn btn-sm btn-ghost" onclick="ADM.payoutViaYoomoneyTest('${g.id}')" title="Тестовый режим — ключ ЮMoney ещё не подключён">💛 ЮMoney</button>
-              <button class="btn btn-sm btn-ok" onclick="ADM.markRubSent('${g.id}')">Отправлено</button>
-            </td>
+            <td><button class="btn btn-sm btn-ok" onclick="ADM.markRubSent('${g.id}')">Отправлено</button></td>
           </tr>`).join('')}</tbody>
       </table></div>`;
   },
@@ -4063,11 +4001,15 @@ const ADM = {
     LS.remove('cx_global_'+cat.gKey+'_price_usd');
     LS.remove('cx_global_'+cat.gKey+'_boost_price');
     LS.remove('cx_global_'+cat.gKey+'_boost_price_usd');
+    LS.remove('cx_global_'+cat.gKey+'_diamond_boost_price');
+    LS.remove('cx_global_'+cat.gKey+'_diamond_boost_price_usd');
     (cat.subgroups||[]).forEach(s=>{
       LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_price');
       LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_price_usd');
       LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_boost_price');
       LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_boost_price_usd');
+      LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price');
+      LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price_usd');
     });
     this._activePartnerCat=null; // renderPartnerCatTabs сам выберет первую оставшуюся категорию
     this.renderPartnerSection();
@@ -4094,11 +4036,15 @@ const ADM = {
       LS.remove('cx_global_'+cat.gKey+'_price_usd');
       LS.remove('cx_global_'+cat.gKey+'_boost_price');
       LS.remove('cx_global_'+cat.gKey+'_boost_price_usd');
+      LS.remove('cx_global_'+cat.gKey+'_diamond_boost_price');
+      LS.remove('cx_global_'+cat.gKey+'_diamond_boost_price_usd');
       (cat.subgroups||[]).forEach(s=>{
         LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_price');
         LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_price_usd');
         LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_boost_price');
         LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_boost_price_usd');
+        LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price');
+        LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price_usd');
       });
     });
     LS.setJSON('cx_partner_categories_trash', stay);
@@ -4136,11 +4082,15 @@ const ADM = {
     LS.remove('cx_global_'+cat.gKey+'_price_usd');
     LS.remove('cx_global_'+cat.gKey+'_boost_price');
     LS.remove('cx_global_'+cat.gKey+'_boost_price_usd');
+    LS.remove('cx_global_'+cat.gKey+'_diamond_boost_price');
+    LS.remove('cx_global_'+cat.gKey+'_diamond_boost_price_usd');
     (cat.subgroups||[]).forEach(s=>{
       LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_price');
       LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_price_usd');
       LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_boost_price');
       LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_boost_price_usd');
+      LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price');
+      LS.remove('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price_usd');
     });
     trash.splice(trashIndex,1);
     LS.setJSON('cx_partner_categories_trash', trash);
@@ -4604,6 +4554,148 @@ const ADM = {
     toast(LANG==='ru'?'Срок показа обновлён':'Display duration updated');
   },
 
+  /* ===== Бесплатные рамки (05-06.09.2026) =====
+     Принцип (согласован с Алексеем построчно):
+     - Грант выдаётся ИНДИВИДУАЛЬНО каждому аккаунту, вручную, админом. Хранится
+       прямо на объекте аккаунта: account.freeFrame = { gold:{...}, diamond:{...} }.
+     - limit = сколько объявлений/карточек этого аккаунта могут ОДНОВРЕМЕННО
+       иметь активную бесплатную рамку данного яруса (не "сколько раз всего
+       использовано" — это именно текущий "потолок одновременно включённых").
+       Сам владелец у себя в кабинете включает/выключает рамку на своих
+       объявлениях в пределах этого потолка (см. afisha-portal.html/
+       partner-portal.html — toggleFreeFrame).
+     - expiresAt = дата, до которой бесплатный режим вообще доступен для
+       ВКЛЮЧЕНИЯ. По истечении — система САМА (без участия админа) гасит уже
+       включённые бесплатные рамки этого аккаунта и шлёт ему уведомление с
+       предложением купить рамку самостоятельно. limit при этом НЕ обнуляется
+       сам — админ меняет его вручную, когда сочтёт нужным.
+     - unlimited=true — полностью снимает ограничение (и по дате, и по
+       количеству) для этого аккаунта, независимо от limit/expiresAt.
+     - pinned=true — только порядок отображения в этом списке админки
+       (закреплённые — всегда первыми), НЕ влияет на show-логику на сайте.
+     - Грант, время которого истекло, НЕ удаляется из списка — остаётся с
+       пометкой "истёк", чтобы была видна история (см. рендер статуса ниже).
+     - Золото и бриллиант — полностью независимые гранты у одного аккаунта.
+  */
+  getFreeFrameGrant(account, tier){
+    return (account.freeFrame && account.freeFrame[tier]) || null;
+  },
+  isFreeFrameGrantUsable(grant){
+    if(!grant) return false;
+    if(grant.unlimited) return true;
+    return !!(grant.limit>0 && grant.expiresAt && new Date(grant.expiresAt) > new Date());
+  },
+  _ffTab: 'afisha_gold',
+  switchFreeFrameTab(tab){
+    this._ffTab = tab;
+    document.querySelectorAll('[data-ff-tab]').forEach(b=>b.classList.toggle('active', b.dataset.ffTab===tab));
+    this.renderFreeFramesSection();
+  },
+  _ffConfig(){
+    const [cat, tier] = this._ffTab.split('_');
+    if(cat==='afisha'){
+      return { cat, tier, accKey:'cx_afisha_accounts', label: tier==='diamond'?'Афиша · Бриллиант':'Афиша · Золото' };
+    }
+    return { cat:'partner', tier, accKey:'cx_partner_accounts', label: tier==='diamond'?'Партнёры · Бриллиант':'Партнёры · Золото' };
+  },
+  renderFreeFramesSection(){
+    const { cat, tier, accKey } = this._ffConfig();
+    const accounts = LS.getJSON(accKey, []);
+    const withGrant = accounts.filter(a => a.freeFrame && a.freeFrame[tier] && (a.freeFrame[tier].grantedAt || a.freeFrame[tier].limit>0 || a.freeFrame[tier].unlimited));
+
+    // Блок выдачи нового гранта — простой поиск по названию/email среди тех,
+    // у кого ещё нет гранта этого яруса.
+    const candidates = accounts.filter(a => !withGrant.includes(a));
+    document.getElementById('ffGrantNewBlock').innerHTML = `
+      <div style="background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:12px; padding:16px; max-width:640px;">
+        <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">Выдать новый бесплатный грант (${tier==='diamond'?'бриллиант':'золото'}, ${cat==='afisha'?'афиша':'партнёры'}):</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+          <select id="ffNewAccountSelect" style="flex:1; min-width:220px;">
+            <option value="">— выбрать аккаунт —</option>
+            ${candidates.map(a=>`<option value="${esc(a.id)}">${esc(a.name||a.email||a.id)}</option>`).join('')}
+          </select>
+          <div><div style="font-size:11px; color:var(--muted);">Счётчик</div><input type="number" min="0" id="ffNewLimit" style="width:80px;" value="3"></div>
+          <div><div style="font-size:11px; color:var(--muted);">До даты</div><input type="date" id="ffNewDate" style="width:150px;"></div>
+          <button class="btn btn-primary btn-sm" onclick="ADM.grantNewFreeFrame()">Выдать</button>
+        </div>
+      </div>`;
+
+    const sorted = [...withGrant].sort((a,b)=>{
+      const ga=a.freeFrame[tier], gb=b.freeFrame[tier];
+      if(!!ga.pinned !== !!gb.pinned) return ga.pinned ? -1 : 1;
+      return new Date(gb.grantedAt||0) - new Date(ga.grantedAt||0);
+    });
+
+    if(!sorted.length){
+      document.getElementById('ffListBlock').innerHTML = `<p style="color:var(--muted); font-size:13px;">Пока никому не выдавался бесплатный ${tier==='diamond'?'бриллиантовый':'золотой'} грант в этой категории.</p>`;
+      return;
+    }
+
+    document.getElementById('ffListBlock').innerHTML = `
+      <table class="doc-table" style="width:100%; border-collapse:collapse; font-size:13px;">
+        <tr style="text-align:left; color:var(--muted); border-bottom:1px solid rgba(26,28,32,.08);">
+          <th style="padding:8px 6px;">Аккаунт</th><th>Счётчик</th><th>До даты</th><th>Безлимит</th><th>Закреп.</th><th>Статус</th><th></th>
+        </tr>
+        ${sorted.map(a=>{
+          const g = a.freeFrame[tier];
+          const usable = this.isFreeFrameGrantUsable(g);
+          const status = g.unlimited
+            ? '<span style="color:var(--ok);">♾️ безлимит</span>'
+            : (usable ? '<span style="color:var(--ok);">активен</span>' : '<span style="color:var(--muted);">истёк</span>');
+          return `
+          <tr style="border-bottom:1px solid rgba(26,28,32,.04);">
+            <td style="padding:8px 6px;">${esc(a.name||a.email||a.id)}</td>
+            <td><input type="number" min="0" style="width:64px;" value="${esc(g.limit||0)}" ${g.unlimited?'disabled':''}
+              onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','limit',this.value)"></td>
+            <td><input type="date" style="width:150px;" value="${g.expiresAt?g.expiresAt.slice(0,10):''}" ${g.unlimited?'disabled':''}
+              onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','expiresAt',this.value)"></td>
+            <td style="text-align:center;"><input type="checkbox" ${g.unlimited?'checked':''} onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','unlimited',this.checked)"></td>
+            <td style="text-align:center;"><input type="checkbox" ${g.pinned?'checked':''} onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','pinned',this.checked)"></td>
+            <td>${status}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="ADM.revokeFreeFrameGrant('${esc(a.id)}')">Убрать</button></td>
+          </tr>`;
+        }).join('')}
+      </table>`;
+  },
+  grantNewFreeFrame(){
+    const { tier, accKey } = this._ffConfig();
+    const id = document.getElementById('ffNewAccountSelect').value;
+    if(!id){ toast('Выберите аккаунт'); return; }
+    const limit = +document.getElementById('ffNewLimit').value || 0;
+    const dateVal = document.getElementById('ffNewDate').value;
+    const accounts = LS.getJSON(accKey, []);
+    const acc = accounts.find(a=>a.id===id);
+    if(!acc) return;
+    acc.freeFrame = acc.freeFrame || {};
+    acc.freeFrame[tier] = { limit, expiresAt: dateVal?new Date(dateVal+'T23:59:59').toISOString():null, unlimited:false, pinned:false, grantedAt:new Date().toISOString() };
+    LS.setJSON(accKey, accounts);
+    toast('Грант выдан');
+    this.renderFreeFramesSection();
+  },
+  updateFreeFrameGrant(accId, field, value){
+    const { tier, accKey } = this._ffConfig();
+    const accounts = LS.getJSON(accKey, []);
+    const acc = accounts.find(a=>a.id===accId);
+    if(!acc || !acc.freeFrame || !acc.freeFrame[tier]) return;
+    const g = acc.freeFrame[tier];
+    if(field==='limit') g.limit = +value||0;
+    else if(field==='expiresAt') g.expiresAt = value ? new Date(value+'T23:59:59').toISOString() : null;
+    else if(field==='unlimited') g.unlimited = !!value;
+    else if(field==='pinned') g.pinned = !!value;
+    LS.setJSON(accKey, accounts);
+    this.renderFreeFramesSection();
+  },
+  revokeFreeFrameGrant(accId){
+    if(!confirm('Убрать бесплатный грант? Уже включённые бесплатные рамки этого аккаунта погаснут при следующем его входе.')) return;
+    const { tier, accKey } = this._ffConfig();
+    const accounts = LS.getJSON(accKey, []);
+    const acc = accounts.find(a=>a.id===accId);
+    if(!acc || !acc.freeFrame) return;
+    delete acc.freeFrame[tier];
+    LS.setJSON(accKey, accounts);
+    this.renderFreeFramesSection();
+  },
+
   renderAfishaSection(){
     this.renderAfishaPriceBlock();
     this.renderAfishaTable();
@@ -4651,33 +4743,39 @@ const ADM = {
         ${priceField('ru')}${priceField('usd')}
       </div>`;
     }).join('') + (()=>{
-      // 4-я колонка — Золотая рамка. Цена (₽/$) — по тому же ключу-паттерну
-      // cx_global_af_frame_price(_usd), что и у остальных 3, но со своим сроком
-      // действия в днях (cx_global_af_frame_days) — рамка продлевается отдельно
-      // от самой афиши (решение Алексея, 28.08.2026), не наследует срок тарифа.
-      const frameDays=LS.get('cx_global_af_frame_days')||'7';
-      const priceField=(cur)=>{
-        const key = 'cx_global_af_frame'+(cur==='usd'?'_price_usd':'_price');
-        const val=LS.get(key)||'';
-        const inputId='afPrice_frame_'+cur;
-        const extra = cur==='ru'
-          ? ` data-usd-target="afPrice_frame_usd" oninput="onRubPriceInput(this); ADM.saveAfishaPrice('frame','ru', this.value)"`
-          : ` oninput="onUsdPriceInput(this); ADM.saveAfishaPrice('frame','usd', this.value)"`;
-        return `<div style="margin-bottom:10px;">
-          <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">${cur==='ru'?(LANG==='ru'?'Россия (₽)':'Russia (₽)'):(LANG==='ru'?'Зарубеж ($)':'International ($)')}</div>
-          <input type="number" min="0" id="${inputId}" style="width:100%; box-sizing:border-box;" value="${esc(val)}" placeholder="${LANG==='ru'?'напр. 500':'e.g. 500'}"${extra}>
+      // 4-я и 5-я колонки — рамки приоритета. Цена (₽/$) — по паттерну
+      // cx_global_af_<tier>_price(_usd), со своим сроком действия в днях
+      // cx_global_af_<tier>_days — рамка продлевается отдельно от самой афиши
+      // (решение Алексея, 28.08.2026), не наследует срок тарифа. Бриллиантовая
+      // добавлена 11.09.2026 — раньше цена/срок настраивались только для
+      // золотой, у бриллиантовой не было отдельной цены вообще.
+      const frameCol=(tier, icon, ruName, enName, borderColor)=>{
+        const days=LS.get('cx_global_af_'+tier+'_days')||'7';
+        const priceField=(cur)=>{
+          const key = 'cx_global_af_'+tier+(cur==='usd'?'_price_usd':'_price');
+          const val=LS.get(key)||'';
+          const inputId='afPrice_'+tier+'_'+cur;
+          const extra = cur==='ru'
+            ? ` data-usd-target="afPrice_${tier}_usd" oninput="onRubPriceInput(this); ADM.saveAfishaPrice('${tier}','ru', this.value)"`
+            : ` oninput="onUsdPriceInput(this); ADM.saveAfishaPrice('${tier}','usd', this.value)"`;
+          return `<div style="margin-bottom:10px;">
+            <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">${cur==='ru'?(LANG==='ru'?'Россия (₽)':'Russia (₽)'):(LANG==='ru'?'Зарубеж ($)':'International ($)')}</div>
+            <input type="number" min="0" id="${inputId}" style="width:100%; box-sizing:border-box;" value="${esc(val)}" placeholder="${LANG==='ru'?'напр. 500':'e.g. 500'}"${extra}>
+          </div>`;
+        };
+        return `<div style="flex:1; min-width:200px; background:var(--bg2); border:1px solid ${borderColor}; border-radius:var(--radius); padding:14px;">
+          <div style="font-size:14px; font-weight:700; color:var(--gold2); margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid rgba(184,149,77,.15); display:flex; align-items:center; gap:8px;">${icon} ${LANG==='ru'?ruName:enName}</div>
+          ${priceField('ru')}${priceField('usd')}
+          <div style="margin-top:2px;">
+            <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">${LANG==='ru'?'Срок действия рамки, дней':'Frame duration, days'}</div>
+            <input type="number" min="1" id="afFrameDays_${tier}" style="width:100%; box-sizing:border-box;" value="${esc(days)}" oninput="LS.set('cx_global_af_${tier}_days', this.value)">
+          </div>
         </div>`;
       };
-      return `<div style="flex:1; min-width:200px; background:var(--bg2); border:1px solid rgba(184,149,77,.35); border-radius:var(--radius); padding:14px;">
-        <div style="font-size:14px; font-weight:700; color:var(--gold2); margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid rgba(184,149,77,.15); display:flex; align-items:center; gap:8px;">🖼️ ${LANG==='ru'?'Золотая рамка':'Gold frame'}</div>
-        ${priceField('ru')}${priceField('usd')}
-        <div style="margin-top:2px;">
-          <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">${LANG==='ru'?'Срок действия рамки, дней':'Frame duration, days'}</div>
-          <input type="number" min="1" id="afFrameDays" style="width:100%; box-sizing:border-box;" value="${esc(frameDays)}" oninput="LS.set('cx_global_af_frame_days', this.value)">
-        </div>
-      </div>`;
+      return frameCol('diamond','💎','Бриллиантовая рамка','Diamond frame','rgba(120,170,255,.35)')
+           + frameCol('frame','🖼️','Золотая рамка','Gold frame','rgba(184,149,77,.35)');
     })();
-    block.innerHTML += `<div style="width:100%; font-size:12px; color:var(--muted); margin-top:4px;">${LANG==='ru'?'Подставляется в Афишу автоматически. Доллар предлагается по курсу — при желании впишите своё значение. Продление показа стоит столько же, сколько размещение по этому тарифу. Золотая рамка — отдельная платная опция со своим сроком, продлевается независимо от самой афиши.':'Auto-applied in Afisha. USD is suggested by rate — feel free to overwrite it. Extending a listing costs the same as placing one on this tier. The gold frame is a separate paid add-on with its own duration, renewed independently of the listing itself.'}</div>`;
+    block.innerHTML += `<div style="width:100%; font-size:12px; color:var(--muted); margin-top:4px;">${LANG==='ru'?'Подставляется в Афишу автоматически. Доллар предлагается по курсу — при желании впишите своё значение. Продление показа стоит столько же, сколько размещение по этому тарифу. Обе рамки — отдельные платные опции с независимым сроком и ценой, продлеваются отдельно от самой афиши. Также можно выдать бесплатно (см. раздел «Бесплатные рамки»).':'Auto-applied in Afisha. USD is suggested by rate — feel free to overwrite it. Extending a listing costs the same as placing one on this tier. Both frames are separate paid add-ons with independent price and duration, renewed separately from the listing itself. They can also be granted for free (see the "Free frames" section).'}</div>`;
   },
   saveAfishaPrice(tier, cur, value){
     const key = 'cx_global_af_'+tier+(cur==='usd'?'_price_usd':'_price');
@@ -4932,6 +5030,22 @@ const ADM = {
     if(badge){ badge.textContent=pendingCount; badge.classList.toggle('hidden', pendingCount===0); }
   },
 
+  renderBoostDaysBlock(){
+    const block=document.getElementById('boostDaysBlock');
+    if(!block) return;
+    const goldDays=LS.get('cx_global_boost_days_gold')||'30';
+    const diamondDays=LS.get('cx_global_boost_days_diamond')||'30';
+    block.innerHTML = `
+      <div style="min-width:200px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">🚀 ${LANG==='ru'?'Срок золотого буста, дней':'Gold boost duration, days'}</div>
+        <input type="number" min="1" id="boostDaysGold" style="width:100%; box-sizing:border-box;" value="${esc(goldDays)}" oninput="LS.set('cx_global_boost_days_gold', this.value)">
+      </div>
+      <div style="min-width:200px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">💎 ${LANG==='ru'?'Срок бриллиантового буста, дней':'Diamond boost duration, days'}</div>
+        <input type="number" min="1" id="boostDaysDiamond" style="width:100%; box-sizing:border-box;" value="${esc(diamondDays)}" oninput="LS.set('cx_global_boost_days_diamond', this.value)">
+      </div>`;
+  },
+
   renderPartnerCatTabs(){
     const cats=this.getPartnerCategories();
     if(!this._activePartnerCat || !cats.some(c=>c.key===this._activePartnerCat)){
@@ -4958,6 +5072,8 @@ const ADM = {
     const priceUsd=LS.get('cx_global_'+cat.gKey+'_price_usd')||'';
     const boostRu=LS.get('cx_global_'+cat.gKey+'_boost_price')||'';
     const boostUsd=LS.get('cx_global_'+cat.gKey+'_boost_price_usd')||'';
+    const diamondRu=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price')||'';
+    const diamondUsd=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price_usd')||'';
     block.innerHTML=`
       <div style="flex-basis:100%; display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;">
         <div style="font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px;">${swBadge(cat.icon,24)} ${esc(LANG==='ru'?cat.ru:cat.en)}</div>
@@ -4990,6 +5106,22 @@ const ADM = {
           ? (LANG==='ru'?'✅ Цена задана — у партнёров этой категории уже видна кнопка «Поднять в топ».':'✅ Price is set — partners in this category already see the "Boost to top" button.')
           : (LANG==='ru'?'⏳ Пока пусто — партнёры видят «Буст скоро будет доступен» вместо кнопки. Впишите цену выше (хотя бы одну из двух), и кнопка сразу появится у всех активных карточек этой категории.':'⏳ Empty for now — partners see "Boost coming soon" instead of the button. Fill in a price above (either currency) and the button appears instantly for every active listing in this category.')}
       </div>
+      <div style="flex-basis:100%; height:0;"></div>
+      <div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">💎 ${LANG==='ru'?'Бриллиантовый буст на 30 дней — Россия (₽)':'Diamond boost for 30 days — Russia (₽)'}</div>
+        <input type="number" min="0" id="pgpDiamondRu" style="width:150px;" value="${esc(diamondRu)}" placeholder="напр. 3000"
+          data-usd-target="pgpDiamondUsd" oninput="onRubPriceInput(this); ADM.saveActiveCategoryDiamondBoostPrice('ru', this.value)">
+      </div>
+      <div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">💎 ${LANG==='ru'?'Бриллиантовый буст — зарубежные ($)':'Diamond boost — international ($)'}</div>
+        <input type="number" min="0" id="pgpDiamondUsd" style="width:150px;" value="${esc(diamondUsd)}" placeholder="напр. 40"
+          oninput="onUsdPriceInput(this); ADM.saveActiveCategoryDiamondBoostPrice('usd', this.value)">
+      </div>
+      <div style="flex-basis:100%; font-size:12px; color:${(diamondRu||diamondUsd)?'var(--ok)':'var(--warn)'}; margin-top:2px;">
+        ${(diamondRu||diamondUsd)
+          ? (LANG==='ru'?'✅ Цена задана — у партнёров этой категории уже видна кнопка «Бриллиантовый буст». Приоритет показа выше золотого.':'✅ Price is set — partners in this category already see the "Diamond boost" button. Higher priority than gold.')
+          : (LANG==='ru'?'⏳ Пока пусто — партнёры видят «Скоро будет доступно» вместо кнопки.':'⏳ Empty for now — partners see "Coming soon" instead of the button.')}
+      </div>
     `;
   },
   saveActiveCategoryPrice(which, value){
@@ -5002,6 +5134,11 @@ const ADM = {
     const cat=this.getPartnerCat(this._activePartnerCat);
     if(!cat) return;
     LS.set('cx_global_'+cat.gKey+(which==='usd'?'_boost_price_usd':'_boost_price'), value);
+  },
+  saveActiveCategoryDiamondBoostPrice(which, value){
+    const cat=this.getPartnerCat(this._activePartnerCat);
+    if(!cat) return;
+    LS.set('cx_global_'+cat.gKey+(which==='usd'?'_diamond_boost_price_usd':'_diamond_boost_price'), value);
   },
 
   // ---- Цены по подгруппам (Красота/Медицина/Здоровье и отдых/Юр. услуги) ----
@@ -5124,11 +5261,15 @@ const ADM = {
     const priceUsd=LS.get('cx_global_'+cat.gKey+'_price_usd')||'';
     const boostRu=LS.get('cx_global_'+cat.gKey+'_boost_price')||'';
     const boostUsd=LS.get('cx_global_'+cat.gKey+'_boost_price_usd')||'';
+    const diamondRu=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price')||'';
+    const diamondUsd=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price_usd')||'';
     cat.subgroups.forEach(s=>{
       LS.set('cx_global_'+cat.gKey+'_'+s.key+'_price', priceRu);
       LS.set('cx_global_'+cat.gKey+'_'+s.key+'_price_usd', priceUsd);
       LS.set('cx_global_'+cat.gKey+'_'+s.key+'_boost_price', boostRu);
       LS.set('cx_global_'+cat.gKey+'_'+s.key+'_boost_price_usd', boostUsd);
+      LS.set('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price', diamondRu);
+      LS.set('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price_usd', diamondUsd);
     });
     this.renderPartnerSubgroupPriceBlock();
   },
@@ -5169,6 +5310,7 @@ const ADM = {
     this.renderPartnerSignificantPanel();
     this.renderAllPartnersList();
     this.renderPartnerCatTabs();
+    this.renderBoostDaysBlock();
     this.renderCategoryTrashPanel();
     this.renderPartnerGlobalPriceBlock();
     this.renderPartnerSubgroupPriceBlock();
@@ -5743,10 +5885,6 @@ const ADM = {
     document.getElementById('secretEmailjsTemplateBooking').value=ejBooking;
     document.getElementById('secretEmailjsTemplateRecovery').value=ejRecovery;
     document.getElementById('secretEmailjsPublic').value=ejPublic;
-    document.getElementById('secretYookassaShopId').value=s.yookassaShopId||'';
-    document.getElementById('secretYookassaSecretKey').value=s.yookassaSecretKey||'';
-    document.getElementById('secretYoomoneyWallet').value=s.yoomoneyWallet||'';
-    document.getElementById('secretYoomoneyToken').value=s.yoomoneyToken||'';
     document.getElementById('secretAdminEmail').value=s.adminEmail||'';
     document.getElementById('secretAdminTrigger').value=s.adminTriggerPhrase||'';
   },
@@ -5759,10 +5897,6 @@ const ADM = {
       emailjsTemplateBooking:document.getElementById('secretEmailjsTemplateBooking').value.trim(),
       emailjsTemplateRecovery:document.getElementById('secretEmailjsTemplateRecovery').value.trim(),
       emailjsPublic:document.getElementById('secretEmailjsPublic').value.trim(),
-      yookassaShopId:document.getElementById('secretYookassaShopId').value.trim(),
-      yookassaSecretKey:document.getElementById('secretYookassaSecretKey').value.trim(),
-      yoomoneyWallet:document.getElementById('secretYoomoneyWallet').value.trim(),
-      yoomoneyToken:document.getElementById('secretYoomoneyToken').value.trim(),
       adminEmail:document.getElementById('secretAdminEmail').value.trim(),
       adminTriggerPhrase:document.getElementById('secretAdminTrigger').value
     };
@@ -5814,6 +5948,12 @@ const ADM = {
   }
 };
 
+/* ---- AI analyst rule-based logic ---- */
+function addAI(text, who='bot'){
+  const body=document.getElementById('aiBody');
+  const div=document.createElement('div'); div.className='msg '+(who==='bot'?'bot':'user'); div.innerHTML=text;
+  body.appendChild(div); body.scrollTop=body.scrollHeight;
+}
 /* =========================================================
    Corronyx Agent (админ) — 06.09.2026
    В отличие от 4 обычных агентов на других порталах, у этого агента сразу
@@ -5966,13 +6106,6 @@ function cancelAiAction(cardId){
   const card=document.getElementById(cardId);
   if(!card) return;
   card.classList.add('cancelled');
-}
-
-/* ---- Отрисовка обычного сообщения в чате (и бот, и пользователь) ---- */
-function addAI(text, who='bot'){
-  const body=document.getElementById('aiBody');
-  const div=document.createElement('div'); div.className='msg '+(who==='bot'?'bot':'user'); div.innerHTML=text;
-  body.appendChild(div); body.scrollTop=body.scrollHeight;
 }
 
 /* ---- init ---- */

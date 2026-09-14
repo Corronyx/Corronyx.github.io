@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" dir="ltr" translate="no">
+<html lang="ru" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -600,6 +600,29 @@ tr:last-child td{border-bottom:none;}
 @keyframes spin{to{transform:rotate(360deg);}}
 @keyframes countdown{from{width:100%;} to{width:0%;}}
 @keyframes cxShimmer{0%{background-position:200% 0;} 100%{background-position:-50% 0;}}
+/* ===== Мобильное нижнее меню (11.09.2026) — 5 главных разделов; Синхронизация
+   (iCal/PMS) перенесена внутрь Профиля на мобильном — это настроечный экран,
+   к которому обращаются гораздо реже, чем к брони/номерам/финансам, ей не
+   место в тесном нижнем меню. На десктопе — прежний боковой список, ей
+   отдельная строка. */
+.mobile-bottom-nav{display:none;}
+@media(max-width:760px){
+  .mobile-bottom-nav{
+    display:flex; position:fixed; left:0; right:0; bottom:0; z-index:500;
+    background:var(--bg2); border-top:1px solid var(--line);
+    box-shadow:0 -4px 16px rgba(26,28,32,.06);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .mobile-bottom-nav .mbn-item{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:6px 2px; border:none; background:none; cursor:pointer;
+    font-family:inherit; color:var(--muted); font-size:10px; line-height:1.2;
+  }
+  .mobile-bottom-nav .mbn-item .mbn-icon{font-size:19px; line-height:1;}
+  .mobile-bottom-nav .mbn-item.active{color:var(--gold2);}
+  body{padding-bottom:58px;}
+  .mobile-only-link{display:block !important;}
+}
 </style>
 <!-- Tesseract.js — OCR для распознавания суммы на скриншоте банковского перевода/СБП.
      Грузится с CDN лениво (см. ensureTesseractLoaded()), поэтому здесь просто
@@ -999,6 +1022,13 @@ tr:last-child td{border-bottom:none;}
     <div class="section" id="sec-profile">
       <div class="page-title" data-t="nav_profile">Профиль отеля</div>
       <div class="page-sub" data-t="profile_sub">Эти данные видны клиентам на сайте бронирования</div>
+      <!-- Ссылка на Синхронизацию видна только на мобильном — на десктопе у
+           неё уже есть свой постоянный пункт в боковом меню, дублировать
+           незачем; на мобильном же вкладка "Синхронизация" убрана из тесного
+           нижнего меню (5 пунктов вместо 6), доступ остаётся отсюда. -->
+      <div class="mobile-only-link" style="display:none;">
+        <button class="btn btn-ghost" style="width:100%; margin-bottom:16px;" onclick="HP.nav('ical')">🔄 <span data-t="nav_ical">Синхронизация</span></button>
+      </div>
       <div style="max-width:640px;">
         <div class="form-row"><label data-t="f_name">Название</label><input type="text" id="pName"></div>
         <div class="form-row"><label data-t="f_phone">Телефон</label><input type="text" id="pPhone"></div>
@@ -1105,6 +1135,7 @@ tr:last-child td{border-bottom:none;}
 <!-- AI ASSISTANT -->
 <!-- Всплывающие уведомления о новых бронях — кликабельны, ведут в шахматку -->
 <div id="newBookingBanners" style="position:fixed; top:16px; right:16px; z-index:5000; display:flex; flex-direction:column; gap:10px; max-width:340px;"></div>
+
 
 <div class="toast-wrap" id="toastWrap"></div>
 
@@ -1655,6 +1686,7 @@ const T = {
  btn_register:{ru:'Зарегистрироваться',en:'Register'},
  reg_account_type:{ru:'Тип аккаунта',en:'Account type'}, reg_hotel_name:{ru:'Название отеля',en:'Hotel name'}, reg_country:{ru:'Страна',en:'Country'}, reg_city:{ru:'Город',en:'City'}, reg_address:{ru:'Адрес',en:'Address'},
  reg_exists:{ru:'Отель с таким email уже зарегистрирован',en:'A hotel with this email is already registered'},
+ reg_bad_email:{ru:'Введите email в правильном формате (например, name@example.com)',en:'Enter a valid email format (e.g. name@example.com)'},
  reg_required:{ru:'Заполните все поля',en:'Please fill in all fields'},
  reg_success:{ru:'Регистрация успешна! Теперь войдите.',en:'Registration successful! Now log in.'},
  nav_dashboard:{ru:'Дашборд',en:'Dashboard'}, nav_bookings:{ru:'Брони',en:'Bookings'},
@@ -2012,10 +2044,11 @@ Contact: Corronyx@gmail.com
     const pass2=document.getElementById('regPass2').value;
     const agree=document.getElementById('hpAgree')?.checked;
     const err=document.getElementById('registerErr'); err.style.color='var(--err)';
+    if(!isValidEmailFormat(email)){ err.textContent=t('reg_bad_email'); return; }
     if(pass.length<6){ err.textContent='Пароль минимум 6 символов'; return; }
     if(pass!==pass2){ err.textContent=t('reg_pass_mismatch'); return; }
     if(!agree){ err.textContent='Необходимо принять условия договора'; return; }
-    if(this.getAllAccounts().find(a=>a.email===email)){ err.textContent=t('reg_exists'); return; }
+    if(this.getAllAccounts().find(a=>a.email.trim().toLowerCase()===email.toLowerCase())){ err.textContent=t('reg_exists'); return; }
 
     if(this.accType==='touroperator'){
       const topName=document.getElementById('topName').value.trim();
@@ -2066,9 +2099,9 @@ Contact: Corronyx@gmail.com
     setTimeout(()=>{ this.showTab('login'); document.getElementById('hpEmail').value=email; }, 1200);
   },
   login(){
-    const email=document.getElementById('hpEmail').value.trim();
+    const email=document.getElementById('hpEmail').value.trim().toLowerCase();
     const pass=document.getElementById('hpPass').value;
-    const acc=this.getAllAccounts().find(a=>a.email===email && a.password===pass);
+    const acc=this.getAllAccounts().find(a=>a.email.trim().toLowerCase()===email && a.password===pass);
     if(!acc){ document.getElementById('loginErr').textContent=t('login_err'); return; }
     this.hotel=acc;
     LS.set('cx_hp_session', acc.id);
@@ -2093,6 +2126,7 @@ Contact: Corronyx@gmail.com
   },
   nav(section){
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.section===section));
+    document.querySelectorAll('.mobile-bottom-nav .mbn-item').forEach(n=>n.classList.toggle('active', n.dataset.mbn===section || (n.dataset.mbn==='profile' && section==='ical')));
     document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active', s.id==='sec-'+section));
     // Раньше переключение вкладки НИКОГДА не сбрасывало прокрутку — если
     // человек долистал текущую вкладку до конца (например, до таблицы
@@ -4829,9 +4863,6 @@ Contact: Corronyx@gmail.com
 
     // Единая проверка "берём ли комиссию" — см. isCommissionEligible() в начале файла.
     const { owedBookings, owedAmount } = this.commissionOwed();
-    // Поднято в общую область видимости функции (было объявлено только внутри
-    // ветки hasAny) — нужно и в блоке "к переводу" ниже для кнопки ЮKassa.
-    const isRU = (this.hotel.country||'RU') === 'RU';
 
     let html = '<div class="platform-req-card">';
     html += '<div class="platform-req-title">📌 Реквизиты Corronyx — куда переводить нашу комиссию</div>';
@@ -4844,6 +4875,7 @@ Contact: Corronyx@gmail.com
     if(!hasAny){
       html += '<div class="platform-req-empty">⏳ Реквизиты ещё не заполнены администратором Corronyx. Как только появятся — вы увидите их здесь.</div>';
     } else {
+      const isRU = (this.hotel.country||'RU') === 'RU';
       // РФ — только банк/СБП (рубли). Не-РФ — только крипта (USDT/TON). Без смешивания.
       const methods = [];
       if(isRU){
@@ -4896,13 +4928,6 @@ Contact: Corronyx@gmail.com
         const _amtUsdt = Math.round((owedAmount/_rate)*100)/100;
         html += '<button class="platform-req-settle-btn" onclick="openPaymentModal(\''+esc(req.usdt)+'\', '+_amtUsdt+', \'Corronyx commission\')">💳 Оплатить</button>';
         html += '<button class="platform-req-settle-btn" onclick="HP.checkUsdtPayment()">🔎 Проверить оплату USDT в блокчейне</button>';
-      }
-      // ЮKassa — карта (05.09.2026): ключей ещё нет, и даже когда появятся,
-      // реальное создание платежа требует Secret Key на сервере (его нельзя
-      // держать в клиентском JS) — см. HANDOFF п.3/5. Кнопка всегда видна для
-      // РФ-отелей, но честно показывает тестовый режим, а не тихо ничего не делает.
-      if(isRU){
-        html += '<button class="platform-req-settle-btn" onclick="HP.payWithYookassaTest('+owedAmount+')">💳 Оплатить картой (ЮKassa)</button>';
       }
       html += '<label class="platform-req-settle-btn" style="cursor:pointer;display:inline-flex;align-items:center;">'
             + '📎 Прикрепить скриншот перевода (банк/СБП)'
@@ -4983,31 +5008,6 @@ Contact: Corronyx@gmail.com
     const list = LS.getJSON(key, []);
     list.unshift({ date:new Date().toISOString(), status, method, extractedAmount, note });
     LS.setJSON(key, list.slice(0,30)); // храним последние 30 попыток — не раздуваем localStorage
-  },
-
-  // ── ЮKASSA — оплата картой (05.09.2026, тестовый режим) ─────────────────
-  // Настоящее создание платежа ЮKassa требует вызова их API с Secret Key —
-  // это серверная операция (ключ нельзя держать в клиентском JS, иначе любой
-  // через DevTools сможет создавать платежи от имени Corronyx). Пока сервера
-  // нет (см. HANDOFF, «Что было сделано»/п.5), кнопка честно показывает
-  // тестовый режим вместо того, чтобы либо падать, либо молчать. Долг по
-  // комиссии НЕ уменьшается автоматически — подтверждение оплаты по-прежнему
-  // идёт через уже рабочие способы (блокчейн USDT / скриншот банк-СБП) выше.
-  getYookassaConfig(){
-    const s=LS.getJSON('cx_secrets', {});
-    return { shopId:s.yookassaShopId||'' };
-  },
-  payWithYookassaTest(amount){
-    const cfg=this.getYookassaConfig();
-    const amtStr=fmtMoney(amount);
-    if(!cfg.shopId){
-      alert('Тестовый режим ЮKassa: Shop ID ещё не подключён администратором.\n'
-        +'В боевой версии здесь откроется защищённая форма оплаты картой на '+amtStr+'.\n'
-        +'Пока используйте один из способов выше (USDT/скриншот банк-СБП), чтобы подтвердить оплату.');
-      return;
-    }
-    alert('ЮKassa: Shop ID сохранён, но реальный приём платежа подключается только вместе с сервером (Secret Key нельзя использовать из браузера).\n'
-      +'Сумма к оплате: '+amtStr+'. Пока используйте способы выше, чтобы подтвердить оплату.');
   },
 
   // ── ПРОВЕРКА USDT ПО БЛОКЧЕЙНУ (сеть TON, публичный API TON Center) ─────
@@ -6315,7 +6315,7 @@ Contact: Corronyx@gmail.com
     // с логикой reason='no_photo' чуть выше и не перебивает её.
     this.renderEmailChip();
     this.checkActivation();
-  },
+  }
 };
 
 function statusBadge(status){
@@ -6324,6 +6324,13 @@ function statusBadge(status){
   return `<span class="badge ${map[status]||'badge-pending'}">${label}</span>`;
 }
 function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+/* Проверка ФОРМАТА email при регистрации (11.09.2026) — раньше принималась любая
+   непустая строка. Это только проверка вида "текст@текст.текст", реальные письма
+   никуда не отправляются и почта не подтверждается — ровно то, что и нужно на
+   статическом сайте без сервера. */
+function isValidEmailFormat(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email||'').trim());
+}
 
 /* Автозаглавные буквы: капитализирует первую букву каждого слова, только если слово набрано полностью строчными
    (не трогает уже осмысленный регистр вроде "ООО", "iPhone" и т.п.). Срабатывает на blur, чтобы не мешать вводу.
@@ -6459,15 +6466,6 @@ window.addEventListener('storage', e=>{
     <a href="touroperator-nda.html" target="_blank" rel="noopener" style="color:var(--muted);">NDA</a>
     <a href="touroperator-dpa.html" target="_blank" rel="noopener" style="color:var(--muted);">Обработка данных туристов</a>
   </div>
-  <div style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px; margin-bottom:8px;">
-    <a href="mailto:Corronyx@gmail.com" style="color:var(--muted);">✉️ Corronyx@gmail.com</a>
-    <span style="color:var(--muted);">·</span>
-    <!-- TODO: реальная ссылка -->
-    <a href="#" target="_blank" rel="noopener" style="color:var(--muted);">Telegram</a>
-    <span style="color:var(--muted);">·</span>
-    <!-- TODO: реальная ссылка -->
-    <a href="#" target="_blank" rel="noopener" style="color:var(--muted);">VK</a>
-  </div>
   <p style="margin:0;">© 2026 Corronyx</p>
 </footer>
 
@@ -6488,14 +6486,10 @@ function cookieChoice(choice){
   document.getElementById('cookieBanner').style.display='none';
   positionAiBtn(false);
 }
-// Кнопка Corronyx Agent (💬) пряталась под баннером cookie — z-index баннера выше,
+// Кнопка ассистента (🤖) пряталась под баннером cookie — z-index баннера выше,
 // и она физически перекрывалась (тот же приём, что и на index.html, см. там
 // positionConciergeBtn). Пока баннер виден — кнопка поднимается ровно на
 // измеренную высоту баннера; после закрытия — возвращается на место.
-// 06.09.2026: раньше эта защита была только у СТАРОГО помощника (#aiBtn,
-// теперь удалён как дублирующий и запутывающий — на его месте всегда стоял
-// новый настоящий Corronyx Agent виджет поверх, два одинаково расположенных
-// ИИ-помощника с разной логикой это явный баг) — перенесено на реальный виджет.
 function positionAiBtn(bannerVisible){
   const btn=document.getElementById('aiWidgetBtn');
   if(!btn) return;
@@ -6553,17 +6547,11 @@ function sendGenericSystemEmail(toEmail, subject, body){
      конфликтовать при копировании между файлами. Ключи Cloudflare — из
      тех же секретов (cx_secrets), что EmailJS/переводчик, вводятся в админке. -->
 <style>
-.ai-widget-btn{position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%;
-  background:linear-gradient(135deg,var(--gold),var(--gold2)); display:flex; align-items:center; justify-content:center;
-  font-size:24px; cursor:pointer; box-shadow:0 8px 24px rgba(184,149,77,.4); z-index:900; transition:.2s; border:none;}
+.ai-widget-btn{position:fixed; bottom:24px; right:24px; width:72px; height:72px; border-radius:50%;
+  background:#09080f; display:flex; align-items:center; justify-content:center; padding:0; overflow:hidden;
+  cursor:pointer; box-shadow:0 8px 24px rgba(0,0,0,.5); z-index:900; transition:.2s; border:none;}
+.ai-widget-btn img{width:100%; height:100%; object-fit:cover; border-radius:50%;}
 .ai-widget-btn:hover{transform:scale(1.08);}
-/* 06.09.2026: Android Chrome сам показывает плавающий кружок загрузки/установки
-   PWA в правом нижнем углу — поднимаем кнопку и панель выше на маленьких
-   экранах, чтобы это никогда не перекрывало настоящего ИИ-агента. */
-@media (max-width:700px){
-  .ai-widget-btn{ bottom:90px; }
-  .ai-widget-panel{ bottom:162px; width:calc(100vw - 32px); right:16px; }
-}
 .ai-widget-panel{position:fixed; bottom:90px; right:24px; width:340px; max-height:480px; background:var(--bg2);
   border:1px solid rgba(184,149,77,.2); border-radius:14px; display:none; flex-direction:column;
   box-shadow:0 20px 60px rgba(0,0,0,.5); z-index:900; overflow:hidden;}
@@ -6578,7 +6566,7 @@ function sendGenericSystemEmail(toEmail, subject, body){
 .ai-widget-input input{flex:1; background:var(--bg3); border:1px solid rgba(26,28,32,.08); color:var(--text); padding:9px 11px; border-radius:8px; font-family:inherit; font-size:13px;}
 .ai-widget-input button{margin-left:8px; background:var(--gold); border:none; border-radius:8px; padding:0 14px; cursor:pointer; font-weight:700; color:#15130a;}
 </style>
-<button class="ai-widget-btn" id="aiWidgetBtn" onclick="toggleAiWidget()">💬</button>
+<button class="ai-widget-btn" id="aiWidgetBtn" onclick="toggleAiWidget()"><img src="data:image/png;base64,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" alt="Corronyx Agent"></button>
 <div class="ai-widget-panel" id="aiWidgetPanel">
   <div class="ai-widget-head"><span>Corronyx Agent</span><span onclick="toggleAiWidget()">✕</span></div>
   <div class="ai-widget-body" id="aiWidgetBody"></div>
@@ -6754,6 +6742,14 @@ async function sendAiWidgetMsg(){
 </script>
 
 
+<!-- Мобильное нижнее меню — переиспользует HP.nav(), тот же механизм, что и боковой список -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+  <button class="mbn-item active" data-mbn="dashboard" onclick="HP.nav('dashboard')"><span class="mbn-icon">📊</span><span data-t="nav_dashboard">Дашборд</span></button>
+  <button class="mbn-item" data-mbn="rooms" onclick="HP.nav('rooms')"><span class="mbn-icon">🛏️</span><span data-t="nav_rooms">Номера</span></button>
+  <button class="mbn-item" data-mbn="chess" onclick="HP.nav('chess')"><span class="mbn-icon">♟️</span><span data-t="nav_chess">Шахматка</span></button>
+  <button class="mbn-item" data-mbn="payouts" onclick="HP.nav('payouts')"><span class="mbn-icon">💰</span><span data-t="nav_payouts">Выплаты</span></button>
+  <button class="mbn-item" data-mbn="profile" onclick="HP.nav('profile')"><span class="mbn-icon">🏨</span><span data-t="nav_profile">Профиль</span></button>
+</nav>
 </body>
 </html>
 
