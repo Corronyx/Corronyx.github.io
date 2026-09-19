@@ -460,6 +460,27 @@ tr:last-child td{border-bottom:none;}
 .lang-dropdown .lang-divider{padding:8px 16px 4px; font-size:11px; text-transform:uppercase; color:var(--muted); cursor:default; letter-spacing:1px;}
 .lang-dropdown .lang-divider:hover{background:none; color:var(--muted);}
 .header-gtranslate-hidden{ position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none; }
+
+/* ===== Верхняя панель на узких телефонах (19.09.2026, визуальный агент) =====
+   Проблема: на 360px .topbar-right (язык + «Фраза-ключ» + «Выйти», flex-shrink:0) выходила
+   за правый край на ~20px — кнопка «Выйти» обрезалась. Название «Corronyx Admin» на телефоне
+   и так сжималось в ноль (overflow:hidden), поэтому скрываем его явно и уплотняем отступы.
+   Только CSS, разметка/onclick не тронуты; на экранах шире 480px правил нет. */
+@media (max-width:480px){
+  .topbar{padding:0 10px; gap:8px;}
+  .hp-header-info{display:none;}
+  .topbar-right{gap:8px;}
+  .topbar-right .btn-sm{padding:6px 9px; white-space:nowrap;}
+}
+
+/* ===== Адаптив: фильтры и таблицы документов на телефоне (19.09.2026, визуальный агент) =====
+   1) select фильтра броней («Все отели» + длинное название отеля) был шире экрана на 360px и обрезался родителем;
+   2) таблицы раздела «Документы» (.doc-table, без обёртки) были шире экрана — колонка «Обновлён» обрезалась
+      без возможности прокрутки → теперь горизонтальная прокрутка внутри самой таблицы. Только CSS. */
+@media (max-width:700px){
+  .filter-bar select,.filter-bar input{max-width:100%; min-width:0;}
+  .doc-table{display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+}
 </style>
 </head>
 <body>

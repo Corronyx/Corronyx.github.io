@@ -623,6 +623,21 @@ tr:last-child td{border-bottom:none;}
   body{padding-bottom:58px;}
   .mobile-only-link{display:block !important;}
 }
+
+/* ===== Адаптив: обрезанные кнопки и таблицы на телефоне (19.09.2026, визуальный агент) =====
+   Найдено реальным рендером в Chromium (360/390px), проверкой «контент обрезан родителем с overflow:hidden»:
+   1) .table-wrap имел overflow:hidden без прокрутки — колонки «Сумма», «Комиссия 12%», «Переведено» физически
+      не были видны и недоступны на телефоне → теперь горизонтальная прокрутка внутри таблицы;
+   2) #periodNav и #dashPeriodNav («← Предыдущий / период / Следующий → / К текущему», в «Выплатах» и на дашборде) — flex без переноса, кнопка «К текущему» обрезалась;
+   3) .chess-right-group (выбор дней, «+ Бронь», «🔗 Синхронизация») — flex без переноса, «Синхронизация» обрезалась.
+   Только CSS: разметка, id, onclick и JS не тронуты. Десктоп (>900px) не затронут. */
+@media (max-width:900px){
+  .table-wrap{overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch;}
+}
+@media (max-width:700px){
+  #periodNav,#dashPeriodNav{flex-wrap:wrap !important; gap:8px !important;}
+  .chess-nav-group,.chess-right-group{flex-wrap:wrap; gap:6px;}
+}
 </style>
 <!-- Tesseract.js — OCR для распознавания суммы на скриншоте банковского перевода/СБП.
      Грузится с CDN лениво (см. ensureTesseractLoaded()), поэтому здесь просто
