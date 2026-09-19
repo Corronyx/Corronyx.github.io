@@ -638,6 +638,33 @@ tr:last-child td{border-bottom:none;}
   #periodNav,#dashPeriodNav{flex-wrap:wrap !important; gap:8px !important;}
   .chess-nav-group,.chess-right-group{flex-wrap:wrap; gap:6px;}
 }
+
+/* ===== Кабинет отеля на телефоне/планшете: верхняя полоса (19.09.2026, визуальный агент) =====
+   Проблемы (подтверждены рендером в Chromium, 390 и 768px):
+   1) Блок .sidebar-foot (статус отеля «Активен/На паузе», выбор языка, кнопка «Выйти») скрывался целиком на ≤900px —
+      на телефоне и планшете НЕТ ни выхода из кабинета, ни выбора языка (в партнёрском, афише и админке они есть).
+   2) На ≤760px верхняя лента разделов дублировала нижнее меню (те же 5 разделов + «Синхронизация», которая
+      на телефоне и так доступна из «Профиля»).
+   Решение (только CSS, разметка/id/onclick/JS не тронуты): на ≤900px в верхней полосе — email, статус, язык, «Выйти»;
+   на 761–900px под ними остаётся лента разделов (нижнего меню там нет), на ≤760px лента скрыта (есть нижнее меню).
+   Десктоп (>900px) не затронут. */
+@media (max-width:900px){
+  .sidebar{flex-wrap:wrap; align-items:center; gap:6px 6px; overflow:visible; padding:8px 12px;}
+  .sidebar .hp-email-chip{order:1;}
+  .sidebar .sidebar-foot{display:flex !important; order:2; margin:0 0 0 auto; padding:0; border-top:none; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px;}
+  .sidebar .sidebar-foot .status-badge{margin:0; padding:5px 9px; font-size:11px;}
+  .sidebar .sidebar-foot .lang-switch{width:auto;}
+  .sidebar .sidebar-foot .lang-btn{width:auto; min-height:32px; padding:5px 11px; font-size:12px;}
+  .sidebar .sidebar-foot .lang-dropdown{bottom:auto; top:calc(100% + 6px); left:auto; right:0;}
+  .sidebar .sidebar-foot > div:not(.status-badge):not(.lang-switch):not(.header-gtranslate-hidden){margin-top:0 !important;}
+  .sidebar .sidebar-foot > div:last-child{display:none;} /* метка build — техническая, как и раньше на телефоне не показывается */
+  .sidebar::after{content:''; flex:0 0 100%; height:0; order:2;}
+  .sidebar .nav-item{order:3; flex:0 0 auto; padding:8px 9px; gap:6px; font-size:13px;}
+}
+@media (max-width:760px){
+  .sidebar .nav-item{display:none;}
+  .sidebar::after{display:none;}
+}
 </style>
 <!-- Tesseract.js — OCR для распознавания суммы на скриншоте банковского перевода/СБП.
      Грузится с CDN лениво (см. ensureTesseractLoaded()), поэтому здесь просто
