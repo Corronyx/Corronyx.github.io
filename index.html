@@ -695,6 +695,31 @@ body{top:0 !important; position:relative !important;}
   .mobile-bottom-nav .mbn-item .mbn-avatar{width:20px; height:20px; border-radius:50%; object-fit:cover;}
   body{padding-bottom:60px;} /* чтобы меню не перекрывало нижний контент страницы */
 }
+
+/* ===== Адаптивная шапка (19.09.2026, визуальный агент) =====
+   Проблема: .header-top / .header-right / #portalLinksBlock были flex-строками без переноса,
+   суммарно ~660px шириной — на экранах уже ~850px шапка раздувала страницу вширь
+   (горизонтальный скролл, логотип уезжал за левый край, нижнее меню и cookie-баннер
+   растягивались шире экрана, кнопка «Профиль» оказывалась за экраном).
+   Только CSS: HTML/id/onclick не тронуты. На десктопе (>900px) правил нет — вид прежний. */
+@media (max-width:900px){
+  /* display:contents — «язык» и «Войти» встают в одну строку с логотипом,
+     ссылки для отелей/партнёров идут отдельной строкой под ними */
+  .header-top{flex-wrap:wrap; justify-content:space-between; gap:8px 12px; padding:10px 16px 6px;}
+  .header-right{display:contents;}
+  .lang-switch{order:1; margin-left:auto;}
+  #navLoginBtn{order:2; white-space:nowrap;}
+  #portalLinksBlock{order:3; flex:0 0 100%; flex-wrap:wrap !important; justify-content:center;}
+}
+@media (max-width:640px){
+  .header-top{padding:10px 14px 6px;}
+  .brand{font-size:20px;}
+  /* на телефоне ссылки — одна строка-лента с горизонтальной прокруткой внутри неё (страница не ездит вбок) */
+  #portalLinksBlock{flex-wrap:nowrap !important; justify-content:flex-start;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px;}
+  #portalLinksBlock::-webkit-scrollbar{display:none;}
+  #portalLinksBlock .btn{flex:0 0 auto; white-space:nowrap;}
+}
 </style>
 </head>
 <body>
