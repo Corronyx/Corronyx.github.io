@@ -720,6 +720,29 @@ body{top:0 !important; position:relative !important;}
   #portalLinksBlock::-webkit-scrollbar{display:none;}
   #portalLinksBlock .btn{flex:0 0 auto; white-space:nowrap;}
 }
+
+/* ===== Адаптив главной: страница отеля и окно консьержа на телефоне (19.09.2026, визуальный агент) =====
+   1) Страница отеля/форма брони: колонка грида «1fr» (= minmax(auto,1fr)) раздувалась до min-content самого широкого
+      элемента (346px) и вытягивала страницу шире экрана 360–394px (обрезались звёзды, название, адрес, плашка оплаты).
+      minmax(0,1fr) позволяет колонке сжиматься по ширине экрана.
+   2) Окно консьержа: правило для ≤700px (width:calc(100vw - 32px); bottom:162px) стояло В ФАЙЛЕ РАНЬШЕ базового
+      .concierge-panel и поэтому не применялось — панель 360px при right:24px на экране 360px уходила за левый край
+      на 24px и в открытом виде перекрывала свою кнопку. Повторяем правило после базового. Только CSS. */
+@media (max-width:900px){
+  .hotel-detail-body, .form-grid{grid-template-columns:minmax(0,1fr);}
+  /* два поля даты (Заезд/Выезд) в flex-строке не сжимались меньше своего min-content и на 360px вылезали на 11px */
+  .date-row > div{min-width:0;}
+  .date-row input{min-width:0; box-sizing:border-box;}
+}
+@media (max-width:700px){
+  .concierge-panel{bottom:162px; width:calc(100vw - 32px); right:16px;}
+}
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  .concierge-panel{max-height:calc(100vh - 190px);}
+}
 </style>
 </head>
 <body>

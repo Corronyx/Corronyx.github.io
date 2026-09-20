@@ -481,6 +481,19 @@ tr:last-child td{border-bottom:none;}
   .filter-bar select,.filter-bar input{max-width:100%; min-width:0;}
   .doc-table{display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;}
 }
+
+/* Окно ИИ-агента админки на телефоне: правило для ≤700px (width:calc(100vw - 32px); bottom:162px) стояло в файле РАНЬШЕ
+   базового .ai-panel и не применялось — панель шире экрана уходила за левый край (на 360px — на 44px, на 390px — на 14px).
+   Повторяем правило после базового. Только CSS. */
+@media (max-width:700px){
+  .ai-panel{bottom:162px; width:calc(100vw - 32px); right:16px;}
+}
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  .ai-panel{max-height:calc(100vh - 190px);}
+}
 </style>
 </head>
 <body>

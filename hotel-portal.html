@@ -687,6 +687,12 @@ tr:last-child td{border-bottom:none;}
 @media (max-width:700px){
   .main select{min-width:0; max-width:100%;}
 }
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  #aiWidgetPanel.ai-widget-panel{max-height:calc(100vh - 190px);}
+}
 </style>
 <!-- Tesseract.js — OCR для распознавания суммы на скриншоте банковского перевода/СБП.
      Грузится с CDN лениво (см. ensureTesseractLoaded()), поэтому здесь просто
