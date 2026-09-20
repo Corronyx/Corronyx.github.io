@@ -792,6 +792,13 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
   div[style*="justify-content:center"] > a[href$=".html"]{display:inline-flex; align-items:center; min-height:40px; padding:0 4px;}
   .link-btn{display:inline-flex; align-items:center; min-height:40px; padding-top:0; padding-bottom:0;}
 }
+
+/* ===== Видимый фокус клавиатуры (20.09.2026, визуальный агент) =====
+   У части элементов (языковой выбор, выпадающие списки, поля входа) при навигации с клавиатуры/переключателем фокус не был
+   виден — не понять, где находишься. Единый фирменный золотой контур для кнопок, ссылок и списков и мягкое золотое
+   свечение для полей ввода. Срабатывает только при клавиатурной навигации (:focus-visible) — для мыши/пальца вид прежний. Только CSS. */
+button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible, [tabindex]:focus-visible{outline:2px solid #B8954D; outline-offset:2px;}
+input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; box-shadow:0 0 0 3px rgba(184,149,77,.22);}
 </style>
 </head>
 <body>
