@@ -803,6 +803,12 @@ body{top:0 !important; position:relative !important;}
 #cookieBanner a{color:#D9B978 !important;}
 #cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
 #cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
+
+/* Страница отеля на телефоне: два вложенных отступа по 24px (section#wizardContent + .hotel-detail) = 48px с каждой стороны
+   съедали ширину (контент 294px из 390). Оставляем один отступ 24px. Только CSS, на экранах шире 640px без изменений. */
+@media (max-width:640px){
+  .hotel-detail{padding-left:0; padding-right:0;}
+}
 </style>
 </head>
 <body>

@@ -849,6 +849,59 @@ tr:last-child td{border-bottom:none;}
 .ai-btn{background:linear-gradient(135deg,var(--gold),var(--gold2)); box-shadow:0 8px 24px rgba(184,149,77,.4);}
 .msg.user{background:var(--gold); color:#15130a;}
 .ai-input button{background:var(--gold); color:#15130a;}
+
+/* ===== Цвета статусов: ещё оттенки из редких состояний (19–20.09.2026, визуальный агент) =====
+   Найдены статическим поиском по inline-стилям и JS-шаблонам (видны только в особых состояниях: «не хватает» при частичной
+   оплате, льготный режим оплаты, красная звёздочка обязательного поля, «Долгов нет», отметки о действиях админа).
+   Тот же принцип: оттенок сохранён, тон глубже (контраст ≥ 4.5:1). Только CSS. */
+[style^="color:#e8b34a"],
+[style*=";color:#e8b34a"],
+[style*="; color:#e8b34a"],
+[style*=" color:#e8b34a"],
+[style^="color: #e8b34a"],
+[style*=";color: #e8b34a"],
+[style*="; color: #e8b34a"],
+[style*=" color: #e8b34a"],
+[style^="color:rgb(232, 179, 74)"],
+[style*=";color:rgb(232, 179, 74)"],
+[style*="; color:rgb(232, 179, 74)"],
+[style*=" color:rgb(232, 179, 74)"],
+[style^="color: rgb(232, 179, 74)"],
+[style*=";color: rgb(232, 179, 74)"],
+[style*="; color: rgb(232, 179, 74)"],
+[style*=" color: rgb(232, 179, 74)"]{color:var(--warn-ink) !important;}
+[style^="color:#7fd67f"],
+[style*=";color:#7fd67f"],
+[style*="; color:#7fd67f"],
+[style*=" color:#7fd67f"],
+[style^="color: #7fd67f"],
+[style*=";color: #7fd67f"],
+[style*="; color: #7fd67f"],
+[style*=" color: #7fd67f"],
+[style^="color:rgb(127, 214, 127)"],
+[style*=";color:rgb(127, 214, 127)"],
+[style*="; color:rgb(127, 214, 127)"],
+[style*=" color:rgb(127, 214, 127)"],
+[style^="color: rgb(127, 214, 127)"],
+[style*=";color: rgb(127, 214, 127)"],
+[style*="; color: rgb(127, 214, 127)"],
+[style*=" color: rgb(127, 214, 127)"]{color:var(--ok-ink) !important;}
+[style^="color:#7fb0ff"],
+[style*=";color:#7fb0ff"],
+[style*="; color:#7fb0ff"],
+[style*=" color:#7fb0ff"],
+[style^="color: #7fb0ff"],
+[style*=";color: #7fb0ff"],
+[style*="; color: #7fb0ff"],
+[style*=" color: #7fb0ff"],
+[style^="color:rgb(127, 176, 255)"],
+[style*=";color:rgb(127, 176, 255)"],
+[style*="; color:rgb(127, 176, 255)"],
+[style*=" color:rgb(127, 176, 255)"],
+[style^="color: rgb(127, 176, 255)"],
+[style*=";color: rgb(127, 176, 255)"],
+[style*="; color: rgb(127, 176, 255)"],
+[style*=" color: rgb(127, 176, 255)"]{color:var(--info-ink) !important;}
 </style>
 </head>
 <body>

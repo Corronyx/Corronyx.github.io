@@ -723,6 +723,90 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
 #cookieBanner a{color:#D9B978 !important;}
 #cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
 #cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
+
+/* ===== Цвета статусов: ещё оттенки из редких состояний (19–20.09.2026, визуальный агент) =====
+   Найдены статическим поиском по inline-стилям и JS-шаблонам (видны только в особых состояниях: «не хватает» при частичной
+   оплате, льготный режим оплаты, красная звёздочка обязательного поля, «Долгов нет», отметки о действиях админа).
+   Тот же принцип: оттенок сохранён, тон глубже (контраст ≥ 4.5:1). Только CSS. */
+[style^="color:#e8b34a"],
+[style*=";color:#e8b34a"],
+[style*="; color:#e8b34a"],
+[style*=" color:#e8b34a"],
+[style^="color: #e8b34a"],
+[style*=";color: #e8b34a"],
+[style*="; color: #e8b34a"],
+[style*=" color: #e8b34a"],
+[style^="color:rgb(232, 179, 74)"],
+[style*=";color:rgb(232, 179, 74)"],
+[style*="; color:rgb(232, 179, 74)"],
+[style*=" color:rgb(232, 179, 74)"],
+[style^="color: rgb(232, 179, 74)"],
+[style*=";color: rgb(232, 179, 74)"],
+[style*="; color: rgb(232, 179, 74)"],
+[style*=" color: rgb(232, 179, 74)"]{color:var(--warn-ink) !important;}
+[style^="color:#ff6b6b"],
+[style*=";color:#ff6b6b"],
+[style*="; color:#ff6b6b"],
+[style*=" color:#ff6b6b"],
+[style^="color: #ff6b6b"],
+[style*=";color: #ff6b6b"],
+[style*="; color: #ff6b6b"],
+[style*=" color: #ff6b6b"],
+[style^="color:rgb(255, 107, 107)"],
+[style*=";color:rgb(255, 107, 107)"],
+[style*="; color:rgb(255, 107, 107)"],
+[style*=" color:rgb(255, 107, 107)"],
+[style^="color: rgb(255, 107, 107)"],
+[style*=";color: rgb(255, 107, 107)"],
+[style*="; color: rgb(255, 107, 107)"],
+[style*=" color: rgb(255, 107, 107)"]{color:var(--err-ink) !important;}
+[style^="color:#7fd67f"],
+[style*=";color:#7fd67f"],
+[style*="; color:#7fd67f"],
+[style*=" color:#7fd67f"],
+[style^="color: #7fd67f"],
+[style*=";color: #7fd67f"],
+[style*="; color: #7fd67f"],
+[style*=" color: #7fd67f"],
+[style^="color:rgb(127, 214, 127)"],
+[style*=";color:rgb(127, 214, 127)"],
+[style*="; color:rgb(127, 214, 127)"],
+[style*=" color:rgb(127, 214, 127)"],
+[style^="color: rgb(127, 214, 127)"],
+[style*=";color: rgb(127, 214, 127)"],
+[style*="; color: rgb(127, 214, 127)"],
+[style*=" color: rgb(127, 214, 127)"],
+[style^="color:#4caf7d"],
+[style*=";color:#4caf7d"],
+[style*="; color:#4caf7d"],
+[style*=" color:#4caf7d"],
+[style^="color: #4caf7d"],
+[style*=";color: #4caf7d"],
+[style*="; color: #4caf7d"],
+[style*=" color: #4caf7d"],
+[style^="color:rgb(76, 175, 125)"],
+[style*=";color:rgb(76, 175, 125)"],
+[style*="; color:rgb(76, 175, 125)"],
+[style*=" color:rgb(76, 175, 125)"],
+[style^="color: rgb(76, 175, 125)"],
+[style*=";color: rgb(76, 175, 125)"],
+[style*="; color: rgb(76, 175, 125)"],
+[style*=" color: rgb(76, 175, 125)"]{color:var(--ok-ink) !important;}
+
+/* ===== Реквизиты и кнопка оплаты (20.09.2026, визуальный агент) =====
+   1) Строка реквизита: подпись (min-width:110px) + значение + «Копировать» в одну flex-строку — на телефоне значению
+      оставалось ~70px, и телефон/адрес/номер счёта рвались по одному символу (word-break:break-all). На ≤640px подпись — над
+      значением, значение получает всю оставшуюся ширину; обычные слова переносятся по словам, а очень длинные адреса
+      (USDT, счёт) по-прежнему ломаются, чтобы не вылезать.
+   2) Кнопка «Прикрепить скриншот перевода» (.payment-btn.ghost) была ярко-жёлтой (#F5C518→#FFE066) — вне фирменной палитры
+      и вопреки названию «ghost». Теперь контурная золотая кнопка, как остальные вторичные кнопки. Только CSS. */
+@media (max-width:640px){
+  .platform-req-row{flex-wrap:wrap; row-gap:4px;}
+  .platform-req-label{flex:0 0 100%; min-width:0;}
+  .platform-req-value{min-width:0; word-break:normal; overflow-wrap:anywhere;}
+}
+.payment-btn.ghost{background:transparent; border:1px solid var(--gold); color:#7A5C14;}
+.payment-btn.ghost:hover{background:rgba(184,149,77,.12);}
 </style>
 </head>
 <body>
