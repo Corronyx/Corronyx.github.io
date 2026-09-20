@@ -823,7 +823,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
     </div>
     <!-- Login -->
     <div id="formLogin">
-      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="loginEmail" placeholder="partner@example.com"></div>
+      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="loginEmail" placeholder="partner@example.com" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="form-row"><label data-t="pass_label">Пароль</label><div class="pass-wrap"><input type="password" id="loginPass"><span class="eye" onclick="PP.togglePass('loginPass',this)">👁</span></div></div>
       <div class="err-msg hidden" id="loginErr"></div>
       <button class="btn btn-primary btn-full" style="margin-top:18px;" onclick="PP.login()" data-t="pp_login_btn">Войти</button>
@@ -834,7 +834,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
     <!-- Register -->
     <div id="formRegister" class="hidden">
       <div class="form-row"><label data-t="org_name_label">Название организации</label><input type="text" id="regOrgName" placeholder="ООО Тур Юг" onblur="swAutoCap(this)"></div>
-      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="regEmail" placeholder="partner@example.com"></div>
+      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="regEmail" placeholder="partner@example.com" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="form-row"><label data-t="pass_label">Пароль</label><div class="pass-wrap"><input type="password" id="regPass"><span class="eye" onclick="PP.togglePass('regPass',this)">👁</span></div></div>
       <div class="form-row"><label data-t="pass_confirm_label">Подтвердите пароль</label><div class="pass-wrap"><input type="password" id="regPass2"><span class="eye" onclick="PP.togglePass('regPass2',this)">👁</span></div></div>
       <div class="err-msg hidden" id="regErr"></div>
@@ -848,7 +848,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
     <!-- Forgot password — step 1: запросить код -->
     <div id="formForgot1" class="hidden">
       <div style="font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.5;" data-t="forgot_intro">Укажите email, указанный при регистрации — вышлем код для сброса пароля.</div>
-      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="forgotEmail" placeholder="partner@example.com"></div>
+      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="forgotEmail" placeholder="partner@example.com" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="err-msg hidden" id="forgotErr1"></div>
       <button class="btn btn-primary btn-full" onclick="PP.sendResetCode()" data-t="send_reset_code">Отправить код</button>
       <div style="text-align:center; margin-top:14px;"><button class="link-btn" onclick="PP.switchAuthTab('login')" data-t="back_to_login">← Назад ко входу</button></div>
@@ -964,7 +964,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
         <div class="form-row"><label data-t="city_label">Город</label><input type="text" id="fCity" placeholder="Анапа" onblur="swAutoCap(this)"></div>
         <div class="form-row"><label data-t="name_label">Название</label><input type="text" id="fName" placeholder="Название компании / услуги" onblur="swAutoCap(this)"></div>
         <div class="form-row"><label data-t="phone_label">Телефон</label><input type="tel" id="fPhone" placeholder="+7 (000) 000-00-00"></div>
-        <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="fEmail" placeholder="info@company.ru"></div>
+        <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="fEmail" placeholder="info@company.ru" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
         <div class="form-row"><label data-t="website_label">Сайт</label><input type="url" id="fUrl" placeholder="https://company.ru"></div>
         <div class="form-row"><label data-t="desc_label">Описание / специализация</label><textarea id="fDesc" rows="3" placeholder="Кратко опишите ваши услуги..."></textarea></div>
         <div class="form-row">
@@ -1657,6 +1657,10 @@ function applyTranslations(){
 }
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// Пользовательский текст внутри JS-строки в атрибуте onclick: esc() экранирует только двойные кавычки, поэтому апостроф
+// («Joe's», «L'Hôtel», «Rock'n'Roll», «Дем'ян») обрывал строку и кнопка (оплата/буст) переставала работать. escJs() дополнительно
+// экранирует обратную косую и апостроф (и убирает переводы строк).
+function escJs(s){ return esc(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '); }
 
 // ============================================================
 // SW_BADGE_SHAPE — идентично admin-dashboard.html (см. подробный
@@ -2178,13 +2182,13 @@ const PP = {
     const boostAmountUsdt = fee.currency==='USD' ? residualFee : Math.round((residualFee/rate)*100)/100;
     document.getElementById('boostPaymentActions').innerHTML = `
       <div class="payment-actions">
-        ${req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${boostAmountUsdt}, 'Corronyx boost ${esc(card.name)}')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
+        ${req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${boostAmountUsdt}, 'Corronyx boost ${escJs(card.name)}')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
         ${req.usdt?`<button class="payment-btn" onclick="PP.checkBoostUsdtPayment()">🔎 ${LANG==='ru'?'Проверить оплату USDT':'Verify USDT payment'}</button>`:''}
         <label class="payment-btn ghost" style="cursor:pointer;">
           📎 ${LANG==='ru'?'Прикрепить скриншот перевода':'Attach transfer screenshot'}
           <input type="file" accept="image/*" style="display:none;" onchange="PP.handleBoostProofScreenshot(this)">
         </label>
-        <button class="payment-btn ghost" onclick="PP.openPointsPayModal({kind:'boost', type:'${type}', id:'${esc(cardId)}', tier:'${tier}', total:${residualFee}, currency:'${fee.currency}', label:'${esc(card.name)} — ${tier==='diamond'?'бриллиантовый буст-приоритет':'буст'}'})">🎁 ${LANG==='ru'?'Баллами':'With points'}</button>
+        <button class="payment-btn ghost" onclick="PP.openPointsPayModal({kind:'boost', type:'${type}', id:'${esc(cardId)}', tier:'${tier}', total:${residualFee}, currency:'${fee.currency}', label:'${escJs(card.name)} — ${tier==='diamond'?'бриллиантовый буст-приоритет':'буст'}'})">🎁 ${LANG==='ru'?'Баллами':'With points'}</button>
       </div>`;
     document.getElementById('boostStatusMsg').textContent='';
     document.getElementById('boostModal').classList.remove('hidden');
@@ -2689,14 +2693,14 @@ Contact: Corronyx@gmail.com
           ${o.items.map(i=>{
             const ppd=this.getPointsPrepaid(i.type, i.id, i.periodIndex);
             return `${esc(i.name)}${ppd>0?` <span style="color:var(--gold2);">(баллами внесено ${ppd.toLocaleString('ru-RU')} ₽)</span>`:''} `
-              + `<button class="btn btn-ghost btn-sm" style="padding:1px 8px; font-size:11px;" onclick="PP.openPointsPayModal({kind:'card', type:'${i.type}', id:'${esc(i.id)}', periodIndex:${i.periodIndex}, total:${i.amount}, currency:'${cur}', label:'${esc(i.name)}'})">🎁 баллами</button>`
+              + `<button class="btn btn-ghost btn-sm" style="padding:1px 8px; font-size:11px;" onclick="PP.openPointsPayModal({kind:'card', type:'${i.type}', id:'${esc(i.id)}', periodIndex:${i.periodIndex}, total:${i.amount}, currency:'${cur}', label:'${escJs(i.name)}'})">🎁 баллами</button>`
               ;
           }).join(', ')}
         </div>
         ${partial.amount>0?`<div style="font-size:12px; color:#e2a33d; margin-bottom:6px;">${LANG==='ru'?'Учтено':'Recorded'}: ${partial.amount.toLocaleString('ru-RU')} ${sign} · ${LANG==='ru'?'не хватает':'remaining'}: <b>${remaining.toLocaleString('ru-RU')} ${sign}</b></div>`:''}
         ${methodsHtml}
         <div class="payment-actions" style="margin-top:10px;">
-          ${cur==='USD' && req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${remaining}, 'Corronyx ${esc(this.account.name||this.account.email)}')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
+          ${cur==='USD' && req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${remaining}, 'Corronyx ${escJs(this.account.name||this.account.email)}')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
           ${cur==='USD' && req.usdt?`<button class="payment-btn" onclick="PP.checkUsdtPayment('${cur}')">🔎 ${LANG==='ru'?'Проверить оплату USDT':'Verify USDT payment'}</button>`:''}
           ${cur==='RUB'?`<label class="payment-btn ghost" style="cursor:pointer;">
             📎 ${LANG==='ru'?'Прикрепить скриншот перевода':'Attach transfer screenshot'}
@@ -3205,6 +3209,16 @@ Contact: Corronyx@gmail.com
     // редактируемая карточка (editingId) из проверки исключается.
     const normUrl = u => (u||'').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/+$/,'');
     const rawUrl = document.getElementById('fUrl').value.trim();
+    // Адрес сайта: разрешены только http(s); без схемы добавляем https://. Раньше сохранялось что угодно — в том числе
+    // «javascript:…» — и такая ссылка на клиентском сайте выполнялась бы у гостя по клику на «Перейти на сайт».
+    let urlClean = rawUrl;
+    if(rawUrl){
+      if(/^https?:\/\//i.test(rawUrl)){ urlClean = rawUrl; }
+      else if(/^[a-z][a-z0-9+.\-]*:(?!\d)/i.test(rawUrl)){
+        errEl.textContent = LANG==='ru' ? 'Адрес сайта должен начинаться с http:// или https://' : 'Website address must start with http:// or https://';
+        errEl.classList.remove('hidden'); return;
+      } else { urlClean = 'https://' + rawUrl.replace(/^\/+/,''); }
+    }
     const cityLower = city.toLowerCase();
     const nameLower = name.toLowerCase();
     const urlNorm = normUrl(rawUrl);
@@ -3267,7 +3281,7 @@ Contact: Corronyx@gmail.com
         items[idx]={...original, country, city, name,
           phone:document.getElementById('fPhone').value.trim(),
           email:document.getElementById('fEmail').value.trim(),
-          url:document.getElementById('fUrl').value.trim(),
+          url:urlClean,
           desc:document.getElementById('fDesc').value.trim(),
           work24, workFrom, workTo, subgroups:chosenSubgroups,
           logo, monthlyFee, monthlyFeeCurrency, updatedAt:new Date().toISOString(),
@@ -3307,7 +3321,7 @@ Contact: Corronyx@gmail.com
         type, country, city, name,
         phone:document.getElementById('fPhone').value.trim(),
         email:document.getElementById('fEmail').value.trim(),
-        url:document.getElementById('fUrl').value.trim(),
+        url:urlClean,
         desc:document.getElementById('fDesc').value.trim(),
         work24, workFrom, workTo, subgroups:chosenSubgroups,
         logo, monthlyFee, monthlyFeeCurrency, status:'pending',
