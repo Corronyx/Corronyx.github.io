@@ -833,6 +833,21 @@ body{top:0 !important; position:relative !important;}
 @media (max-width:900px){
   .card a{overflow-wrap:anywhere;}
 }
+
+/* ===== Размер кнопок и полей под палец на телефоне (20.09.2026, визуальный агент) =====
+   По просьбе владельца: на телефонах (≤640px) кнопки, списки, поля ввода и вкладки — не ниже 40px по высоте (замер показал
+   ~160 элементов высотой 24–37px: «К текущему», «Синхронизация», «Проверить звук», языковой выбор, вкладки, поля ввода, «✕»
+   и др.). Внешний вид (цвета, шрифты, скругления) прежний — растёт только высота/область нажатия. Ссылки внутри текста и
+   подписи полей не трогаем (это не отдельные цели нажатия). Только CSS; на экранах шире 640px без изменений. */
+@media (max-width:640px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
 </style>
 </head>
 <body>
