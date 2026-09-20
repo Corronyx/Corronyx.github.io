@@ -695,6 +695,114 @@ body{top:0 !important; position:relative !important;}
   .mobile-bottom-nav .mbn-item .mbn-avatar{width:20px; height:20px; border-radius:50%; object-fit:cover;}
   body{padding-bottom:60px;} /* чтобы меню не перекрывало нижний контент страницы */
 }
+
+/* ===== Адаптивная шапка (19.09.2026, визуальный агент) =====
+   Проблема: .header-top / .header-right / #portalLinksBlock были flex-строками без переноса,
+   суммарно ~660px шириной — на экранах уже ~850px шапка раздувала страницу вширь
+   (горизонтальный скролл, логотип уезжал за левый край, нижнее меню и cookie-баннер
+   растягивались шире экрана, кнопка «Профиль» оказывалась за экраном).
+   Только CSS: HTML/id/onclick не тронуты. На десктопе (>900px) правил нет — вид прежний. */
+@media (max-width:900px){
+  /* display:contents — «язык» и «Войти» встают в одну строку с логотипом,
+     ссылки для отелей/партнёров идут отдельной строкой под ними */
+  .header-top{flex-wrap:wrap; justify-content:space-between; gap:8px 12px; padding:10px 16px 6px;}
+  .header-right{display:contents;}
+  .lang-switch{order:1; margin-left:auto;}
+  #navLoginBtn{order:2; white-space:nowrap;}
+  #portalLinksBlock{order:3; flex:0 0 100%; flex-wrap:wrap !important; justify-content:center;}
+}
+@media (max-width:640px){
+  .header-top{padding:10px 14px 6px;}
+  .brand{font-size:20px;}
+  /* на телефоне ссылки — одна строка-лента с горизонтальной прокруткой внутри неё (страница не ездит вбок) */
+  #portalLinksBlock{flex-wrap:nowrap !important; justify-content:flex-start;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px;}
+  #portalLinksBlock::-webkit-scrollbar{display:none;}
+  #portalLinksBlock .btn{flex:0 0 auto; white-space:nowrap;}
+}
+
+/* ===== Адаптив главной: страница отеля и окно консьержа на телефоне (19.09.2026, визуальный агент) =====
+   1) Страница отеля/форма брони: колонка грида «1fr» (= minmax(auto,1fr)) раздувалась до min-content самого широкого
+      элемента (346px) и вытягивала страницу шире экрана 360–394px (обрезались звёзды, название, адрес, плашка оплаты).
+      minmax(0,1fr) позволяет колонке сжиматься по ширине экрана.
+   2) Окно консьержа: правило для ≤700px (width:calc(100vw - 32px); bottom:162px) стояло В ФАЙЛЕ РАНЬШЕ базового
+      .concierge-panel и поэтому не применялось — панель 360px при right:24px на экране 360px уходила за левый край
+      на 24px и в открытом виде перекрывала свою кнопку. Повторяем правило после базового. Только CSS. */
+@media (max-width:900px){
+  .hotel-detail-body, .form-grid{grid-template-columns:minmax(0,1fr);}
+  /* два поля даты (Заезд/Выезд) в flex-строке не сжимались меньше своего min-content и на 360px вылезали на 11px */
+  .date-row > div{min-width:0;}
+  .date-row input{min-width:0; box-sizing:border-box;}
+}
+@media (max-width:700px){
+  .concierge-panel{bottom:162px; width:calc(100vw - 32px); right:16px;}
+}
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  .concierge-panel{max-height:calc(100vh - 190px);}
+}
+
+/* ===== Цвета статусов на светлой теме (19.09.2026, визуальный агент) =====
+   Статусные цвета (зелёный/янтарный/красный/серый), взятые из тёмной темы, на светлом фоне имели контраст 1.1–2.2:1
+   («На паузе», «Ожидает», «Подтверждена», «Оплачено», «Отменена», воскресенья в шахматке, «Долгов по комиссии нет» и др.)
+   — текст практически не читался. Введены «чернильные» тона того же оттенка, но глубже — изумруд, бронза-янтарь, бордо,
+   графит: контраст не ниже 4.5:1, в духе фирменного золота. Заливки, рамки и фирменное золото не менялись. Только CSS. */
+:root{--ok-ink:#0F6E51; --warn-ink:#8F5B00; --err-ink:#A4262C; --muted-ink:#5C6370;}
+.pay-badge{color:var(--ok-ink);}
+.unit-taken-label{color:var(--warn-ink);}
+[style*=" color: var(--ok)"],
+[style*=" color:var(--ok)"],
+[style*="; color: var(--ok)"],
+[style*="; color:var(--ok)"],
+[style*=";color: var(--ok)"],
+[style*=";color:var(--ok)"],
+[style^="color: var(--ok)"],
+[style^="color:var(--ok)"]{color:var(--ok-ink) !important;}
+[style*=" color: #f87171"],
+[style*=" color: rgb(248, 113, 113)"],
+[style*=" color: var(--err)"],
+[style*=" color:#f87171"],
+[style*=" color:rgb(248, 113, 113)"],
+[style*=" color:var(--err)"],
+[style*="; color: #f87171"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*="; color: var(--err)"],
+[style*="; color:#f87171"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*="; color:var(--err)"],
+[style*=";color: #f87171"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*=";color: var(--err)"],
+[style*=";color:#f87171"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*=";color:var(--err)"],
+[style^="color: #f87171"],
+[style^="color: rgb(248, 113, 113)"],
+[style^="color: var(--err)"],
+[style^="color:#f87171"],
+[style^="color:rgb(248, 113, 113)"],
+[style^="color:var(--err)"]{color:var(--err-ink) !important;}
+[style*=" color: var(--warn)"],
+[style*=" color:var(--warn)"],
+[style*="; color: var(--warn)"],
+[style*="; color:var(--warn)"],
+[style*=";color: var(--warn)"],
+[style*=";color:var(--warn)"],
+[style^="color: var(--warn)"],
+[style^="color:var(--warn)"]{color:var(--warn-ink) !important;}
+
+/* ===== Баннер cookie (19.09.2026, визуальный агент) =====
+   Баннер оформлен тёмной полосой (--panel не задан в светлой теме → запасной #1a1a1a), но цвета текста остались «светлыми»:
+   текст абзаца #5a5d66 на #1a1a1a — 2.9:1, а кнопка «Только необходимые» — текст #1a1c20 на #1a1a1a, т.е. НЕВИДИМА
+   (на экране была пустая рамка рядом с «Принять все»). Оставляем тёмную «чёрно-золотую» полосу и подбираем цвета:
+   светлый текст, золотая контурная кнопка, золотая основная кнопка. Контраст ≥ 7:1. Только CSS. */
+#cookieBanner{background:#16181d !important; border-top:1px solid rgba(201,164,94,.45) !important;}
+#cookieBanner p{color:#C9CDD6 !important;}
+#cookieBanner a{color:#D9B978 !important;}
+#cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
+#cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
 </style>
 </head>
 <body>

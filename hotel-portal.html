@@ -623,6 +623,517 @@ tr:last-child td{border-bottom:none;}
   body{padding-bottom:58px;}
   .mobile-only-link{display:block !important;}
 }
+
+/* ===== Адаптив: обрезанные кнопки и таблицы на телефоне (19.09.2026, визуальный агент) =====
+   Найдено реальным рендером в Chromium (360/390px), проверкой «контент обрезан родителем с overflow:hidden»:
+   1) .table-wrap имел overflow:hidden без прокрутки — колонки «Сумма», «Комиссия 12%», «Переведено» физически
+      не были видны и недоступны на телефоне → теперь горизонтальная прокрутка внутри таблицы;
+   2) #periodNav и #dashPeriodNav («← Предыдущий / период / Следующий → / К текущему», в «Выплатах» и на дашборде) — flex без переноса, кнопка «К текущему» обрезалась;
+   3) .chess-right-group (выбор дней, «+ Бронь», «🔗 Синхронизация») — flex без переноса, «Синхронизация» обрезалась.
+   Только CSS: разметка, id, onclick и JS не тронуты. Десктоп (>900px) не затронут. */
+@media (max-width:900px){
+  .table-wrap{overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch;}
+}
+@media (max-width:700px){
+  #periodNav,#dashPeriodNav{flex-wrap:wrap !important; gap:8px !important;}
+  .chess-nav-group,.chess-right-group{flex-wrap:wrap; gap:6px;}
+}
+
+/* ===== Кабинет отеля на телефоне/планшете: верхняя полоса (19.09.2026, визуальный агент) =====
+   Проблемы (подтверждены рендером в Chromium, 390 и 768px):
+   1) Блок .sidebar-foot (статус отеля «Активен/На паузе», выбор языка, кнопка «Выйти») скрывался целиком на ≤900px —
+      на телефоне и планшете НЕТ ни выхода из кабинета, ни выбора языка (в партнёрском, афише и админке они есть).
+   2) На ≤760px верхняя лента разделов дублировала нижнее меню (те же 5 разделов + «Синхронизация», которая
+      на телефоне и так доступна из «Профиля»).
+   Решение (только CSS, разметка/id/onclick/JS не тронуты): на ≤900px в верхней полосе — email, статус, язык, «Выйти»;
+   на 761–900px под ними остаётся лента разделов (нижнего меню там нет), на ≤760px лента скрыта (есть нижнее меню).
+   Десктоп (>900px) не затронут. */
+@media (max-width:900px){
+  .sidebar{flex-wrap:wrap; align-items:center; gap:6px 6px; overflow:visible; padding:8px 12px;}
+  .sidebar .hp-email-chip{order:1;}
+  .sidebar .sidebar-foot{display:flex !important; order:2; margin:0 0 0 auto; padding:0; border-top:none; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px;}
+  .sidebar .sidebar-foot .status-badge{margin:0; padding:5px 9px; font-size:11px;}
+  .sidebar .sidebar-foot .lang-switch{width:auto;}
+  .sidebar .sidebar-foot .lang-btn{width:auto; min-height:32px; padding:5px 11px; font-size:12px;}
+  .sidebar .sidebar-foot .lang-dropdown{bottom:auto; top:calc(100% + 6px); left:auto; right:0;}
+  .sidebar .sidebar-foot > div:not(.status-badge):not(.lang-switch):not(.header-gtranslate-hidden){margin-top:0 !important;}
+  .sidebar .sidebar-foot > div:last-child{display:none;} /* метка build — техническая, как и раньше на телефоне не показывается */
+  .sidebar::after{content:''; flex:0 0 100%; height:0; order:2;}
+  .sidebar .nav-item{order:3; flex:0 0 auto; padding:8px 9px; gap:6px; font-size:13px;}
+}
+@media (max-width:760px){
+  .sidebar .nav-item{display:none;}
+  .sidebar::after{display:none;}
+}
+
+/* ===== Читаемость красных предупреждений на светлом фоне (19.09.2026, визуальный агент) =====
+   Плашка «Отель не опубликован…» и её кнопка «Загрузить фото →» были окрашены #fca5a5 — светло-красный, рассчитанный
+   на ТЁМНУЮ тему; на светло-розовой плашке контраст 1.1–1.6:1 (текст почти не виден, а это главный призыв к действию
+   нового отеля). Тот же цвет — у отрицательных результатов проверки фото и суммы «к оплате». Оттенок сохранён (красный),
+   но тёмнее: контраст ≥ 5:1. Только CSS. */
+#noPhoBanner{color:#991b1b !important;}
+#noPhoBanner button{color:#7f1d1d !important; background:rgba(239,68,68,.16) !important; border-color:rgba(185,28,28,.55) !important;}
+.photo-check-item.ng{color:#b91c1c;}
+.platform-req-owed b{color:#b91c1c;}
+
+/* ===== Адаптив: окно ИИ-агента на узком телефоне (19.09.2026, визуальный агент) — только CSS ===== */
+/* Окно ИИ-агента: ширина 340px + right:24px на экране 360px уводила левый край за экран на 4px (обрезалось) →
+   на узких экранах ограничиваем по ширине экрана. Селектор с id — чтобы перебить правило из style-блока в конце файла. */
+@media (max-width:400px){
+  #aiWidgetPanel.ai-widget-panel{width:calc(100vw - 32px); right:16px;}
+}
+
+/* Синхронизация: два <select> (класс/номер) в строке flex — из-за длинных названий не сжимались и обрезались справа на 360px */
+@media (max-width:700px){
+  .main select{min-width:0; max-width:100%;}
+}
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  #aiWidgetPanel.ai-widget-panel{max-height:calc(100vh - 190px);}
+}
+
+/* ===== Цвета статусов на светлой теме (19.09.2026, визуальный агент) =====
+   Статусные цвета (зелёный/янтарный/красный/серый), взятые из тёмной темы, на светлом фоне имели контраст 1.1–2.2:1
+   («На паузе», «Ожидает», «Подтверждена», «Оплачено», «Отменена», воскресенья в шахматке, «Долгов по комиссии нет» и др.)
+   — текст практически не читался. Введены «чернильные» тона того же оттенка, но глубже — изумруд, бронза-янтарь, бордо,
+   графит: контраст не ниже 4.5:1, в духе фирменного золота. Заливки, рамки и фирменное золото не менялись. Только CSS. */
+:root{--ok-ink:#0F6E51; --warn-ink:#8F5B00; --err-ink:#A4262C; --muted-ink:#5C6370;}
+.err-msg{color:var(--err-ink);}
+.login-err{color:var(--err-ink);}
+.status-active{color:var(--ok-ink);}
+.status-pause{color:var(--warn-ink);}
+.status-off{color:var(--err-ink);}
+.banner-warn{color:var(--warn-ink);}
+.banner-err{color:var(--err-ink);}
+.badge-pending{color:var(--warn-ink);}
+.badge-confirmed{color:var(--ok-ink);}
+.badge-rejected{color:var(--err-ink);}
+.badge-cancelled{color:var(--muted-ink);}
+.unit-row .unit-del{color:var(--err-ink);}
+.popup-cancel-booking{color:var(--err-ink);}
+.popup-assign-btn{color:var(--ok-ink);}
+.popup-cancel-btn{color:var(--err-ink);}
+.pay-ok-badge{color:var(--ok-ink);}
+.pay-warn-badge{color:var(--warn-ink);}
+.stat-card.stat-warn .num{color:var(--warn-ink);}
+.stat-card.stat-ok .num{color:var(--ok-ink);}
+.platform-req-owed b{color:var(--err-ink);}
+.platform-req-settle-btn{color:var(--ok-ink);}
+.sync-status.saved{color:var(--ok-ink);}
+.sync-status.error{color:var(--err-ink);}
+.photo-result.pass .photo-result-title{color:var(--ok-ink);}
+.photo-result.fail .photo-result-title{color:var(--err-ink);}
+.photo-check-item.ok{color:var(--ok-ink);}
+.photo-check-item.ng{color:var(--err-ink);}
+.photo-btn-accept{color:var(--ok-ink);}
+.photo-notification.pass .pn-title{color:var(--ok-ink);}
+.photo-notification.fail .pn-title{color:var(--err-ink);}
+.avail-chip.avail-low b{color:var(--err-ink);}
+.gc-cancel-btn{color:var(--err-ink);}
+[style*=" color: #22c55e"],
+[style*=" color: #4ade80"],
+[style*=" color: #86efac"],
+[style*=" color: rgb(134, 239, 172)"],
+[style*=" color: rgb(34, 197, 94)"],
+[style*=" color: rgb(74, 222, 128)"],
+[style*=" color:#22c55e"],
+[style*=" color:#4ade80"],
+[style*=" color:#86efac"],
+[style*=" color:rgb(134, 239, 172)"],
+[style*=" color:rgb(34, 197, 94)"],
+[style*=" color:rgb(74, 222, 128)"],
+[style*="; color: #22c55e"],
+[style*="; color: #4ade80"],
+[style*="; color: #86efac"],
+[style*="; color: rgb(134, 239, 172)"],
+[style*="; color: rgb(34, 197, 94)"],
+[style*="; color: rgb(74, 222, 128)"],
+[style*="; color:#22c55e"],
+[style*="; color:#4ade80"],
+[style*="; color:#86efac"],
+[style*="; color:rgb(134, 239, 172)"],
+[style*="; color:rgb(34, 197, 94)"],
+[style*="; color:rgb(74, 222, 128)"],
+[style*=";color: #22c55e"],
+[style*=";color: #4ade80"],
+[style*=";color: #86efac"],
+[style*=";color: rgb(134, 239, 172)"],
+[style*=";color: rgb(34, 197, 94)"],
+[style*=";color: rgb(74, 222, 128)"],
+[style*=";color:#22c55e"],
+[style*=";color:#4ade80"],
+[style*=";color:#86efac"],
+[style*=";color:rgb(134, 239, 172)"],
+[style*=";color:rgb(34, 197, 94)"],
+[style*=";color:rgb(74, 222, 128)"],
+[style^="color: #22c55e"],
+[style^="color: #4ade80"],
+[style^="color: #86efac"],
+[style^="color: rgb(134, 239, 172)"],
+[style^="color: rgb(34, 197, 94)"],
+[style^="color: rgb(74, 222, 128)"],
+[style^="color:#22c55e"],
+[style^="color:#4ade80"],
+[style^="color:#86efac"],
+[style^="color:rgb(134, 239, 172)"],
+[style^="color:rgb(34, 197, 94)"],
+[style^="color:rgb(74, 222, 128)"]{color:var(--ok-ink) !important;}
+[style*=" color: #ef4444"],
+[style*=" color: #f87171"],
+[style*=" color: #fca5a5"],
+[style*=" color: rgb(239, 68, 68)"],
+[style*=" color: rgb(248, 113, 113)"],
+[style*=" color: rgb(252, 165, 165)"],
+[style*=" color: var(--err)"],
+[style*=" color:#ef4444"],
+[style*=" color:#f87171"],
+[style*=" color:#fca5a5"],
+[style*=" color:rgb(239, 68, 68)"],
+[style*=" color:rgb(248, 113, 113)"],
+[style*=" color:rgb(252, 165, 165)"],
+[style*=" color:var(--err)"],
+[style*="; color: #ef4444"],
+[style*="; color: #f87171"],
+[style*="; color: #fca5a5"],
+[style*="; color: rgb(239, 68, 68)"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*="; color: rgb(252, 165, 165)"],
+[style*="; color: var(--err)"],
+[style*="; color:#ef4444"],
+[style*="; color:#f87171"],
+[style*="; color:#fca5a5"],
+[style*="; color:rgb(239, 68, 68)"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*="; color:rgb(252, 165, 165)"],
+[style*="; color:var(--err)"],
+[style*=";color: #ef4444"],
+[style*=";color: #f87171"],
+[style*=";color: #fca5a5"],
+[style*=";color: rgb(239, 68, 68)"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*=";color: rgb(252, 165, 165)"],
+[style*=";color: var(--err)"],
+[style*=";color:#ef4444"],
+[style*=";color:#f87171"],
+[style*=";color:#fca5a5"],
+[style*=";color:rgb(239, 68, 68)"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*=";color:rgb(252, 165, 165)"],
+[style*=";color:var(--err)"],
+[style^="color: #ef4444"],
+[style^="color: #f87171"],
+[style^="color: #fca5a5"],
+[style^="color: rgb(239, 68, 68)"],
+[style^="color: rgb(248, 113, 113)"],
+[style^="color: rgb(252, 165, 165)"],
+[style^="color: var(--err)"],
+[style^="color:#ef4444"],
+[style^="color:#f87171"],
+[style^="color:#fca5a5"],
+[style^="color:rgb(239, 68, 68)"],
+[style^="color:rgb(248, 113, 113)"],
+[style^="color:rgb(252, 165, 165)"],
+[style^="color:var(--err)"]{color:var(--err-ink) !important;}
+[style*=" color: #f59e0b"],
+[style*=" color: rgb(245, 158, 11)"],
+[style*=" color:#f59e0b"],
+[style*=" color:rgb(245, 158, 11)"],
+[style*="; color: #f59e0b"],
+[style*="; color: rgb(245, 158, 11)"],
+[style*="; color:#f59e0b"],
+[style*="; color:rgb(245, 158, 11)"],
+[style*=";color: #f59e0b"],
+[style*=";color: rgb(245, 158, 11)"],
+[style*=";color:#f59e0b"],
+[style*=";color:rgb(245, 158, 11)"],
+[style^="color: #f59e0b"],
+[style^="color: rgb(245, 158, 11)"],
+[style^="color:#f59e0b"],
+[style^="color:rgb(245, 158, 11)"]{color:var(--warn-ink) !important;}
+[style*=" color: #9ca3af"],
+[style*=" color: rgb(156, 163, 175)"],
+[style*=" color:#9ca3af"],
+[style*=" color:rgb(156, 163, 175)"],
+[style*="; color: #9ca3af"],
+[style*="; color: rgb(156, 163, 175)"],
+[style*="; color:#9ca3af"],
+[style*="; color:rgb(156, 163, 175)"],
+[style*=";color: #9ca3af"],
+[style*=";color: rgb(156, 163, 175)"],
+[style*=";color:#9ca3af"],
+[style*=";color:rgb(156, 163, 175)"],
+[style^="color: #9ca3af"],
+[style^="color: rgb(156, 163, 175)"],
+[style^="color:#9ca3af"],
+[style^="color:rgb(156, 163, 175)"]{color:var(--muted-ink) !important;}
+.pms-day-hdr.pms-weekend, .chess-tbl th.col-weekend, .pms-day-hdr.pms-weekend .pms-dn{color:#A4500F;}
+
+/* ===== Цвета статусов: дополнение (19.09.2026, визуальный агент) =====
+   Ещё синий «информационный» тон (плашки «У вас есть размещения на модерации», значки тарифа) — #9bb8f0 на светло-голубом
+   давал 1.7:1 → глубокий синий. И уведомления/тосты, у которых цвет задаётся из JS (el.style.cssText / style.color). Только CSS. */
+:root{--info-ink:#2A4F94;}
+.banner-info{color:var(--info-ink);}
+[style^="color:var(--ok)"],
+[style*=";color:var(--ok)"],
+[style*="; color:var(--ok)"],
+[style*=" color:var(--ok)"],
+[style^="color: var(--ok)"],
+[style*=";color: var(--ok)"],
+[style*="; color: var(--ok)"],
+[style*=" color: var(--ok)"],
+[style^="color:#10b981"],
+[style*=";color:#10b981"],
+[style*="; color:#10b981"],
+[style*=" color:#10b981"],
+[style^="color: #10b981"],
+[style*=";color: #10b981"],
+[style*="; color: #10b981"],
+[style*=" color: #10b981"],
+[style^="color:rgb(16, 185, 129)"],
+[style*=";color:rgb(16, 185, 129)"],
+[style*="; color:rgb(16, 185, 129)"],
+[style*=" color:rgb(16, 185, 129)"],
+[style^="color: rgb(16, 185, 129)"],
+[style*=";color: rgb(16, 185, 129)"],
+[style*="; color: rgb(16, 185, 129)"],
+[style*=" color: rgb(16, 185, 129)"],
+[style^="color:#22c55e"],
+[style*=";color:#22c55e"],
+[style*="; color:#22c55e"],
+[style*=" color:#22c55e"],
+[style^="color: #22c55e"],
+[style*=";color: #22c55e"],
+[style*="; color: #22c55e"],
+[style*=" color: #22c55e"],
+[style^="color:rgb(34, 197, 94)"],
+[style*=";color:rgb(34, 197, 94)"],
+[style*="; color:rgb(34, 197, 94)"],
+[style*=" color:rgb(34, 197, 94)"],
+[style^="color: rgb(34, 197, 94)"],
+[style*=";color: rgb(34, 197, 94)"],
+[style*="; color: rgb(34, 197, 94)"],
+[style*=" color: rgb(34, 197, 94)"],
+[style^="color:#4ade80"],
+[style*=";color:#4ade80"],
+[style*="; color:#4ade80"],
+[style*=" color:#4ade80"],
+[style^="color: #4ade80"],
+[style*=";color: #4ade80"],
+[style*="; color: #4ade80"],
+[style*=" color: #4ade80"],
+[style^="color:rgb(74, 222, 128)"],
+[style*=";color:rgb(74, 222, 128)"],
+[style*="; color:rgb(74, 222, 128)"],
+[style*=" color:rgb(74, 222, 128)"],
+[style^="color: rgb(74, 222, 128)"],
+[style*=";color: rgb(74, 222, 128)"],
+[style*="; color: rgb(74, 222, 128)"],
+[style*=" color: rgb(74, 222, 128)"],
+[style^="color:#86efac"],
+[style*=";color:#86efac"],
+[style*="; color:#86efac"],
+[style*=" color:#86efac"],
+[style^="color: #86efac"],
+[style*=";color: #86efac"],
+[style*="; color: #86efac"],
+[style*=" color: #86efac"],
+[style^="color:rgb(134, 239, 172)"],
+[style*=";color:rgb(134, 239, 172)"],
+[style*="; color:rgb(134, 239, 172)"],
+[style*=" color:rgb(134, 239, 172)"],
+[style^="color: rgb(134, 239, 172)"],
+[style*=";color: rgb(134, 239, 172)"],
+[style*="; color: rgb(134, 239, 172)"],
+[style*=" color: rgb(134, 239, 172)"],
+[style^="color:#34d399"],
+[style*=";color:#34d399"],
+[style*="; color:#34d399"],
+[style*=" color:#34d399"],
+[style^="color: #34d399"],
+[style*=";color: #34d399"],
+[style*="; color: #34d399"],
+[style*=" color: #34d399"],
+[style^="color:rgb(52, 211, 153)"],
+[style*=";color:rgb(52, 211, 153)"],
+[style*="; color:rgb(52, 211, 153)"],
+[style*=" color:rgb(52, 211, 153)"],
+[style^="color: rgb(52, 211, 153)"],
+[style*=";color: rgb(52, 211, 153)"],
+[style*="; color: rgb(52, 211, 153)"],
+[style*=" color: rgb(52, 211, 153)"]{color:var(--ok-ink) !important;}
+[style^="color:var(--warn)"],
+[style*=";color:var(--warn)"],
+[style*="; color:var(--warn)"],
+[style*=" color:var(--warn)"],
+[style^="color: var(--warn)"],
+[style*=";color: var(--warn)"],
+[style*="; color: var(--warn)"],
+[style*=" color: var(--warn)"],
+[style^="color:#f59e0b"],
+[style*=";color:#f59e0b"],
+[style*="; color:#f59e0b"],
+[style*=" color:#f59e0b"],
+[style^="color: #f59e0b"],
+[style*=";color: #f59e0b"],
+[style*="; color: #f59e0b"],
+[style*=" color: #f59e0b"],
+[style^="color:rgb(245, 158, 11)"],
+[style*=";color:rgb(245, 158, 11)"],
+[style*="; color:rgb(245, 158, 11)"],
+[style*=" color:rgb(245, 158, 11)"],
+[style^="color: rgb(245, 158, 11)"],
+[style*=";color: rgb(245, 158, 11)"],
+[style*="; color: rgb(245, 158, 11)"],
+[style*=" color: rgb(245, 158, 11)"],
+[style^="color:#fbbf24"],
+[style*=";color:#fbbf24"],
+[style*="; color:#fbbf24"],
+[style*=" color:#fbbf24"],
+[style^="color: #fbbf24"],
+[style*=";color: #fbbf24"],
+[style*="; color: #fbbf24"],
+[style*=" color: #fbbf24"],
+[style^="color:rgb(251, 191, 36)"],
+[style*=";color:rgb(251, 191, 36)"],
+[style*="; color:rgb(251, 191, 36)"],
+[style*=" color:rgb(251, 191, 36)"],
+[style^="color: rgb(251, 191, 36)"],
+[style*=";color: rgb(251, 191, 36)"],
+[style*="; color: rgb(251, 191, 36)"],
+[style*=" color: rgb(251, 191, 36)"],
+[style^="color:#fcd34d"],
+[style*=";color:#fcd34d"],
+[style*="; color:#fcd34d"],
+[style*=" color:#fcd34d"],
+[style^="color: #fcd34d"],
+[style*=";color: #fcd34d"],
+[style*="; color: #fcd34d"],
+[style*=" color: #fcd34d"],
+[style^="color:rgb(252, 211, 77)"],
+[style*=";color:rgb(252, 211, 77)"],
+[style*="; color:rgb(252, 211, 77)"],
+[style*=" color:rgb(252, 211, 77)"],
+[style^="color: rgb(252, 211, 77)"],
+[style*=";color: rgb(252, 211, 77)"],
+[style*="; color: rgb(252, 211, 77)"],
+[style*=" color: rgb(252, 211, 77)"],
+[style^="color:#f0a830"],
+[style*=";color:#f0a830"],
+[style*="; color:#f0a830"],
+[style*=" color:#f0a830"],
+[style^="color: #f0a830"],
+[style*=";color: #f0a830"],
+[style*="; color: #f0a830"],
+[style*=" color: #f0a830"],
+[style^="color:rgb(240, 168, 48)"],
+[style*=";color:rgb(240, 168, 48)"],
+[style*="; color:rgb(240, 168, 48)"],
+[style*=" color:rgb(240, 168, 48)"],
+[style^="color: rgb(240, 168, 48)"],
+[style*=";color: rgb(240, 168, 48)"],
+[style*="; color: rgb(240, 168, 48)"],
+[style*=" color: rgb(240, 168, 48)"]{color:var(--warn-ink) !important;}
+[style^="color:var(--err)"],
+[style*=";color:var(--err)"],
+[style*="; color:var(--err)"],
+[style*=" color:var(--err)"],
+[style^="color: var(--err)"],
+[style*=";color: var(--err)"],
+[style*="; color: var(--err)"],
+[style*=" color: var(--err)"],
+[style^="color:#ef4444"],
+[style*=";color:#ef4444"],
+[style*="; color:#ef4444"],
+[style*=" color:#ef4444"],
+[style^="color: #ef4444"],
+[style*=";color: #ef4444"],
+[style*="; color: #ef4444"],
+[style*=" color: #ef4444"],
+[style^="color:rgb(239, 68, 68)"],
+[style*=";color:rgb(239, 68, 68)"],
+[style*="; color:rgb(239, 68, 68)"],
+[style*=" color:rgb(239, 68, 68)"],
+[style^="color: rgb(239, 68, 68)"],
+[style*=";color: rgb(239, 68, 68)"],
+[style*="; color: rgb(239, 68, 68)"],
+[style*=" color: rgb(239, 68, 68)"],
+[style^="color:#f87171"],
+[style*=";color:#f87171"],
+[style*="; color:#f87171"],
+[style*=" color:#f87171"],
+[style^="color: #f87171"],
+[style*=";color: #f87171"],
+[style*="; color: #f87171"],
+[style*=" color: #f87171"],
+[style^="color:rgb(248, 113, 113)"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*=" color:rgb(248, 113, 113)"],
+[style^="color: rgb(248, 113, 113)"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*=" color: rgb(248, 113, 113)"],
+[style^="color:#fca5a5"],
+[style*=";color:#fca5a5"],
+[style*="; color:#fca5a5"],
+[style*=" color:#fca5a5"],
+[style^="color: #fca5a5"],
+[style*=";color: #fca5a5"],
+[style*="; color: #fca5a5"],
+[style*=" color: #fca5a5"],
+[style^="color:rgb(252, 165, 165)"],
+[style*=";color:rgb(252, 165, 165)"],
+[style*="; color:rgb(252, 165, 165)"],
+[style*=" color:rgb(252, 165, 165)"],
+[style^="color: rgb(252, 165, 165)"],
+[style*=";color: rgb(252, 165, 165)"],
+[style*="; color: rgb(252, 165, 165)"],
+[style*=" color: rgb(252, 165, 165)"],
+[style^="color:#dc2626"],
+[style*=";color:#dc2626"],
+[style*="; color:#dc2626"],
+[style*=" color:#dc2626"],
+[style^="color: #dc2626"],
+[style*=";color: #dc2626"],
+[style*="; color: #dc2626"],
+[style*=" color: #dc2626"],
+[style^="color:rgb(220, 38, 38)"],
+[style*=";color:rgb(220, 38, 38)"],
+[style*="; color:rgb(220, 38, 38)"],
+[style*=" color:rgb(220, 38, 38)"],
+[style^="color: rgb(220, 38, 38)"],
+[style*=";color: rgb(220, 38, 38)"],
+[style*="; color: rgb(220, 38, 38)"],
+[style*=" color: rgb(220, 38, 38)"]{color:var(--err-ink) !important;}
+[style^="color:#9bb8f0"],
+[style*=";color:#9bb8f0"],
+[style*="; color:#9bb8f0"],
+[style*=" color:#9bb8f0"],
+[style^="color: #9bb8f0"],
+[style*=";color: #9bb8f0"],
+[style*="; color: #9bb8f0"],
+[style*=" color: #9bb8f0"],
+[style^="color:rgb(155, 184, 240)"],
+[style*=";color:rgb(155, 184, 240)"],
+[style*="; color:rgb(155, 184, 240)"],
+[style*=" color:rgb(155, 184, 240)"],
+[style^="color: rgb(155, 184, 240)"],
+[style*=";color: rgb(155, 184, 240)"],
+[style*="; color: rgb(155, 184, 240)"],
+[style*=" color: rgb(155, 184, 240)"]{color:var(--info-ink) !important;}
+
+/* ===== Баннер cookie (19.09.2026, визуальный агент) =====
+   Баннер оформлен тёмной полосой (--panel не задан в светлой теме → запасной #1a1a1a), но цвета текста остались «светлыми»:
+   текст абзаца #5a5d66 на #1a1a1a — 2.9:1, а кнопка «Только необходимые» — текст #1a1c20 на #1a1a1a, т.е. НЕВИДИМА
+   (на экране была пустая рамка рядом с «Принять все»). Оставляем тёмную «чёрно-золотую» полосу и подбираем цвета:
+   светлый текст, золотая контурная кнопка, золотая основная кнопка. Контраст ≥ 7:1. Только CSS. */
+#cookieBanner{background:#16181d !important; border-top:1px solid rgba(201,164,94,.45) !important;}
+#cookieBanner p{color:#C9CDD6 !important;}
+#cookieBanner a{color:#D9B978 !important;}
+#cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
+#cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
 </style>
 <!-- Tesseract.js — OCR для распознавания суммы на скриншоте банковского перевода/СБП.
      Грузится с CDN лениво (см. ensureTesseractLoaded()), поэтому здесь просто
@@ -1756,7 +2267,7 @@ const T = {
  f_usdt:{ru:'USDT кошелёк (TON)',en:'USDT wallet (TON)'}, f_sbp:{ru:'СБП (телефон/банк)',en:'SBP (phone/bank)'},
  profile_saved:{ru:'Профиль сохранён',en:'Profile saved'},
  login_err:{ru:'Неверный пароль',en:'Invalid password'},
- ai_name:{ru:'Помощник отеля',en:'Hotel Assistant'},
+ ai_name:{ru:'Corronyx Agent',en:'Corronyx Agent'},
  ai_ph:{ru:'Спросите о бронях, номерах, выплатах...',en:'Ask about bookings, rooms, payouts...'},
  ai_greet:{ru:'Здравствуйте! Я помогу с информацией по вашему отелю: бронирования, доходы, выплаты, номера.',en:'Hello! I can help with information about your hotel: bookings, revenue, payouts, rooms.'},
  ai_fallback:{ru:'Спросите, например: «сколько броней ожидают подтверждения» или «когда следующая выплата».',en:'Try asking, for example: "how many bookings are pending" or "when is the next payout".'}
@@ -6658,7 +7169,7 @@ function toggleAiWidget(){
   const p=document.getElementById('aiWidgetPanel');
   p.classList.toggle('open');
   if(p.classList.contains('open') && !p.dataset.init){
-    addAiWidgetMsg('Здравствуйте! Я помощник Corronyx. Спросите про кабинет отеля, брони, чёрный список, выплаты.', 'bot');
+    addAiWidgetMsg('Здравствуйте! Я Corronyx Agent. Спросите про кабинет отеля, брони, чёрный список, выплаты.', 'bot');
     p.dataset.init='1';
   }
 }

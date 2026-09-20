@@ -385,6 +385,344 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
   }
   .header-add-btn-desktop{display:none;}
 }
+
+/* ===== Адаптив: плавающая «Назад» и окно ИИ-агента на телефоне (19.09.2026, визуальный агент) =====
+   Только CSS: разметка, id, onclick и JS не тронуты. Действует только на узких экранах — десктоп не затронут. */
+/* Плавающая «← Назад» стояла на фиксированных top:170px — на телефоне шапка выше (логотип, «Выйти», вкладки),
+   и пилюля ложилась ПОВЕРХ заголовка формы («Добавить размещение»). На телефоне ставим её в поток над заголовком
+   и «прилипаем» к верху при прокрутке (остаётся на виду, как и задумано, но не перекрывает заголовок в покое). */
+@media (max-width:640px){
+  .pp-floating-back{position:sticky; top:8px; left:auto; display:flex; width:fit-content; margin:0 0 14px;}
+}
+/* Окно ИИ-агента: ширина 340px + right:24px на экране 360px уводила левый край за экран на 4px (обрезалось) →
+   на узких экранах ограничиваем по ширине экрана. Селектор с id — чтобы перебить правило из style-блока в конце файла. */
+@media (max-width:400px){
+  #aiWidgetPanel.ai-widget-panel{width:calc(100vw - 32px); right:16px;}
+}
+
+/* ===== Заголовки экранов кабинета на светлом фоне (19.09.2026, визуальный агент) =====
+   .gradient-heading = градиент «белый → кремовый → золото». Он верен на ТЁМНОЙ витрине экрана входа (h1 слева),
+   но на светлых экранах кабинета (#app: «Мои размещения/афиши», «Добавить…», «Уведомления») левая половина заголовка
+   белая на кремовом фоне #FDFBF7 и практически невидима. В #app даём градиент «графит (navy) → золото» —
+   читается по всей длине; на экране входа (тёмный фон) ничего не меняется. Только CSS. */
+#app .gradient-heading{background-image:linear-gradient(90deg, var(--navy) 0%, var(--gold) 100%);}
+
+/* ===== ИИ-агент на телефоне не должен перекрывать кнопку «+» (19.09.2026, визуальный агент) =====
+   Кнопка «+» (добавить размещение/афишу — главное действие на телефоне, .mobile-fab) на 390px на 50×50px закрывалась
+   кнопкой ИИ-агента. Реализуем задуманное разработчиком правило «на маленьких экранах поднять кнопку и окно ИИ выше»
+   (оно было только на главной и в админке). Селекторы с id — чтобы перебить базовые правила из style-блока в конце файла. */
+@media (max-width:700px){
+  #aiWidgetBtn.ai-widget-btn{bottom:90px;}
+  #aiWidgetPanel.ai-widget-panel{bottom:162px;}
+}
+
+/* Режим работы в форме размещения: «время — до — время — [ ] Круглосуточно» — одна flex-строка без переноса
+   (130+130px полей + подпись nowrap) выходила за экран 360px на 23px и растягивала страницу. На узких экранах — с переносом. */
+@media (max-width:480px){
+  div:has(> #fWorkFrom){flex-wrap:wrap;}
+}
+
+/* Шапка кабинета на телефоне: логотип (flex:1 без базовой ширины) сжимался до узкой колонки рядом с именем и «Выйти» —
+   слово «Corronyx» рвалось посередине («Corro / nyx», особенно в афише, где подпись длиннее). На телефоне логотип с подписью —
+   отдельной строкой во всю ширину, имя пользователя, язык и «Выйти» — строкой ниже. Только CSS. */
+@media (max-width:640px){
+  .pp-header .logo{flex:1 1 100%;}
+}
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  #aiWidgetPanel.ai-widget-panel{max-height:calc(100vh - 190px);}
+}
+
+/* ===== Цвета статусов на светлой теме (19.09.2026, визуальный агент) =====
+   Статусные цвета (зелёный/янтарный/красный/серый), взятые из тёмной темы, на светлом фоне имели контраст 1.1–2.2:1
+   («На паузе», «Ожидает», «Подтверждена», «Оплачено», «Отменена», воскресенья в шахматке, «Долгов по комиссии нет» и др.)
+   — текст практически не читался. Введены «чернильные» тона того же оттенка, но глубже — изумруд, бронза-янтарь, бордо,
+   графит: контраст не ниже 4.5:1, в духе фирменного золота. Заливки, рамки и фирменное золото не менялись. Только CSS. */
+:root{--ok-ink:#0F6E51; --warn-ink:#8F5B00; --err-ink:#A4262C; --muted-ink:#5C6370;}
+.btn-ok{color:var(--ok-ink);}
+.btn-err{color:var(--err-ink);}
+.btn-warn{color:var(--warn-ink);}
+.status-pending{color:var(--warn-ink);}
+.status-active{color:var(--ok-ink);}
+.status-stopped{color:var(--err-ink);}
+.err-msg{color:var(--err-ink);}
+.ok-msg{color:var(--ok-ink);}
+.banner-warn{color:var(--warn-ink);}
+[style*=" color: var(--err)"],
+[style*=" color:var(--err)"],
+[style*="; color: var(--err)"],
+[style*="; color:var(--err)"],
+[style*=";color: var(--err)"],
+[style*=";color:var(--err)"],
+[style^="color: var(--err)"],
+[style^="color:var(--err)"]{color:var(--err-ink) !important;}
+
+/* ===== Цвета статусов: дополнение (19.09.2026, визуальный агент) =====
+   Ещё синий «информационный» тон (плашки «У вас есть размещения на модерации», значки тарифа) — #9bb8f0 на светло-голубом
+   давал 1.7:1 → глубокий синий. И уведомления/тосты, у которых цвет задаётся из JS (el.style.cssText / style.color). Только CSS. */
+:root{--info-ink:#2A4F94;}
+.banner-info{color:var(--info-ink);}
+[style^="color:var(--ok)"],
+[style*=";color:var(--ok)"],
+[style*="; color:var(--ok)"],
+[style*=" color:var(--ok)"],
+[style^="color: var(--ok)"],
+[style*=";color: var(--ok)"],
+[style*="; color: var(--ok)"],
+[style*=" color: var(--ok)"],
+[style^="color:#10b981"],
+[style*=";color:#10b981"],
+[style*="; color:#10b981"],
+[style*=" color:#10b981"],
+[style^="color: #10b981"],
+[style*=";color: #10b981"],
+[style*="; color: #10b981"],
+[style*=" color: #10b981"],
+[style^="color:rgb(16, 185, 129)"],
+[style*=";color:rgb(16, 185, 129)"],
+[style*="; color:rgb(16, 185, 129)"],
+[style*=" color:rgb(16, 185, 129)"],
+[style^="color: rgb(16, 185, 129)"],
+[style*=";color: rgb(16, 185, 129)"],
+[style*="; color: rgb(16, 185, 129)"],
+[style*=" color: rgb(16, 185, 129)"],
+[style^="color:#22c55e"],
+[style*=";color:#22c55e"],
+[style*="; color:#22c55e"],
+[style*=" color:#22c55e"],
+[style^="color: #22c55e"],
+[style*=";color: #22c55e"],
+[style*="; color: #22c55e"],
+[style*=" color: #22c55e"],
+[style^="color:rgb(34, 197, 94)"],
+[style*=";color:rgb(34, 197, 94)"],
+[style*="; color:rgb(34, 197, 94)"],
+[style*=" color:rgb(34, 197, 94)"],
+[style^="color: rgb(34, 197, 94)"],
+[style*=";color: rgb(34, 197, 94)"],
+[style*="; color: rgb(34, 197, 94)"],
+[style*=" color: rgb(34, 197, 94)"],
+[style^="color:#4ade80"],
+[style*=";color:#4ade80"],
+[style*="; color:#4ade80"],
+[style*=" color:#4ade80"],
+[style^="color: #4ade80"],
+[style*=";color: #4ade80"],
+[style*="; color: #4ade80"],
+[style*=" color: #4ade80"],
+[style^="color:rgb(74, 222, 128)"],
+[style*=";color:rgb(74, 222, 128)"],
+[style*="; color:rgb(74, 222, 128)"],
+[style*=" color:rgb(74, 222, 128)"],
+[style^="color: rgb(74, 222, 128)"],
+[style*=";color: rgb(74, 222, 128)"],
+[style*="; color: rgb(74, 222, 128)"],
+[style*=" color: rgb(74, 222, 128)"],
+[style^="color:#86efac"],
+[style*=";color:#86efac"],
+[style*="; color:#86efac"],
+[style*=" color:#86efac"],
+[style^="color: #86efac"],
+[style*=";color: #86efac"],
+[style*="; color: #86efac"],
+[style*=" color: #86efac"],
+[style^="color:rgb(134, 239, 172)"],
+[style*=";color:rgb(134, 239, 172)"],
+[style*="; color:rgb(134, 239, 172)"],
+[style*=" color:rgb(134, 239, 172)"],
+[style^="color: rgb(134, 239, 172)"],
+[style*=";color: rgb(134, 239, 172)"],
+[style*="; color: rgb(134, 239, 172)"],
+[style*=" color: rgb(134, 239, 172)"],
+[style^="color:#34d399"],
+[style*=";color:#34d399"],
+[style*="; color:#34d399"],
+[style*=" color:#34d399"],
+[style^="color: #34d399"],
+[style*=";color: #34d399"],
+[style*="; color: #34d399"],
+[style*=" color: #34d399"],
+[style^="color:rgb(52, 211, 153)"],
+[style*=";color:rgb(52, 211, 153)"],
+[style*="; color:rgb(52, 211, 153)"],
+[style*=" color:rgb(52, 211, 153)"],
+[style^="color: rgb(52, 211, 153)"],
+[style*=";color: rgb(52, 211, 153)"],
+[style*="; color: rgb(52, 211, 153)"],
+[style*=" color: rgb(52, 211, 153)"]{color:var(--ok-ink) !important;}
+[style^="color:var(--warn)"],
+[style*=";color:var(--warn)"],
+[style*="; color:var(--warn)"],
+[style*=" color:var(--warn)"],
+[style^="color: var(--warn)"],
+[style*=";color: var(--warn)"],
+[style*="; color: var(--warn)"],
+[style*=" color: var(--warn)"],
+[style^="color:#f59e0b"],
+[style*=";color:#f59e0b"],
+[style*="; color:#f59e0b"],
+[style*=" color:#f59e0b"],
+[style^="color: #f59e0b"],
+[style*=";color: #f59e0b"],
+[style*="; color: #f59e0b"],
+[style*=" color: #f59e0b"],
+[style^="color:rgb(245, 158, 11)"],
+[style*=";color:rgb(245, 158, 11)"],
+[style*="; color:rgb(245, 158, 11)"],
+[style*=" color:rgb(245, 158, 11)"],
+[style^="color: rgb(245, 158, 11)"],
+[style*=";color: rgb(245, 158, 11)"],
+[style*="; color: rgb(245, 158, 11)"],
+[style*=" color: rgb(245, 158, 11)"],
+[style^="color:#fbbf24"],
+[style*=";color:#fbbf24"],
+[style*="; color:#fbbf24"],
+[style*=" color:#fbbf24"],
+[style^="color: #fbbf24"],
+[style*=";color: #fbbf24"],
+[style*="; color: #fbbf24"],
+[style*=" color: #fbbf24"],
+[style^="color:rgb(251, 191, 36)"],
+[style*=";color:rgb(251, 191, 36)"],
+[style*="; color:rgb(251, 191, 36)"],
+[style*=" color:rgb(251, 191, 36)"],
+[style^="color: rgb(251, 191, 36)"],
+[style*=";color: rgb(251, 191, 36)"],
+[style*="; color: rgb(251, 191, 36)"],
+[style*=" color: rgb(251, 191, 36)"],
+[style^="color:#fcd34d"],
+[style*=";color:#fcd34d"],
+[style*="; color:#fcd34d"],
+[style*=" color:#fcd34d"],
+[style^="color: #fcd34d"],
+[style*=";color: #fcd34d"],
+[style*="; color: #fcd34d"],
+[style*=" color: #fcd34d"],
+[style^="color:rgb(252, 211, 77)"],
+[style*=";color:rgb(252, 211, 77)"],
+[style*="; color:rgb(252, 211, 77)"],
+[style*=" color:rgb(252, 211, 77)"],
+[style^="color: rgb(252, 211, 77)"],
+[style*=";color: rgb(252, 211, 77)"],
+[style*="; color: rgb(252, 211, 77)"],
+[style*=" color: rgb(252, 211, 77)"],
+[style^="color:#f0a830"],
+[style*=";color:#f0a830"],
+[style*="; color:#f0a830"],
+[style*=" color:#f0a830"],
+[style^="color: #f0a830"],
+[style*=";color: #f0a830"],
+[style*="; color: #f0a830"],
+[style*=" color: #f0a830"],
+[style^="color:rgb(240, 168, 48)"],
+[style*=";color:rgb(240, 168, 48)"],
+[style*="; color:rgb(240, 168, 48)"],
+[style*=" color:rgb(240, 168, 48)"],
+[style^="color: rgb(240, 168, 48)"],
+[style*=";color: rgb(240, 168, 48)"],
+[style*="; color: rgb(240, 168, 48)"],
+[style*=" color: rgb(240, 168, 48)"]{color:var(--warn-ink) !important;}
+[style^="color:var(--err)"],
+[style*=";color:var(--err)"],
+[style*="; color:var(--err)"],
+[style*=" color:var(--err)"],
+[style^="color: var(--err)"],
+[style*=";color: var(--err)"],
+[style*="; color: var(--err)"],
+[style*=" color: var(--err)"],
+[style^="color:#ef4444"],
+[style*=";color:#ef4444"],
+[style*="; color:#ef4444"],
+[style*=" color:#ef4444"],
+[style^="color: #ef4444"],
+[style*=";color: #ef4444"],
+[style*="; color: #ef4444"],
+[style*=" color: #ef4444"],
+[style^="color:rgb(239, 68, 68)"],
+[style*=";color:rgb(239, 68, 68)"],
+[style*="; color:rgb(239, 68, 68)"],
+[style*=" color:rgb(239, 68, 68)"],
+[style^="color: rgb(239, 68, 68)"],
+[style*=";color: rgb(239, 68, 68)"],
+[style*="; color: rgb(239, 68, 68)"],
+[style*=" color: rgb(239, 68, 68)"],
+[style^="color:#f87171"],
+[style*=";color:#f87171"],
+[style*="; color:#f87171"],
+[style*=" color:#f87171"],
+[style^="color: #f87171"],
+[style*=";color: #f87171"],
+[style*="; color: #f87171"],
+[style*=" color: #f87171"],
+[style^="color:rgb(248, 113, 113)"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*=" color:rgb(248, 113, 113)"],
+[style^="color: rgb(248, 113, 113)"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*=" color: rgb(248, 113, 113)"],
+[style^="color:#fca5a5"],
+[style*=";color:#fca5a5"],
+[style*="; color:#fca5a5"],
+[style*=" color:#fca5a5"],
+[style^="color: #fca5a5"],
+[style*=";color: #fca5a5"],
+[style*="; color: #fca5a5"],
+[style*=" color: #fca5a5"],
+[style^="color:rgb(252, 165, 165)"],
+[style*=";color:rgb(252, 165, 165)"],
+[style*="; color:rgb(252, 165, 165)"],
+[style*=" color:rgb(252, 165, 165)"],
+[style^="color: rgb(252, 165, 165)"],
+[style*=";color: rgb(252, 165, 165)"],
+[style*="; color: rgb(252, 165, 165)"],
+[style*=" color: rgb(252, 165, 165)"],
+[style^="color:#dc2626"],
+[style*=";color:#dc2626"],
+[style*="; color:#dc2626"],
+[style*=" color:#dc2626"],
+[style^="color: #dc2626"],
+[style*=";color: #dc2626"],
+[style*="; color: #dc2626"],
+[style*=" color: #dc2626"],
+[style^="color:rgb(220, 38, 38)"],
+[style*=";color:rgb(220, 38, 38)"],
+[style*="; color:rgb(220, 38, 38)"],
+[style*=" color:rgb(220, 38, 38)"],
+[style^="color: rgb(220, 38, 38)"],
+[style*=";color: rgb(220, 38, 38)"],
+[style*="; color: rgb(220, 38, 38)"],
+[style*=" color: rgb(220, 38, 38)"]{color:var(--err-ink) !important;}
+[style^="color:#9bb8f0"],
+[style*=";color:#9bb8f0"],
+[style*="; color:#9bb8f0"],
+[style*=" color:#9bb8f0"],
+[style^="color: #9bb8f0"],
+[style*=";color: #9bb8f0"],
+[style*="; color: #9bb8f0"],
+[style*=" color: #9bb8f0"],
+[style^="color:rgb(155, 184, 240)"],
+[style*=";color:rgb(155, 184, 240)"],
+[style*="; color:rgb(155, 184, 240)"],
+[style*=" color:rgb(155, 184, 240)"],
+[style^="color: rgb(155, 184, 240)"],
+[style*=";color: rgb(155, 184, 240)"],
+[style*="; color: rgb(155, 184, 240)"],
+[style*=" color: rgb(155, 184, 240)"]{color:var(--info-ink) !important;}
+
+/* ===== Баннер cookie (19.09.2026, визуальный агент) =====
+   Баннер оформлен тёмной полосой (--panel не задан в светлой теме → запасной #1a1a1a), но цвета текста остались «светлыми»:
+   текст абзаца #5a5d66 на #1a1a1a — 2.9:1, а кнопка «Только необходимые» — текст #1a1c20 на #1a1a1a, т.е. НЕВИДИМА
+   (на экране была пустая рамка рядом с «Принять все»). Оставляем тёмную «чёрно-золотую» полосу и подбираем цвета:
+   светлый текст, золотая контурная кнопка, золотая основная кнопка. Контраст ≥ 7:1. Только CSS. */
+#cookieBanner{background:#16181d !important; border-top:1px solid rgba(201,164,94,.45) !important;}
+#cookieBanner p{color:#C9CDD6 !important;}
+#cookieBanner a{color:#D9B978 !important;}
+#cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
+#cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
 </style>
 </head>
 <body>
@@ -3300,7 +3638,7 @@ function toggleAiWidget(){
   const p=document.getElementById('aiWidgetPanel');
   p.classList.toggle('open');
   if(p.classList.contains('open') && !p.dataset.init){
-    addAiWidgetMsg('Здравствуйте! Я помощник Corronyx. Спросите про карточки услуг, буст, категории или реферальную программу.', 'bot');
+    addAiWidgetMsg('Здравствуйте! Я Corronyx Agent. Спросите про карточки услуг, буст, категории или реферальную программу.', 'bot');
     p.dataset.init='1';
   }
 }

@@ -20,6 +20,15 @@ body{margin:0;background:var(--dark);color:var(--text);font-family:'DM Sans',san
 .doc-wrap p{color:var(--text);font-size:14.5px;margin:0 0 12px;}
 .doc-wrap p strong{color:var(--gold2);}
 .draft-banner{background:rgba(224,148,69,.1);border:1px solid rgba(224,148,69,.35);color:#e0a445;padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:24px;}
+
+/* ===== Адаптив: заголовок и поля на телефоне (19.09.2026, визуальный агент) =====
+   Длинное слово в заголовке («КОНФИДЕНЦИАЛЬНОСТИ», 26px, заглавные) шире экрана 320–360px давало горизонтальный скролл
+   всей страницы. На узких экранах уменьшаем кегль заголовка и разрешаем перенос очень длинных слов/ссылок.
+   Только CSS, текст документа не тронут; на экранах шире 480px правил нет. */
+@media (max-width:480px){
+  .doc-wrap{padding-left:16px; padding-right:16px; overflow-wrap:break-word;}
+  .doc-wrap h1{font-size:clamp(18px,5.6vw,26px); overflow-wrap:anywhere;}
+}
 </style>
 </head>
 <body>
