@@ -743,6 +743,66 @@ body{top:0 !important; position:relative !important;}
 @media (max-width:700px){
   .concierge-panel{max-height:calc(100vh - 190px);}
 }
+
+/* ===== Цвета статусов на светлой теме (19.09.2026, визуальный агент) =====
+   Статусные цвета (зелёный/янтарный/красный/серый), взятые из тёмной темы, на светлом фоне имели контраст 1.1–2.2:1
+   («На паузе», «Ожидает», «Подтверждена», «Оплачено», «Отменена», воскресенья в шахматке, «Долгов по комиссии нет» и др.)
+   — текст практически не читался. Введены «чернильные» тона того же оттенка, но глубже — изумруд, бронза-янтарь, бордо,
+   графит: контраст не ниже 4.5:1, в духе фирменного золота. Заливки, рамки и фирменное золото не менялись. Только CSS. */
+:root{--ok-ink:#0F6E51; --warn-ink:#8F5B00; --err-ink:#A4262C; --muted-ink:#5C6370;}
+.pay-badge{color:var(--ok-ink);}
+.unit-taken-label{color:var(--warn-ink);}
+[style*=" color: var(--ok)"],
+[style*=" color:var(--ok)"],
+[style*="; color: var(--ok)"],
+[style*="; color:var(--ok)"],
+[style*=";color: var(--ok)"],
+[style*=";color:var(--ok)"],
+[style^="color: var(--ok)"],
+[style^="color:var(--ok)"]{color:var(--ok-ink) !important;}
+[style*=" color: #f87171"],
+[style*=" color: rgb(248, 113, 113)"],
+[style*=" color: var(--err)"],
+[style*=" color:#f87171"],
+[style*=" color:rgb(248, 113, 113)"],
+[style*=" color:var(--err)"],
+[style*="; color: #f87171"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*="; color: var(--err)"],
+[style*="; color:#f87171"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*="; color:var(--err)"],
+[style*=";color: #f87171"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*=";color: var(--err)"],
+[style*=";color:#f87171"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*=";color:var(--err)"],
+[style^="color: #f87171"],
+[style^="color: rgb(248, 113, 113)"],
+[style^="color: var(--err)"],
+[style^="color:#f87171"],
+[style^="color:rgb(248, 113, 113)"],
+[style^="color:var(--err)"]{color:var(--err-ink) !important;}
+[style*=" color: var(--warn)"],
+[style*=" color:var(--warn)"],
+[style*="; color: var(--warn)"],
+[style*="; color:var(--warn)"],
+[style*=";color: var(--warn)"],
+[style*=";color:var(--warn)"],
+[style^="color: var(--warn)"],
+[style^="color:var(--warn)"]{color:var(--warn-ink) !important;}
+
+/* ===== Баннер cookie (19.09.2026, визуальный агент) =====
+   Баннер оформлен тёмной полосой (--panel не задан в светлой теме → запасной #1a1a1a), но цвета текста остались «светлыми»:
+   текст абзаца #5a5d66 на #1a1a1a — 2.9:1, а кнопка «Только необходимые» — текст #1a1c20 на #1a1a1a, т.е. НЕВИДИМА
+   (на экране была пустая рамка рядом с «Принять все»). Оставляем тёмную «чёрно-золотую» полосу и подбираем цвета:
+   светлый текст, золотая контурная кнопка, золотая основная кнопка. Контраст ≥ 7:1. Только CSS. */
+#cookieBanner{background:#16181d !important; border-top:1px solid rgba(201,164,94,.45) !important;}
+#cookieBanner p{color:#C9CDD6 !important;}
+#cookieBanner a{color:#D9B978 !important;}
+#cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
+#cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
 </style>
 </head>
 <body>
