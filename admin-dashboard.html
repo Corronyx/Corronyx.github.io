@@ -941,6 +941,14 @@ tr:last-child td{border-bottom:none;}
    свечение для полей ввода. Срабатывает только при клавиатурной навигации (:focus-visible) — для мыши/пальца вид прежний. Только CSS. */
 button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible, [tabindex]:focus-visible{outline:2px solid #B8954D; outline-offset:2px;}
 input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; box-shadow:0 0 0 3px rgba(184,149,77,.22);}
+
+/* Подсветка записи после перехода из «Перейти →» и уведомлений: золотая рамка, мягкое затухание фона (~3 сек). */
+@keyframes rowFlashBg{0%{background-color:rgba(201,164,94,.42)} 60%{background-color:rgba(201,164,94,.22)} 100%{background-color:rgba(201,164,94,0)}}
+.row-flash{outline:2px solid rgba(184,149,77,.95); outline-offset:-2px; animation:rowFlashBg 3.2s ease-out 1;}
+@media (prefers-reduced-motion: reduce){ .row-flash{animation:none; background-color:rgba(201,164,94,.22);} }
+
+/* Ошибка в уведомлении: красная рамка (значок ⚠️ добавляет toast('…','error')). */
+.toast.toast-error{border-color:rgba(164,38,44,.6); color:var(--err-ink,#A4262C);}
 </style>
 </head>
 <body>
@@ -2062,12 +2070,25 @@ function applyTranslations(){
   document.querySelectorAll('[data-t]').forEach(el=>{ el.textContent = t(el.getAttribute('data-t')); });
   document.querySelectorAll('[data-t-ph]').forEach(el=>{ el.placeholder = t(el.getAttribute('data-t-ph')); });
 }
-function toast(msg){
+// Второй аргумент раньше игнорировался: все сообщения — и ошибки — выглядели как успех («✅ Не удалось найти…»).
+// Теперь 'error' даёт значок ⚠️, красную рамку и показ 5 секунд; если сообщение уже начинается со значка — второй не добавляется.
+function toast(msg, type){
   const wrap=document.getElementById('toastWrap');
-  const el=document.createElement('div'); el.className='toast'; el.textContent='✅ '+msg;
-  wrap.appendChild(el); setTimeout(()=>el.remove(),3000);
+  const isErr=(type==='error'||type==='err');
+  const el=document.createElement('div'); el.className='toast'+(isErr?' toast-error':'');
+  const hasIcon=/^[\u2600-\u27BF\u{1F300}-\u{1FAFF}]/u.test(String(msg));
+  el.textContent=(hasIcon?'':(isErr?'⚠️ ':'✅ '))+msg;
+  if(isErr) el.style.animation='toastIn .25s ease, toastOut .3s ease 4.7s forwards';
+  wrap.appendChild(el); setTimeout(()=>el.remove(),isErr?5000:3000);
 }
-function esc(s){ return (s||'').toString().replace(/"/g,'&quot;'); }
+// БЕЗОПАСНОСТЬ (20.09.2026): раньше экранировались только двойные кавычки — название/имя/город, введённые партнёром или гостем
+// (например «<img src=x onerror=…>»), выполнялись как код в админке — самом привилегированном экране проекта. Теперь, как в
+// кабинетах отеля, партнёра и афиши, экранируются & < > ".
+function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// Пользовательский текст внутри JS-строки в атрибуте onclick: esc() экранирует только двойные кавычки, поэтому апостроф
+// («Joe's», «L'Hôtel», «Rock'n'Roll», «Дем'ян») обрывал строку и кнопка (оплата/буст) переставала работать. escJs() дополнительно
+// экранирует обратную косую и апостроф (и убирает переводы строк).
+function escJs(s){ return esc(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '); }
 
 // ============================================================
 // SW_BADGE_SHAPE — фирменная ротация формы подложки под иконки.
@@ -2264,7 +2285,7 @@ const ADM = {
         <div class="ac-body"><div class="ac-title">${c.title}</div><div class="ac-meta">${c.meta}</div></div>
         <div class="ac-actions">
           ${c.canPay?`<button class="btn btn-ghost btn-sm" onclick="ADM.openManualPayModal('${c.hotelId}',${c.amount})">Подтвердить оплату вручную</button>`:''}
-          <button class="btn btn-primary btn-sm" onclick="ADM.nav('hotels'); setTimeout(()=>{const card=document.getElementById('hcard_${c.hotelId}'); if(card){card.scrollIntoView({behavior:'smooth',block:'center'}); card.style.outline='2px solid var(--gold2)'; setTimeout(()=>card.style.outline='',2000);}},50);">Перейти →</button>
+          <button class="btn btn-primary btn-sm" onclick="ADM.nav('hotels'); setTimeout(()=>{const card=document.getElementById('hcard_${c.hotelId}'); ADM._flashRow(card);},50);">Перейти →</button>
         </div>
       </div>`).join('');
     return `<div class="ac-group"><div class="ac-group-title">🏨 Отели</div>${rows}</div>`;
@@ -3826,6 +3847,8 @@ const ADM = {
         this.renderPartnerCategory();
         const citySel=document.getElementById('pCityFilter'); if(citySel) citySel.value=n.city||'all';
         this.renderPartnerCategory();
+        // прокрутка и подсветка самой заявки (раньше после выставления фильтров пользователь оставался наверху страницы)
+        if(n.itemId) this._flashRow(document.getElementById('pcard_'+n.itemId));
       },0);
     } else if(n.type==='partner_payment_received'||n.type==='partner_payment_shortfall'){
       // Оплата размещения — ведём в «Все партнёры» и подсвечиваем именно этот аккаунт
@@ -3836,7 +3859,7 @@ const ADM = {
       this.nav('partners');
       setTimeout(()=>{
         const row=document.getElementById('paccount_'+n.partnerId);
-        if(row){ row.scrollIntoView({behavior:'smooth', block:'center'}); row.style.outline='2px solid var(--gold2)'; setTimeout(()=>row.style.outline='',2000); }
+        this._flashRow(row);
       },50);
     } else if(n.type==='boost_review_requested'||n.type==='partner_boost_purchased'){
       // Буст — и запрос на ручную проверку, и уже состоявшаяся автоматическая
@@ -3852,7 +3875,7 @@ const ADM = {
       this.nav('partners');
       setTimeout(()=>{
         const row=document.getElementById('pcard_'+n.itemId);
-        if(row){ row.scrollIntoView({behavior:'smooth', block:'center'}); row.style.outline='2px solid var(--gold2)'; setTimeout(()=>row.style.outline='',2000); }
+        this._flashRow(row);
       },50);
     } else if(cat==='afisha_moderation'||cat==='afisha_payment'){
       // Новая афиша/повторная модерация/оплата — ведём в раздел «Афиша».
@@ -3871,7 +3894,7 @@ const ADM = {
         const targetId = n.itemId || (this.getAfishaEvents().find(e=>e.ownerId===n.ownerId)||{}).id;
         if(targetId){
           const row=document.getElementById('afisharow_'+targetId);
-          if(row){ row.scrollIntoView({behavior:'smooth', block:'center'}); row.style.outline='2px solid var(--gold2)'; setTimeout(()=>row.style.outline='',2000); }
+          this._flashRow(row);
         }
       },50);
     } else {
@@ -3887,7 +3910,7 @@ const ADM = {
           : this.getAllHotels().find(h=>norm(h.name)===norm(n.hotelName) && norm(h.city)===norm(n.city));
         if(hotel){
           const card=document.getElementById('hcard_'+hotel.id);
-          if(card){ card.scrollIntoView({behavior:'smooth', block:'center'}); card.style.outline='2px solid var(--gold2)'; setTimeout(()=>card.style.outline='',2000); }
+          this._flashRow(card);
         } else if(n.hotelName){
           // Раньше при неудачном сопоставлении просто ничего не происходило —
           // выглядело так, будто клик по уведомлению вообще не работает.
@@ -4793,7 +4816,33 @@ const ADM = {
     const subSel=document.getElementById('pSubgroupFilter'); if(subSel) subSel.value='all';
     this.renderPartnerSection();
   },
-  navToPartnerCategory(key){ this._activePartnerCat=key; this.nav('partners'); },
+  // ── Переход к конкретной записи партнёра («Перейти →» в панели «Значимые записи») ──
+  // Раньше кнопка только запоминала категорию и «открывала» раздел «Партнёры», в котором админ уже находился, — визуально
+  // ничего не происходило: таблица с записью стоит ниже панелей и настроек, а фильтр страны/города мог скрывать запись
+  // (жалоба владельца 20.09.2026: «нажимаю — не переходит»). Теперь: переключаем категорию, сбрасываем фильтры, плавно
+  // прокручиваем к строке и подсвечиваем её золотой рамкой на ~3 секунды; если записи уже нет — честно сообщаем.
+  _flashRow(row){
+    if(!row) return false;
+    row.scrollIntoView({behavior:'smooth', block:'center'});
+    row.classList.remove('row-flash'); void row.offsetWidth; row.classList.add('row-flash');
+    setTimeout(()=>row.classList.remove('row-flash'), 3400);
+    return true;
+  },
+  revealPartnerItem(catKey, id){
+    this._activePartnerCat=catKey;
+    this.nav('partners');
+    ['pCountryFilter','pCityFilter','pSubgroupFilter'].forEach(fid=>{ const el=document.getElementById(fid); if(el) el.value='all'; });
+    this.renderPartnerCategory();
+    setTimeout(()=>{
+      if(!this._flashRow(document.getElementById('pcard_'+id))){
+        toast(LANG==='ru'?'Запись не найдена — возможно, её уже удалили или перенесли':'Record not found — it may have been deleted or moved','error');
+      }
+    }, 80);
+  },
+  navToPartnerCategory(key, id){
+    if(id){ this.revealPartnerItem(key, id); return; }
+    this._activePartnerCat=key; this.nav('partners');
+  },
 
   /* ============================================================
      АФИША — объявления о событиях (afisha-portal.html)
@@ -5830,12 +5879,12 @@ const ADM = {
       <div style="background:rgba(224,85,85,.07); border:1px solid rgba(224,85,85,.3); border-radius:12px; overflow:hidden; margin-bottom:20px;">
         <div style="padding:12px 16px; font-weight:700; font-size:13px; color:var(--err); border-bottom:1px solid rgba(224,85,85,.2);">🔴 ${LANG==='ru'?`Значимые записи прямо сейчас (${rows.length})`:`Significant records right now (${rows.length})`}</div>
         ${rows.map(r=>`
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border-bottom:1px solid rgba(26,28,32,.06); cursor:pointer;" onclick="ADM.navToPartnerCategory('${r.cat.key}')">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border-bottom:1px solid rgba(26,28,32,.06); cursor:pointer;" onclick="ADM.navToPartnerCategory('${r.cat.key}','${esc(r.item.id||'')}')">
           <div style="min-width:0;">
             <div style="font-size:12px; color:var(--err); font-weight:600;">${esc(r.cat[LANG==='ru'?'ru':'en'])} — ${r.reason}</div>
             <div style="font-size:13px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:640px;">${esc(r.item.name||'—')} ${r.item.city?`(${esc(r.item.city)})`:''}</div>
           </div>
-          <button type="button" class="btn btn-sm btn-primary" onclick="event.stopPropagation(); ADM.navToPartnerCategory('${r.cat.key}')">${LANG==='ru'?'Перейти':'Open'} →</button>
+          <button type="button" class="btn btn-sm btn-primary" onclick="event.stopPropagation(); ADM.navToPartnerCategory('${r.cat.key}','${esc(r.item.id||'')}')">${LANG==='ru'?'Перейти':'Open'} →</button>
         </div>`).join('')}
       </div>`;
   },
@@ -6086,8 +6135,8 @@ const ADM = {
           <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
             <button class="btn btn-primary btn-sm" onclick="ADM.copyKP('${p.id}')">📋 Копировать</button>
             <button class="btn btn-ghost btn-sm" onclick="ADM.saveKPEdit('${p.id}')">💾 Сохранить правки</button>
-            <button class="btn btn-ghost btn-sm" onclick="ADM.downloadKP('${p.id}', '${esc(p.title)}')">⬇️ Скачать .txt</button>
-            <button class="btn btn-ghost btn-sm" onclick="ADM.emailKP('${p.id}', '${esc(p.title)}')">✉️ Открыть в почте</button>
+            <button class="btn btn-ghost btn-sm" onclick="ADM.downloadKP('${p.id}', '${escJs(p.title)}')">⬇️ Скачать .txt</button>
+            <button class="btn btn-ghost btn-sm" onclick="ADM.emailKP('${p.id}', '${escJs(p.title)}')">✉️ Открыть в почте</button>
             <button class="btn btn-ghost btn-sm" style="color:var(--muted); margin-left:auto;" onclick="ADM.resetKP('${p.id}')">↩️ Сбросить</button>
           </div>
         </div>
