@@ -631,9 +631,8 @@ tr:last-child td{border-bottom:none;}
    2) #periodNav и #dashPeriodNav («← Предыдущий / период / Следующий → / К текущему», в «Выплатах» и на дашборде) — flex без переноса, кнопка «К текущему» обрезалась;
    3) .chess-right-group (выбор дней, «+ Бронь», «🔗 Синхронизация») — flex без переноса, «Синхронизация» обрезалась.
    Только CSS: разметка, id, onclick и JS не тронуты. Десктоп (>900px) не затронут. */
-@media (max-width:900px){
-  .table-wrap{overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch;}
-}
+/* (20.09: правило действует на всех ширинах — на 901–930px таблица броней тоже шире рабочей области и обрезалась) */
+.table-wrap{overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch;}
 @media (max-width:700px){
   #periodNav,#dashPeriodNav{flex-wrap:wrap !important; gap:8px !important;}
   .chess-nav-group,.chess-right-group{flex-wrap:wrap; gap:6px;}
@@ -1183,6 +1182,17 @@ tr:last-child td{border-bottom:none;}
   .platform-req-row{flex-wrap:wrap; row-gap:4px;}
   .platform-req-label{flex:0 0 100%; min-width:0;}
   .platform-req-value{min-width:0; word-break:normal; overflow-wrap:anywhere;}
+}
+
+/* ===== Кабинет отеля на компьютере: красная плашка «Отель не опубликован» ломала раскладку (20.09.2026, визуальный агент) =====
+   #app.open — flex-строка [sidebar][main]. Когда показана плашка #noPhoBanner (у отеля нет фото — то есть при первом входе), она
+   становилась ТРЕТЬИМ flex-элементом в той же строке: занимала слева ~690px (по ширине своего текста), сдвигала боковое
+   меню в середину экрана и сжимала рабочую область до ~350px на экране 1280px (кнопки, таблицы и заголовки обрезались
+   overflow-x:hidden). Теперь плашка — отдельная первая строка на всю ширину, ниже — меню и рабочая область.
+   На ≤900px раскладка уже колонкой, там правило не нужно. Только CSS. */
+@media (min-width:901px){
+  #app.open{flex-wrap:wrap;}
+  #noPhoBanner{flex:0 0 100%; box-sizing:border-box;}
 }
 </style>
 <!-- Tesseract.js — OCR для распознавания суммы на скриншоте банковского перевода/СБП.

@@ -809,6 +809,30 @@ body{top:0 !important; position:relative !important;}
 @media (max-width:640px){
   .hotel-detail{padding-left:0; padding-right:0;}
 }
+
+/* Телефон в альбомной ориентации (высота ≤480px): закреплённая шапка (до 147px) + нижнее меню (60px) занимали до 55% и без того
+   низкого экрана — на контент оставалось ~170px из 375. В альбомной ориентации шапка не закрепляется (листается вместе со
+   страницей), нижнее меню остаётся. Только CSS; на портретных телефонах и компьютерах ничего не меняется. */
+@media (max-height:480px) and (max-width:932px){
+  header{position:static;}
+}
+
+/* ===== Клиентский сайт на телефоне: кнопка «← Назад» и длинные контакты (20.09.2026, визуальный агент) =====
+   1) «← Назад» стояла position:fixed; top:170px — на телефоне шапка ~103px, и пилюля ложилась ПОВЕРХ заголовка страницы
+      («…ства недвижимости» — начало слова закрыто) и поверх фото отеля. Теперь она в потоке над заголовком и «прилипает»
+      под шапкой при прокрутке (остаётся на виду, но в покое ничего не закрывает). В альбомной ориентации шапка не
+      закреплена — прилипает к верху экрана.
+   2) Длинный e-mail в карточке партнёра не переносился и обрезался справа. Только CSS. */
+@media (max-width:640px){
+  .back-btn-floating{position:sticky; top:112px; left:auto; display:flex; width:fit-content; margin:12px 0 0 16px;}
+  #wizardContent .back-btn-floating{margin:0 0 12px;}
+}
+@media (max-height:480px) and (max-width:932px){
+  .back-btn-floating{top:8px;}
+}
+@media (max-width:900px){
+  .card a{overflow-wrap:anywhere;}
+}
 </style>
 </head>
 <body>

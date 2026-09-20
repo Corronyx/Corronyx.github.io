@@ -902,6 +902,12 @@ tr:last-child td{border-bottom:none;}
 [style*=";color: rgb(127, 176, 255)"],
 [style*="; color: rgb(127, 176, 255)"],
 [style*=" color: rgb(127, 176, 255)"]{color:var(--info-ink) !important;}
+
+/* Раздел «Партнёры»: таблицы по категориям (#allPartnersBlock) не имели обёртки с прокруткой — на телефоне колонка «Размещений»
+   обрезалась. Горизонтальная прокрутка внутри таблицы. Только CSS. */
+@media (max-width:900px){
+  #allPartnersBlock table{display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+}
 </style>
 </head>
 <body>
