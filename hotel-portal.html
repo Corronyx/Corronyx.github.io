@@ -623,6 +623,628 @@ tr:last-child td{border-bottom:none;}
   body{padding-bottom:58px;}
   .mobile-only-link{display:block !important;}
 }
+
+/* ===== Адаптив: обрезанные кнопки и таблицы на телефоне (19.09.2026, визуальный агент) =====
+   Найдено реальным рендером в Chromium (360/390px), проверкой «контент обрезан родителем с overflow:hidden»:
+   1) .table-wrap имел overflow:hidden без прокрутки — колонки «Сумма», «Комиссия 12%», «Переведено» физически
+      не были видны и недоступны на телефоне → теперь горизонтальная прокрутка внутри таблицы;
+   2) #periodNav и #dashPeriodNav («← Предыдущий / период / Следующий → / К текущему», в «Выплатах» и на дашборде) — flex без переноса, кнопка «К текущему» обрезалась;
+   3) .chess-right-group (выбор дней, «+ Бронь», «🔗 Синхронизация») — flex без переноса, «Синхронизация» обрезалась.
+   Только CSS: разметка, id, onclick и JS не тронуты. Десктоп (>900px) не затронут. */
+/* (20.09: правило действует на всех ширинах — на 901–930px таблица броней тоже шире рабочей области и обрезалась) */
+.table-wrap{overflow-x:auto; max-width:100%; -webkit-overflow-scrolling:touch;}
+@media (max-width:700px){
+  #periodNav,#dashPeriodNav{flex-wrap:wrap !important; gap:8px !important;}
+  .chess-nav-group,.chess-right-group{flex-wrap:wrap; gap:6px;}
+}
+
+/* ===== Кабинет отеля на телефоне/планшете: верхняя полоса (19.09.2026, визуальный агент) =====
+   Проблемы (подтверждены рендером в Chromium, 390 и 768px):
+   1) Блок .sidebar-foot (статус отеля «Активен/На паузе», выбор языка, кнопка «Выйти») скрывался целиком на ≤900px —
+      на телефоне и планшете НЕТ ни выхода из кабинета, ни выбора языка (в партнёрском, афише и админке они есть).
+   2) На ≤760px верхняя лента разделов дублировала нижнее меню (те же 5 разделов + «Синхронизация», которая
+      на телефоне и так доступна из «Профиля»).
+   Решение (только CSS, разметка/id/onclick/JS не тронуты): на ≤900px в верхней полосе — email, статус, язык, «Выйти»;
+   на 761–900px под ними остаётся лента разделов (нижнего меню там нет), на ≤760px лента скрыта (есть нижнее меню).
+   Десктоп (>900px) не затронут. */
+@media (max-width:900px){
+  .sidebar{flex-wrap:wrap; align-items:center; gap:6px 6px; overflow:visible; padding:8px 12px;}
+  .sidebar .hp-email-chip{order:1;}
+  .sidebar .sidebar-foot{display:flex !important; order:2; margin:0 0 0 auto; padding:0; border-top:none; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:8px;}
+  .sidebar .sidebar-foot .status-badge{margin:0; padding:5px 9px; font-size:11px;}
+  .sidebar .sidebar-foot .lang-switch{width:auto;}
+  .sidebar .sidebar-foot .lang-btn{width:auto; min-height:32px; padding:5px 11px; font-size:12px;}
+  .sidebar .sidebar-foot .lang-dropdown{bottom:auto; top:calc(100% + 6px); left:auto; right:0;}
+  .sidebar .sidebar-foot > div:not(.status-badge):not(.lang-switch):not(.header-gtranslate-hidden){margin-top:0 !important;}
+  .sidebar .sidebar-foot > div:last-child{display:none;} /* метка build — техническая, как и раньше на телефоне не показывается */
+  .sidebar::after{content:''; flex:0 0 100%; height:0; order:2;}
+  .sidebar .nav-item{order:3; flex:0 0 auto; padding:8px 9px; gap:6px; font-size:13px;}
+}
+@media (max-width:760px){
+  .sidebar .nav-item{display:none;}
+  .sidebar::after{display:none;}
+}
+
+/* ===== Читаемость красных предупреждений на светлом фоне (19.09.2026, визуальный агент) =====
+   Плашка «Отель не опубликован…» и её кнопка «Загрузить фото →» были окрашены #fca5a5 — светло-красный, рассчитанный
+   на ТЁМНУЮ тему; на светло-розовой плашке контраст 1.1–1.6:1 (текст почти не виден, а это главный призыв к действию
+   нового отеля). Тот же цвет — у отрицательных результатов проверки фото и суммы «к оплате». Оттенок сохранён (красный),
+   но тёмнее: контраст ≥ 5:1. Только CSS. */
+#noPhoBanner{color:#991b1b !important;}
+#noPhoBanner button{color:#7f1d1d !important; background:rgba(239,68,68,.16) !important; border-color:rgba(185,28,28,.55) !important;}
+.photo-check-item.ng{color:#b91c1c;}
+.platform-req-owed b{color:#b91c1c;}
+
+/* ===== Адаптив: окно ИИ-агента на узком телефоне (19.09.2026, визуальный агент) — только CSS ===== */
+/* Окно ИИ-агента: ширина 340px + right:24px на экране 360px уводила левый край за экран на 4px (обрезалось) →
+   на узких экранах ограничиваем по ширине экрана. Селектор с id — чтобы перебить правило из style-блока в конце файла. */
+@media (max-width:400px){
+  #aiWidgetPanel.ai-widget-panel{width:calc(100vw - 32px); right:16px;}
+}
+
+/* Синхронизация: два <select> (класс/номер) в строке flex — из-за длинных названий не сжимались и обрезались справа на 360px */
+@media (max-width:700px){
+  .main select{min-width:0; max-width:100%;}
+}
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  #aiWidgetPanel.ai-widget-panel{max-height:calc(100vh - 190px);}
+}
+
+/* ===== Цвета статусов на светлой теме (19.09.2026, визуальный агент) =====
+   Статусные цвета (зелёный/янтарный/красный/серый), взятые из тёмной темы, на светлом фоне имели контраст 1.1–2.2:1
+   («На паузе», «Ожидает», «Подтверждена», «Оплачено», «Отменена», воскресенья в шахматке, «Долгов по комиссии нет» и др.)
+   — текст практически не читался. Введены «чернильные» тона того же оттенка, но глубже — изумруд, бронза-янтарь, бордо,
+   графит: контраст не ниже 4.5:1, в духе фирменного золота. Заливки, рамки и фирменное золото не менялись. Только CSS. */
+:root{--ok-ink:#0F6E51; --warn-ink:#8F5B00; --err-ink:#A4262C; --muted-ink:#5C6370;}
+.err-msg{color:var(--err-ink);}
+.login-err{color:var(--err-ink);}
+.status-active{color:var(--ok-ink);}
+.status-pause{color:var(--warn-ink);}
+.status-off{color:var(--err-ink);}
+.banner-warn{color:var(--warn-ink);}
+.banner-err{color:var(--err-ink);}
+.badge-pending{color:var(--warn-ink);}
+.badge-confirmed{color:var(--ok-ink);}
+.badge-rejected{color:var(--err-ink);}
+.badge-cancelled{color:var(--muted-ink);}
+.unit-row .unit-del{color:var(--err-ink);}
+.popup-cancel-booking{color:var(--err-ink);}
+.popup-assign-btn{color:var(--ok-ink);}
+.popup-cancel-btn{color:var(--err-ink);}
+.pay-ok-badge{color:var(--ok-ink);}
+.pay-warn-badge{color:var(--warn-ink);}
+.stat-card.stat-warn .num{color:var(--warn-ink);}
+.stat-card.stat-ok .num{color:var(--ok-ink);}
+.platform-req-owed b{color:var(--err-ink);}
+.platform-req-settle-btn{color:var(--ok-ink);}
+.sync-status.saved{color:var(--ok-ink);}
+.sync-status.error{color:var(--err-ink);}
+.photo-result.pass .photo-result-title{color:var(--ok-ink);}
+.photo-result.fail .photo-result-title{color:var(--err-ink);}
+.photo-check-item.ok{color:var(--ok-ink);}
+.photo-check-item.ng{color:var(--err-ink);}
+.photo-btn-accept{color:var(--ok-ink);}
+.photo-notification.pass .pn-title{color:var(--ok-ink);}
+.photo-notification.fail .pn-title{color:var(--err-ink);}
+.avail-chip.avail-low b{color:var(--err-ink);}
+.gc-cancel-btn{color:var(--err-ink);}
+[style*=" color: #22c55e"],
+[style*=" color: #4ade80"],
+[style*=" color: #86efac"],
+[style*=" color: rgb(134, 239, 172)"],
+[style*=" color: rgb(34, 197, 94)"],
+[style*=" color: rgb(74, 222, 128)"],
+[style*=" color:#22c55e"],
+[style*=" color:#4ade80"],
+[style*=" color:#86efac"],
+[style*=" color:rgb(134, 239, 172)"],
+[style*=" color:rgb(34, 197, 94)"],
+[style*=" color:rgb(74, 222, 128)"],
+[style*="; color: #22c55e"],
+[style*="; color: #4ade80"],
+[style*="; color: #86efac"],
+[style*="; color: rgb(134, 239, 172)"],
+[style*="; color: rgb(34, 197, 94)"],
+[style*="; color: rgb(74, 222, 128)"],
+[style*="; color:#22c55e"],
+[style*="; color:#4ade80"],
+[style*="; color:#86efac"],
+[style*="; color:rgb(134, 239, 172)"],
+[style*="; color:rgb(34, 197, 94)"],
+[style*="; color:rgb(74, 222, 128)"],
+[style*=";color: #22c55e"],
+[style*=";color: #4ade80"],
+[style*=";color: #86efac"],
+[style*=";color: rgb(134, 239, 172)"],
+[style*=";color: rgb(34, 197, 94)"],
+[style*=";color: rgb(74, 222, 128)"],
+[style*=";color:#22c55e"],
+[style*=";color:#4ade80"],
+[style*=";color:#86efac"],
+[style*=";color:rgb(134, 239, 172)"],
+[style*=";color:rgb(34, 197, 94)"],
+[style*=";color:rgb(74, 222, 128)"],
+[style^="color: #22c55e"],
+[style^="color: #4ade80"],
+[style^="color: #86efac"],
+[style^="color: rgb(134, 239, 172)"],
+[style^="color: rgb(34, 197, 94)"],
+[style^="color: rgb(74, 222, 128)"],
+[style^="color:#22c55e"],
+[style^="color:#4ade80"],
+[style^="color:#86efac"],
+[style^="color:rgb(134, 239, 172)"],
+[style^="color:rgb(34, 197, 94)"],
+[style^="color:rgb(74, 222, 128)"]{color:var(--ok-ink) !important;}
+[style*=" color: #ef4444"],
+[style*=" color: #f87171"],
+[style*=" color: #fca5a5"],
+[style*=" color: rgb(239, 68, 68)"],
+[style*=" color: rgb(248, 113, 113)"],
+[style*=" color: rgb(252, 165, 165)"],
+[style*=" color: var(--err)"],
+[style*=" color:#ef4444"],
+[style*=" color:#f87171"],
+[style*=" color:#fca5a5"],
+[style*=" color:rgb(239, 68, 68)"],
+[style*=" color:rgb(248, 113, 113)"],
+[style*=" color:rgb(252, 165, 165)"],
+[style*=" color:var(--err)"],
+[style*="; color: #ef4444"],
+[style*="; color: #f87171"],
+[style*="; color: #fca5a5"],
+[style*="; color: rgb(239, 68, 68)"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*="; color: rgb(252, 165, 165)"],
+[style*="; color: var(--err)"],
+[style*="; color:#ef4444"],
+[style*="; color:#f87171"],
+[style*="; color:#fca5a5"],
+[style*="; color:rgb(239, 68, 68)"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*="; color:rgb(252, 165, 165)"],
+[style*="; color:var(--err)"],
+[style*=";color: #ef4444"],
+[style*=";color: #f87171"],
+[style*=";color: #fca5a5"],
+[style*=";color: rgb(239, 68, 68)"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*=";color: rgb(252, 165, 165)"],
+[style*=";color: var(--err)"],
+[style*=";color:#ef4444"],
+[style*=";color:#f87171"],
+[style*=";color:#fca5a5"],
+[style*=";color:rgb(239, 68, 68)"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*=";color:rgb(252, 165, 165)"],
+[style*=";color:var(--err)"],
+[style^="color: #ef4444"],
+[style^="color: #f87171"],
+[style^="color: #fca5a5"],
+[style^="color: rgb(239, 68, 68)"],
+[style^="color: rgb(248, 113, 113)"],
+[style^="color: rgb(252, 165, 165)"],
+[style^="color: var(--err)"],
+[style^="color:#ef4444"],
+[style^="color:#f87171"],
+[style^="color:#fca5a5"],
+[style^="color:rgb(239, 68, 68)"],
+[style^="color:rgb(248, 113, 113)"],
+[style^="color:rgb(252, 165, 165)"],
+[style^="color:var(--err)"]{color:var(--err-ink) !important;}
+[style*=" color: #f59e0b"],
+[style*=" color: rgb(245, 158, 11)"],
+[style*=" color:#f59e0b"],
+[style*=" color:rgb(245, 158, 11)"],
+[style*="; color: #f59e0b"],
+[style*="; color: rgb(245, 158, 11)"],
+[style*="; color:#f59e0b"],
+[style*="; color:rgb(245, 158, 11)"],
+[style*=";color: #f59e0b"],
+[style*=";color: rgb(245, 158, 11)"],
+[style*=";color:#f59e0b"],
+[style*=";color:rgb(245, 158, 11)"],
+[style^="color: #f59e0b"],
+[style^="color: rgb(245, 158, 11)"],
+[style^="color:#f59e0b"],
+[style^="color:rgb(245, 158, 11)"]{color:var(--warn-ink) !important;}
+[style*=" color: #9ca3af"],
+[style*=" color: rgb(156, 163, 175)"],
+[style*=" color:#9ca3af"],
+[style*=" color:rgb(156, 163, 175)"],
+[style*="; color: #9ca3af"],
+[style*="; color: rgb(156, 163, 175)"],
+[style*="; color:#9ca3af"],
+[style*="; color:rgb(156, 163, 175)"],
+[style*=";color: #9ca3af"],
+[style*=";color: rgb(156, 163, 175)"],
+[style*=";color:#9ca3af"],
+[style*=";color:rgb(156, 163, 175)"],
+[style^="color: #9ca3af"],
+[style^="color: rgb(156, 163, 175)"],
+[style^="color:#9ca3af"],
+[style^="color:rgb(156, 163, 175)"]{color:var(--muted-ink) !important;}
+.pms-day-hdr.pms-weekend, .chess-tbl th.col-weekend, .pms-day-hdr.pms-weekend .pms-dn{color:#A4500F;}
+
+/* ===== Цвета статусов: дополнение (19.09.2026, визуальный агент) =====
+   Ещё синий «информационный» тон (плашки «У вас есть размещения на модерации», значки тарифа) — #9bb8f0 на светло-голубом
+   давал 1.7:1 → глубокий синий. И уведомления/тосты, у которых цвет задаётся из JS (el.style.cssText / style.color). Только CSS. */
+:root{--info-ink:#2A4F94;}
+.banner-info{color:var(--info-ink);}
+[style^="color:var(--ok)"],
+[style*=";color:var(--ok)"],
+[style*="; color:var(--ok)"],
+[style*=" color:var(--ok)"],
+[style^="color: var(--ok)"],
+[style*=";color: var(--ok)"],
+[style*="; color: var(--ok)"],
+[style*=" color: var(--ok)"],
+[style^="color:#10b981"],
+[style*=";color:#10b981"],
+[style*="; color:#10b981"],
+[style*=" color:#10b981"],
+[style^="color: #10b981"],
+[style*=";color: #10b981"],
+[style*="; color: #10b981"],
+[style*=" color: #10b981"],
+[style^="color:rgb(16, 185, 129)"],
+[style*=";color:rgb(16, 185, 129)"],
+[style*="; color:rgb(16, 185, 129)"],
+[style*=" color:rgb(16, 185, 129)"],
+[style^="color: rgb(16, 185, 129)"],
+[style*=";color: rgb(16, 185, 129)"],
+[style*="; color: rgb(16, 185, 129)"],
+[style*=" color: rgb(16, 185, 129)"],
+[style^="color:#22c55e"],
+[style*=";color:#22c55e"],
+[style*="; color:#22c55e"],
+[style*=" color:#22c55e"],
+[style^="color: #22c55e"],
+[style*=";color: #22c55e"],
+[style*="; color: #22c55e"],
+[style*=" color: #22c55e"],
+[style^="color:rgb(34, 197, 94)"],
+[style*=";color:rgb(34, 197, 94)"],
+[style*="; color:rgb(34, 197, 94)"],
+[style*=" color:rgb(34, 197, 94)"],
+[style^="color: rgb(34, 197, 94)"],
+[style*=";color: rgb(34, 197, 94)"],
+[style*="; color: rgb(34, 197, 94)"],
+[style*=" color: rgb(34, 197, 94)"],
+[style^="color:#4ade80"],
+[style*=";color:#4ade80"],
+[style*="; color:#4ade80"],
+[style*=" color:#4ade80"],
+[style^="color: #4ade80"],
+[style*=";color: #4ade80"],
+[style*="; color: #4ade80"],
+[style*=" color: #4ade80"],
+[style^="color:rgb(74, 222, 128)"],
+[style*=";color:rgb(74, 222, 128)"],
+[style*="; color:rgb(74, 222, 128)"],
+[style*=" color:rgb(74, 222, 128)"],
+[style^="color: rgb(74, 222, 128)"],
+[style*=";color: rgb(74, 222, 128)"],
+[style*="; color: rgb(74, 222, 128)"],
+[style*=" color: rgb(74, 222, 128)"],
+[style^="color:#86efac"],
+[style*=";color:#86efac"],
+[style*="; color:#86efac"],
+[style*=" color:#86efac"],
+[style^="color: #86efac"],
+[style*=";color: #86efac"],
+[style*="; color: #86efac"],
+[style*=" color: #86efac"],
+[style^="color:rgb(134, 239, 172)"],
+[style*=";color:rgb(134, 239, 172)"],
+[style*="; color:rgb(134, 239, 172)"],
+[style*=" color:rgb(134, 239, 172)"],
+[style^="color: rgb(134, 239, 172)"],
+[style*=";color: rgb(134, 239, 172)"],
+[style*="; color: rgb(134, 239, 172)"],
+[style*=" color: rgb(134, 239, 172)"],
+[style^="color:#34d399"],
+[style*=";color:#34d399"],
+[style*="; color:#34d399"],
+[style*=" color:#34d399"],
+[style^="color: #34d399"],
+[style*=";color: #34d399"],
+[style*="; color: #34d399"],
+[style*=" color: #34d399"],
+[style^="color:rgb(52, 211, 153)"],
+[style*=";color:rgb(52, 211, 153)"],
+[style*="; color:rgb(52, 211, 153)"],
+[style*=" color:rgb(52, 211, 153)"],
+[style^="color: rgb(52, 211, 153)"],
+[style*=";color: rgb(52, 211, 153)"],
+[style*="; color: rgb(52, 211, 153)"],
+[style*=" color: rgb(52, 211, 153)"]{color:var(--ok-ink) !important;}
+[style^="color:var(--warn)"],
+[style*=";color:var(--warn)"],
+[style*="; color:var(--warn)"],
+[style*=" color:var(--warn)"],
+[style^="color: var(--warn)"],
+[style*=";color: var(--warn)"],
+[style*="; color: var(--warn)"],
+[style*=" color: var(--warn)"],
+[style^="color:#f59e0b"],
+[style*=";color:#f59e0b"],
+[style*="; color:#f59e0b"],
+[style*=" color:#f59e0b"],
+[style^="color: #f59e0b"],
+[style*=";color: #f59e0b"],
+[style*="; color: #f59e0b"],
+[style*=" color: #f59e0b"],
+[style^="color:rgb(245, 158, 11)"],
+[style*=";color:rgb(245, 158, 11)"],
+[style*="; color:rgb(245, 158, 11)"],
+[style*=" color:rgb(245, 158, 11)"],
+[style^="color: rgb(245, 158, 11)"],
+[style*=";color: rgb(245, 158, 11)"],
+[style*="; color: rgb(245, 158, 11)"],
+[style*=" color: rgb(245, 158, 11)"],
+[style^="color:#fbbf24"],
+[style*=";color:#fbbf24"],
+[style*="; color:#fbbf24"],
+[style*=" color:#fbbf24"],
+[style^="color: #fbbf24"],
+[style*=";color: #fbbf24"],
+[style*="; color: #fbbf24"],
+[style*=" color: #fbbf24"],
+[style^="color:rgb(251, 191, 36)"],
+[style*=";color:rgb(251, 191, 36)"],
+[style*="; color:rgb(251, 191, 36)"],
+[style*=" color:rgb(251, 191, 36)"],
+[style^="color: rgb(251, 191, 36)"],
+[style*=";color: rgb(251, 191, 36)"],
+[style*="; color: rgb(251, 191, 36)"],
+[style*=" color: rgb(251, 191, 36)"],
+[style^="color:#fcd34d"],
+[style*=";color:#fcd34d"],
+[style*="; color:#fcd34d"],
+[style*=" color:#fcd34d"],
+[style^="color: #fcd34d"],
+[style*=";color: #fcd34d"],
+[style*="; color: #fcd34d"],
+[style*=" color: #fcd34d"],
+[style^="color:rgb(252, 211, 77)"],
+[style*=";color:rgb(252, 211, 77)"],
+[style*="; color:rgb(252, 211, 77)"],
+[style*=" color:rgb(252, 211, 77)"],
+[style^="color: rgb(252, 211, 77)"],
+[style*=";color: rgb(252, 211, 77)"],
+[style*="; color: rgb(252, 211, 77)"],
+[style*=" color: rgb(252, 211, 77)"],
+[style^="color:#f0a830"],
+[style*=";color:#f0a830"],
+[style*="; color:#f0a830"],
+[style*=" color:#f0a830"],
+[style^="color: #f0a830"],
+[style*=";color: #f0a830"],
+[style*="; color: #f0a830"],
+[style*=" color: #f0a830"],
+[style^="color:rgb(240, 168, 48)"],
+[style*=";color:rgb(240, 168, 48)"],
+[style*="; color:rgb(240, 168, 48)"],
+[style*=" color:rgb(240, 168, 48)"],
+[style^="color: rgb(240, 168, 48)"],
+[style*=";color: rgb(240, 168, 48)"],
+[style*="; color: rgb(240, 168, 48)"],
+[style*=" color: rgb(240, 168, 48)"]{color:var(--warn-ink) !important;}
+[style^="color:var(--err)"],
+[style*=";color:var(--err)"],
+[style*="; color:var(--err)"],
+[style*=" color:var(--err)"],
+[style^="color: var(--err)"],
+[style*=";color: var(--err)"],
+[style*="; color: var(--err)"],
+[style*=" color: var(--err)"],
+[style^="color:#ef4444"],
+[style*=";color:#ef4444"],
+[style*="; color:#ef4444"],
+[style*=" color:#ef4444"],
+[style^="color: #ef4444"],
+[style*=";color: #ef4444"],
+[style*="; color: #ef4444"],
+[style*=" color: #ef4444"],
+[style^="color:rgb(239, 68, 68)"],
+[style*=";color:rgb(239, 68, 68)"],
+[style*="; color:rgb(239, 68, 68)"],
+[style*=" color:rgb(239, 68, 68)"],
+[style^="color: rgb(239, 68, 68)"],
+[style*=";color: rgb(239, 68, 68)"],
+[style*="; color: rgb(239, 68, 68)"],
+[style*=" color: rgb(239, 68, 68)"],
+[style^="color:#f87171"],
+[style*=";color:#f87171"],
+[style*="; color:#f87171"],
+[style*=" color:#f87171"],
+[style^="color: #f87171"],
+[style*=";color: #f87171"],
+[style*="; color: #f87171"],
+[style*=" color: #f87171"],
+[style^="color:rgb(248, 113, 113)"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*=" color:rgb(248, 113, 113)"],
+[style^="color: rgb(248, 113, 113)"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*=" color: rgb(248, 113, 113)"],
+[style^="color:#fca5a5"],
+[style*=";color:#fca5a5"],
+[style*="; color:#fca5a5"],
+[style*=" color:#fca5a5"],
+[style^="color: #fca5a5"],
+[style*=";color: #fca5a5"],
+[style*="; color: #fca5a5"],
+[style*=" color: #fca5a5"],
+[style^="color:rgb(252, 165, 165)"],
+[style*=";color:rgb(252, 165, 165)"],
+[style*="; color:rgb(252, 165, 165)"],
+[style*=" color:rgb(252, 165, 165)"],
+[style^="color: rgb(252, 165, 165)"],
+[style*=";color: rgb(252, 165, 165)"],
+[style*="; color: rgb(252, 165, 165)"],
+[style*=" color: rgb(252, 165, 165)"],
+[style^="color:#dc2626"],
+[style*=";color:#dc2626"],
+[style*="; color:#dc2626"],
+[style*=" color:#dc2626"],
+[style^="color: #dc2626"],
+[style*=";color: #dc2626"],
+[style*="; color: #dc2626"],
+[style*=" color: #dc2626"],
+[style^="color:rgb(220, 38, 38)"],
+[style*=";color:rgb(220, 38, 38)"],
+[style*="; color:rgb(220, 38, 38)"],
+[style*=" color:rgb(220, 38, 38)"],
+[style^="color: rgb(220, 38, 38)"],
+[style*=";color: rgb(220, 38, 38)"],
+[style*="; color: rgb(220, 38, 38)"],
+[style*=" color: rgb(220, 38, 38)"]{color:var(--err-ink) !important;}
+[style^="color:#9bb8f0"],
+[style*=";color:#9bb8f0"],
+[style*="; color:#9bb8f0"],
+[style*=" color:#9bb8f0"],
+[style^="color: #9bb8f0"],
+[style*=";color: #9bb8f0"],
+[style*="; color: #9bb8f0"],
+[style*=" color: #9bb8f0"],
+[style^="color:rgb(155, 184, 240)"],
+[style*=";color:rgb(155, 184, 240)"],
+[style*="; color:rgb(155, 184, 240)"],
+[style*=" color:rgb(155, 184, 240)"],
+[style^="color: rgb(155, 184, 240)"],
+[style*=";color: rgb(155, 184, 240)"],
+[style*="; color: rgb(155, 184, 240)"],
+[style*=" color: rgb(155, 184, 240)"]{color:var(--info-ink) !important;}
+
+/* ===== Баннер cookie (19.09.2026, визуальный агент) =====
+   Баннер оформлен тёмной полосой (--panel не задан в светлой теме → запасной #1a1a1a), но цвета текста остались «светлыми»:
+   текст абзаца #5a5d66 на #1a1a1a — 2.9:1, а кнопка «Только необходимые» — текст #1a1c20 на #1a1a1a, т.е. НЕВИДИМА
+   (на экране была пустая рамка рядом с «Принять все»). Оставляем тёмную «чёрно-золотую» полосу и подбираем цвета:
+   светлый текст, золотая контурная кнопка, золотая основная кнопка. Контраст ≥ 7:1. Только CSS. */
+#cookieBanner{background:#16181d !important; border-top:1px solid rgba(201,164,94,.45) !important;}
+#cookieBanner p{color:#C9CDD6 !important;}
+#cookieBanner a{color:#D9B978 !important;}
+#cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
+#cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
+
+/* ===== Цвета статусов: ещё оттенки из редких состояний (19–20.09.2026, визуальный агент) =====
+   Найдены статическим поиском по inline-стилям и JS-шаблонам (видны только в особых состояниях: «не хватает» при частичной
+   оплате, льготный режим оплаты, красная звёздочка обязательного поля, «Долгов нет», отметки о действиях админа).
+   Тот же принцип: оттенок сохранён, тон глубже (контраст ≥ 4.5:1). Только CSS. */
+[style^="color:#e2a33d"],
+[style*=";color:#e2a33d"],
+[style*="; color:#e2a33d"],
+[style*=" color:#e2a33d"],
+[style^="color: #e2a33d"],
+[style*=";color: #e2a33d"],
+[style*="; color: #e2a33d"],
+[style*=" color: #e2a33d"],
+[style^="color:rgb(226, 163, 61)"],
+[style*=";color:rgb(226, 163, 61)"],
+[style*="; color:rgb(226, 163, 61)"],
+[style*=" color:rgb(226, 163, 61)"],
+[style^="color: rgb(226, 163, 61)"],
+[style*=";color: rgb(226, 163, 61)"],
+[style*="; color: rgb(226, 163, 61)"],
+[style*=" color: rgb(226, 163, 61)"]{color:var(--warn-ink) !important;}
+[style^="color:#4caf7d"],
+[style*=";color:#4caf7d"],
+[style*="; color:#4caf7d"],
+[style*=" color:#4caf7d"],
+[style^="color: #4caf7d"],
+[style*=";color: #4caf7d"],
+[style*="; color: #4caf7d"],
+[style*=" color: #4caf7d"],
+[style^="color:rgb(76, 175, 125)"],
+[style*=";color:rgb(76, 175, 125)"],
+[style*="; color:rgb(76, 175, 125)"],
+[style*=" color:rgb(76, 175, 125)"],
+[style^="color: rgb(76, 175, 125)"],
+[style*=";color: rgb(76, 175, 125)"],
+[style*="; color: rgb(76, 175, 125)"],
+[style*=" color: rgb(76, 175, 125)"]{color:var(--ok-ink) !important;}
+
+/* ===== Реквизиты и кнопка оплаты (20.09.2026, визуальный агент) =====
+   1) Строка реквизита: подпись (min-width:110px) + значение + «Копировать» в одну flex-строку — на телефоне значению
+      оставалось ~70px, и телефон/адрес/номер счёта рвались по одному символу (word-break:break-all). На ≤640px подпись — над
+      значением, значение получает всю оставшуюся ширину; обычные слова переносятся по словам, а очень длинные адреса
+      (USDT, счёт) по-прежнему ломаются, чтобы не вылезать.
+   2) Кнопка «Прикрепить скриншот перевода» (.payment-btn.ghost) была ярко-жёлтой (#F5C518→#FFE066) — вне фирменной палитры
+      и вопреки названию «ghost». Теперь контурная золотая кнопка, как остальные вторичные кнопки. Только CSS. */
+@media (max-width:640px){
+  .platform-req-row{flex-wrap:wrap; row-gap:4px;}
+  .platform-req-label{flex:0 0 100%; min-width:0;}
+  .platform-req-value{min-width:0; word-break:normal; overflow-wrap:anywhere;}
+}
+
+/* ===== Кабинет отеля на компьютере: красная плашка «Отель не опубликован» ломала раскладку (20.09.2026, визуальный агент) =====
+   #app.open — flex-строка [sidebar][main]. Когда показана плашка #noPhoBanner (у отеля нет фото — то есть при первом входе), она
+   становилась ТРЕТЬИМ flex-элементом в той же строке: занимала слева ~690px (по ширине своего текста), сдвигала боковое
+   меню в середину экрана и сжимала рабочую область до ~350px на экране 1280px (кнопки, таблицы и заголовки обрезались
+   overflow-x:hidden). Теперь плашка — отдельная первая строка на всю ширину, ниже — меню и рабочая область.
+   На ≤900px раскладка уже колонкой, там правило не нужно. Только CSS. */
+@media (min-width:901px){
+  #app.open{flex-wrap:wrap;}
+  #noPhoBanner{flex:0 0 100%; box-sizing:border-box;}
+}
+
+/* ===== Размер кнопок и полей под палец на телефоне (20.09.2026, визуальный агент) =====
+   По просьбе владельца: на телефонах (≤640px) кнопки, списки, поля ввода и вкладки — не ниже 40px по высоте (замер показал
+   ~160 элементов высотой 24–37px: «К текущему», «Синхронизация», «Проверить звук», языковой выбор, вкладки, поля ввода, «✕»
+   и др.). Внешний вид (цвета, шрифты, скругления) прежний — растёт только высота/область нажатия. Ссылки внутри текста и
+   подписи полей не трогаем (это не отдельные цели нажатия). Только CSS; на экранах шире 640px без изменений. */
+@media (max-width:640px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
+
+/* Остальные мелкие цели нажатия на телефоне: «глаз» пароля и крестик удаления фото (увеличиваем невидимую область нажатия,
+   вид не меняется), отдельные ссылки на документы (по одной в строке), кнопка в красной плашке, языковой выбор в верхней
+   полосе кабинета отеля (был 32px). Только CSS. */
+@media (max-width:640px){
+  .eye{position:absolute;}
+  .eye::after{content:''; position:absolute; inset:-11px;}
+  span[onclick*="removeClassImage"]::after, span[onclick*="removePhoto"]::after{content:''; position:absolute; inset:-11px;}
+  div > a[href$=".html"]:only-child{display:inline-block; padding:12px 0;}
+  #noPhoBanner button{min-height:40px;}
+  .sidebar .sidebar-foot .lang-btn{min-height:40px;}
+}
+
+/* Ссылки на документы в подвале экрана входа (flex-строка) и «Забыли пароль?» — были высотой 14px. Область нажатия 40px. Только CSS. */
+@media (max-width:640px){
+  div[style*="justify-content:center"] > a[href$=".html"]{display:inline-flex; align-items:center; min-height:40px; padding:0 4px;}
+  .link-btn{display:inline-flex; align-items:center; min-height:40px; padding-top:0; padding-bottom:0;}
+}
+
+/* ===== Видимый фокус клавиатуры (20.09.2026, визуальный агент) =====
+   У части элементов (языковой выбор, выпадающие списки, поля входа) при навигации с клавиатуры/переключателем фокус не был
+   виден — не понять, где находишься. Единый фирменный золотой контур для кнопок, ссылок и списков и мягкое золотое
+   свечение для полей ввода. Срабатывает только при клавиатурной навигации (:focus-visible) — для мыши/пальца вид прежний. Только CSS. */
+button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible, [tabindex]:focus-visible{outline:2px solid #B8954D; outline-offset:2px;}
+input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; box-shadow:0 0 0 3px rgba(184,149,77,.22);}
+
+/* То же для телефона в альбомной ориентации (высота ≤480px, ширина до 932px): это тоже телефон — области нажатия ≥40px. */
+@media (max-height:480px) and (max-width:932px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
 </style>
 <!-- Tesseract.js — OCR для распознавания суммы на скриншоте банковского перевода/СБП.
      Грузится с CDN лениво (см. ensureTesseractLoaded()), поэтому здесь просто
@@ -1268,7 +1890,175 @@ const LS = {
   remove:(k)=>{ try{localStorage.removeItem(k);}catch(e){delete _memStore[k];} }
 };
 
-// ============================================================
+// ---------- подключение к реальному серверу Corronyx (19.09.2026) ----------
+// ВАЖНО: до этого момента отель хранился ЦЕЛИКОМ в localStorage браузера —
+// удобно для черновика, но данные не пережили бы переустановку браузера и
+// не были видны с другого устройства. Теперь источник правды — сервер;
+// localStorage остаётся ТОЛЬКО быстрым локальным кэшем той же формы, что
+// уже умеет читать весь остальной код этого файла (renderAll и т.д.),
+// поэтому сотни существующих мест чтения ниже НЕ пришлось переписывать.
+//
+// CX_API_BASE указывает на настоящий сервер. Пока сервер нигде не развёрнут
+// (см. заметку владельца — хостинг ещё не подключали), тут заглушка — как
+// только появится реальный адрес (SprintHost или другой), достаточно
+// поменять ЭТУ ОДНУ строку.
+const CX_API_BASE = window.CX_API_BASE || 'https://api.corronyx.ru';
+
+const CxApi = {
+  token(){ return LS.get('cx_hp_jwt') || ''; },
+  async call(method, path, body){
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    const tok = this.token();
+    if (tok) opts.headers['Authorization'] = 'Bearer ' + tok;
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    let res, data;
+    try {
+      res = await fetch(CX_API_BASE + path, opts);
+    } catch (networkErr) {
+      // Сервер недоступен (не развёрнут, нет интернета, CORS и т.п.) —
+      // раньше такой ошибки в принципе не могло быть (всё было в
+      // localStorage). Теперь это реальная ситуация, и человеку нужно
+      // понятное сообщение, а не тихий сбой.
+      const e = new Error('network');
+      e.isNetwork = true;
+      throw e;
+    }
+    try { data = await res.json(); } catch(e) { data = {}; }
+    if (!res.ok) {
+      const e = new Error(data.error || 'request_failed');
+      e.status = res.status; e.payload = data;
+      throw e;
+    }
+    return data;
+  },
+  get(path){ return this.call('GET', path); },
+  post(path, body){ return this.call('POST', path, body); },
+  put(path, body){ return this.call('PUT', path, body); },
+  del(path){ return this.call('DELETE', path); }
+};
+
+// Превращает ответ сервера (hotel + rooms[] реляционно) в объект той же
+// ФОРМЫ, что раньше жила целиком в localStorage — чтобы renderAll() и
+// десятки других мест ниже, которые читают this.hotel.name/.city/.rooms
+// синхронно, продолжали работать без изменений.
+function cxMapServerHotelToLocal(h){
+  return {
+    id: String(h.id), accType: h.account_type, name: h.name, country: h.country,
+    city: h.city, stars: h.class ? Number(h.class) : 0, address: h.address || '',
+    phone: h.phone || '', desc: h.desc || '', email: h.email || '',
+    inn: h.inn, reestrNumber: h.reestr_number, finObespechenie: h.fin_obespechenie, sfera: h.sfera,
+    status: h.status, refCode: h.referred_by_code || null,
+    // ИЗМЕНЕНО 19.09.2026: сервер теперь отдаёт номер класса в форме,
+    // близкой к старой ("Стандарт" + basePrice + area/beds/view/img/
+    // description), а физические номера — вложенным массивом units[].
+    // Переводим в старую форму roomNumbers[], которую понимает весь
+    // остальной код файла (renderRooms, Шахматка и т.д.). serverId
+    // хранится отдельно от num, чтобы редактирование текста "номера"
+    // (num, произвольная строка типа "101") не путалось с тем, какая
+    // это строка в базе — CxSync ниже использует именно serverId.
+    rooms: (h.rooms || []).map(r => ({
+      id: String(r.id), serverId: r.id, name: r.name, basePrice: r.price_rub,
+      area: r.area || 20, beds: r.beds || '', view: r.view || '', img: r.img || '',
+      description: r.description || '',
+      roomNumbers: (r.units || []).map(u => ({
+        serverId: u.id, num: u.num,
+        price: (u.price_rub !== null && u.price_rub !== undefined) ? u.price_rub : r.price_rub,
+        area: u.area || r.area || 20, beds: u.beds || r.beds || '',
+        images: u.images || []
+      }))
+    }))
+  };
+}
+
+// ---------- синхронизация номеров/физических номеров с сервером ----------
+window._cxDebounce = window._cxDebounce || {};
+function cxDebounced(key, fn, delay){
+  if (window._cxDebounce[key]) clearTimeout(window._cxDebounce[key]);
+  window._cxDebounce[key] = setTimeout(fn, delay || 600);
+}
+// Правки полей (цена, описание, площадь) идут пока человек печатает —
+// синхронизируем с задержкой 600мс после последнего изменения, а не на
+// каждую букву, иначе на каждое нажатие клавиши уходил бы запрос на сервер.
+async function cxSyncRoomClass(room){
+  if (!room.serverId) return; // ещё не создан на сервере — нечего обновлять
+  try {
+    await CxApi.put('/api/hotels/'+HP.hotel.id+'/rooms/'+room.serverId, {
+      name: room.name, price_rub: room.basePrice, area: room.area,
+      beds: room.beds, view: room.view, img: room.img, description: room.description
+    });
+  } catch (e) {
+    console.error('Не удалось сохранить класс номера на сервере', e);
+    toast(e.isNetwork ? 'Сервер недоступен — изменения сохранены только локально' : 'Не удалось сохранить на сервере', 'error');
+  }
+}
+async function cxSyncUnit(roomServerId, unit){
+  if (!unit.num) return; // сервер не примет физический номер без названия (num)
+  try {
+    if (unit.serverId) {
+      await CxApi.put('/api/hotels/'+HP.hotel.id+'/rooms/'+roomServerId+'/units/'+unit.serverId, {
+        num: unit.num, price_rub: unit.price, area: unit.area, beds: unit.beds, images: unit.images || []
+      });
+    } else {
+      const created = await CxApi.post('/api/hotels/'+HP.hotel.id+'/rooms/'+roomServerId+'/units', {
+        num: unit.num, price_rub: unit.price, area: unit.area, beds: unit.beds
+      });
+      unit.serverId = created.id; // запоминаем, чтобы дальнейшие правки шли через PUT, не POST
+    }
+  } catch (e) {
+    console.error('Не удалось сохранить физический номер на сервере', e);
+    if (e.payload && e.payload.error === 'num_already_exists') {
+      toast('Номер «'+unit.num+'» уже существует в этом классе', 'error');
+    } else {
+      toast(e.isNetwork ? 'Сервер недоступен — изменения сохранены только локально' : 'Не удалось сохранить на сервере', 'error');
+    }
+  }
+}
+
+// ---------- синхронизация броней с сервером ----------
+// Переводит серверную бронь (реляционная, с массивом segments[]) в форму,
+// которую ждёт весь остальной код файла (renderBookings/renderChess/
+// renderDashboard/renderPayouts) — ту же, что раньше жила целиком в
+// cx_bookings. roomAssignments — прямое отражение segments[] с сервера
+// (переселение посреди брони, см. серверную часть от 19.09.2026).
+function cxMapServerBookingToLocal(b, hotelId){
+  const nights = Math.round((new Date(b.checkout) - new Date(b.checkin)) / 86400000);
+  return {
+    id: 'CX-'+b.id, bookingId: 'CX-'+b.id, serverId: b.id, hotelId,
+    roomClassId: String(b.room_id), roomName: b.room_name,
+    checkin: b.checkin, checkout: b.checkout, nights,
+    requestedRoomNumber: b.requested_room_number || '',
+    total: b.total_price_rub, basePrice: nights ? b.total_price_rub/nights : b.total_price_rub,
+    pointsApplied: b.points_applied || 0,
+    firstName: b.guest_first_name || '', lastName: b.guest_last_name || '',
+    guestName: (b.guest_first_name||'')+' '+(b.guest_last_name||''),
+    guest: (b.guest_first_name||'')+' '+(b.guest_last_name||''),
+    email: b.guest_email || '', phone: b.guest_phone || '',
+    status: b.status, createdAt: b.created_at,
+    source: 'site', payStatus: b.paid ? 'paid' : 'pending', guestPaid: !!b.paid,
+    commissionSettled: !!b.commission_settled,
+    roomAssignments: (b.segments || []).map(s => ({
+      segmentServerId: s.id, roomNumber: s.unit_num, roomUnitId: s.room_unit_id,
+      checkin: s.checkin, checkout: s.checkout
+    })),
+    roomNumber: (b.segments && b.segments[0]) ? b.segments[0].unit_num : '',
+    roomNum: (b.segments && b.segments[0]) ? b.segments[0].unit_num : ''
+  };
+}
+async function cxRefreshBookingsCache(){
+  if (!HP.hotel) return;
+  try {
+    const resp = await CxApi.get('/api/hotels/bookings');
+    const mapped = resp.bookings.map(b => cxMapServerBookingToLocal(b, HP.hotel.id));
+    // ВАЖНО: заменяем ТОЛЬКО брони этого отеля, остальные (если в этом же
+    // браузере тестировался другой аккаунт) не трогаем.
+    const others = LS.getJSON('cx_bookings', []).filter(b => b.hotelId !== HP.hotel.id);
+    LS.setJSON('cx_bookings', [...others, ...mapped]);
+  } catch (e) {
+    console.error('Не удалось обновить брони с сервера', e);
+  }
+}
+
+
 // TON-ПЛАТЕЖИ — идентичный блок есть в partner-portal.html/afisha-portal.html,
 // см. подробный комментарий там. Сеть TON (не TRC20/Tron) — потому что кошелёк
 // у владельца платформы TonKeeper, а он именно TON-кошелёк.
@@ -1756,7 +2546,7 @@ const T = {
  f_usdt:{ru:'USDT кошелёк (TON)',en:'USDT wallet (TON)'}, f_sbp:{ru:'СБП (телефон/банк)',en:'SBP (phone/bank)'},
  profile_saved:{ru:'Профиль сохранён',en:'Profile saved'},
  login_err:{ru:'Неверный пароль',en:'Invalid password'},
- ai_name:{ru:'Помощник отеля',en:'Hotel Assistant'},
+ ai_name:{ru:'Corronyx Agent',en:'Corronyx Agent'},
  ai_ph:{ru:'Спросите о бронях, номерах, выплатах...',en:'Ask about bookings, rooms, payouts...'},
  ai_greet:{ru:'Здравствуйте! Я помогу с информацией по вашему отелю: бронирования, доходы, выплаты, номера.',en:'Hello! I can help with information about your hotel: bookings, revenue, payouts, rooms.'},
  ai_fallback:{ru:'Спросите, например: «сколько броней ожидают подтверждения» или «когда следующая выплата».',en:'Try asking, for example: "how many bookings are pending" or "when is the next payout".'}
@@ -1840,35 +2630,45 @@ const HP = {
     btn.textContent=isText?'👁':'🙈';
   },
   /* ---- Восстановление пароля по email (тот же механизм и общий ключ cx_password_resets, что в afisha/partner-portal) ---- */
-  sendResetCode(){
+  async sendResetCode(){
     const email=document.getElementById('forgotEmail').value.trim().toLowerCase();
     const errEl=document.getElementById('forgotErr1');
     errEl.textContent='';
     if(!email){ errEl.textContent=t('err_fill_all'); return; }
-    const acc=this.getAllAccounts().find(a=>a.email===email);
-    if(!acc){ errEl.textContent=t('err_email_not_found'); return; }
-    const isDemo=!LS.getJSON('cx_hotel_accounts',[]).find(a=>a.email===email);
-    if(isDemo){ errEl.textContent='Пароль демо-аккаунтов менять нельзя — используйте пароль с экрана входа.'; return; }
 
-    const code=String(Math.floor(100000+Math.random()*900000));
-    const resets=LS.getJSON('cx_password_resets',[]).filter(r=>r.email!==email);
-    resets.push({email, code, expiresAt:Date.now()+15*60*1000});
-    LS.setJSON('cx_password_resets', resets);
+    // ИЗМЕНЕНО 19.09.2026: код теперь генерирует СЕРВЕР (та же логика, что
+    // /api/auth/password-reset/request), а не localStorage — иначе сброс
+    // пароля с одного устройства не мог бы подействовать на сервере.
+    // Сервер намеренно отвечает {ok:true} даже для незарегистрированной
+    // почты (чтобы через эту форму нельзя было проверять чужие email),
+    // поэтому реального "email не найден" здесь больше не будет — вместо
+    // этого просто показываем следующий шаг в любом случае.
+    let resp;
+    try {
+      resp = await CxApi.post('/api/auth/password-reset/request', { email });
+    } catch (e) {
+      errEl.textContent = e.isNetwork ? 'Сервер недоступен. Попробуйте ещё раз позже.' : t('err_fill_all');
+      console.error('sendResetCode failed', e);
+      return;
+    }
     this._resetEmailInProgress=email;
     const devNote=document.getElementById('forgotDevNote');
+    const code = resp.dev_code; // временно, пока нет реальной отправки почты сервером
     const c=(typeof getEmailjsConfig==='function') ? getEmailjsConfig() : {};
-    if(typeof emailjs!=='undefined' && c.service && c.templateRecovery && c.pub){
+    if(code && typeof emailjs!=='undefined' && c.service && c.templateRecovery && c.pub){
       ensureEmailjsInit(c.pub);
       emailjs.send(c.service, c.templateRecovery, {to_email:email, reset_code:code})
         .then(()=>{ devNote.classList.add('hidden'); })
         .catch(()=>{ devNote.classList.remove('hidden'); devNote.textContent=t('reset_dev_note')+code; });
-    } else {
+    } else if (code) {
       devNote.classList.remove('hidden');
       devNote.textContent=t('reset_dev_note')+code;
+    } else {
+      devNote.classList.add('hidden');
     }
     this.showTab('forgot2');
   },
-  confirmReset(){
+  async confirmReset(){
     const email=this._resetEmailInProgress;
     const code=document.getElementById('resetCode').value.trim();
     const p1=document.getElementById('resetNewPass').value;
@@ -1878,15 +2678,16 @@ const HP = {
     if(!code||!p1||!p2){ errEl.textContent=t('err_fill_all'); return; }
     if(p1.length<6){ errEl.textContent='Пароль минимум 6 символов'; return; }
     if(p1!==p2){ errEl.textContent=t('reg_pass_mismatch'); return; }
-    const resets=LS.getJSON('cx_password_resets',[]);
-    const entry=resets.find(r=>r.email===email && r.code===code && r.expiresAt>Date.now());
-    if(!entry){ errEl.textContent=t('err_code_invalid'); return; }
-    const accounts=LS.getJSON('cx_hotel_accounts',[]);
-    const idx=accounts.findIndex(a=>a.email===email);
-    if(idx<0){ errEl.textContent=t('err_email_not_found'); return; }
-    accounts[idx].password=p1;
-    LS.setJSON('cx_hotel_accounts', accounts);
-    LS.setJSON('cx_password_resets', resets.filter(r=>r.email!==email));
+    try {
+      await CxApi.post('/api/auth/password-reset/confirm', { email, code, new_password: p1 });
+    } catch (e) {
+      if (e.isNetwork) errEl.textContent = 'Сервер недоступен. Попробуйте ещё раз позже.';
+      else if (e.payload && e.payload.error==='bad_code') errEl.textContent = t('err_code_invalid');
+      else if (e.payload && e.payload.error==='code_expired') errEl.textContent = t('err_code_invalid');
+      else errEl.textContent = t('err_code_invalid');
+      console.error('confirmReset failed', e);
+      return;
+    }
     document.getElementById('hpEmail').value=email;
     document.getElementById('hpPass').value='';
     this.showTab('login');
@@ -2038,7 +2839,7 @@ Contact: Corronyx@gmail.com
     document.body.appendChild(overlay);
   },
   closeKPModal(){ document.querySelectorAll('.sw-pay-modal-overlay').forEach(o=>o.remove()); },
-  register(){
+  async register(){
     const email=document.getElementById('regEmail').value.trim();
     const pass=document.getElementById('regPass').value;
     const pass2=document.getElementById('regPass2').value;
@@ -2048,64 +2849,102 @@ Contact: Corronyx@gmail.com
     if(pass.length<6){ err.textContent='Пароль минимум 6 символов'; return; }
     if(pass!==pass2){ err.textContent=t('reg_pass_mismatch'); return; }
     if(!agree){ err.textContent='Необходимо принять условия договора'; return; }
-    if(this.getAllAccounts().find(a=>a.email.trim().toLowerCase()===email.toLowerCase())){ err.textContent=t('reg_exists'); return; }
 
-    if(this.accType==='touroperator'){
+    // ИЗМЕНЕНО 19.09.2026: регистрация теперь идёт на сервер, а не в
+    // localStorage. Источник правды — сервер, поэтому дубликат email
+    // проверяет ОН (наш локальный кэш мог устареть или не видеть
+    // аккаунты, созданные с другого устройства).
+    const isTop = this.accType==='touroperator';
+    const body = { email, password: pass, role: isTop ? 'touroperator' : 'hotel' };
+    const refCode = LS.get('cx_active_ref');
+    if (refCode) body.referral_code = refCode;
+
+    let hotelBody;
+    if (isTop) {
       const topName=document.getElementById('topName').value.trim();
       const topInn=document.getElementById('topInn').value.trim();
       const topReestr=document.getElementById('topReestr').value.trim();
       const topFin=document.getElementById('topFinObespechenie').value.trim();
       const topSfera=document.getElementById('topSfera').value;
       if(!topName||!topInn||!topReestr||!topFin||!email||!pass){ err.textContent=t('reg_required'); return; }
-      const accounts=LS.getJSON('cx_hotel_accounts', []);
-      const acc={
-        email, password:pass, id:'top_'+Date.now(), accType:'touroperator',
-        name:topName, inn:topInn, reestrNumber:topReestr, finObespechenie:topFin, sfera:topSfera,
-        agreedToTermsAt:new Date().toISOString(), agreedDocsVersion:'1.0',
-        country:'RU', city:'', stars:0, address:'', phone:'', desc:'', rooms:[],
-        refCode: LS.get('cx_active_ref')||null
-      };
-      accounts.push(acc); LS.setJSON('cx_hotel_accounts', accounts);
-      LS.set('cx_hotel_status_'+acc.id, 'pending_verification');
-      // Уведомляем админа — без этого заявка "молча" висит в pending_verification и
-      // никто о ней не узнаёт (нужна проверка номера в реестре туроператоров, см. 132-ФЗ Rider).
-      const opNotes=LS.getJSON('cx_admin_notifications', []);
-      opNotes.unshift({id:'N'+Date.now(), text:(LANG==='ru'?`Новая заявка туроператора «${topName}» (реестр №${topReestr}) — требуется проверка перед активацией`:`New tour operator application "${topName}" (registry #${topReestr}) — verification required before activation`), read:false, createdAt:new Date().toISOString()});
-      LS.setJSON('cx_admin_notifications', opNotes);
-      err.style.color='var(--ok)'; err.textContent='Заявка принята. Статус: ожидает проверки реестра туроператоров.';
-      setTimeout(()=>{ this.showTab('login'); document.getElementById('hpEmail').value=email; }, 1500);
+      hotelBody = { account_type:'touroperator', name:topName, inn:topInn, reestr_number:topReestr, fin_obespechenie:topFin, sfera:topSfera, referral_code: refCode || undefined };
+    } else {
+      const name=document.getElementById('regName').value.trim();
+      const country=document.getElementById('regCountry').value||'RU';
+      const city=document.getElementById('regCity').value.trim();
+      const address=document.getElementById('regAddress').value.trim();
+      const stars=+document.getElementById('regStars').value;
+      if(!name||!city||!address||!email||!pass){ err.textContent=t('reg_required'); return; }
+      hotelBody = { account_type:'hotel', name, country, city, class: stars, referral_code: refCode || undefined };
+    }
+
+    try {
+      await CxApi.post('/api/register', body);
+      const loginRes = await CxApi.post('/api/login', { email, password: pass });
+      LS.set('cx_hp_jwt', loginRes.token);
+      // Регистрация организации требует токен только что созданного
+      // пользователя — поэтому логин делаем ДО создания отеля/туроператора,
+      // а не после (иначе /api/hotels ответит 401).
+      await CxApi.post('/api/hotels', hotelBody);
+    } catch (e) {
+      if (e.isNetwork) {
+        err.textContent = 'Сервер недоступен. Проверьте интернет-соединение и попробуйте снова.';
+      } else if (e.payload && e.payload.error === 'bad_role') {
+        err.textContent = 'Такая роль недоступна для регистрации.';
+      } else if (e.status === 400 && e.payload && e.payload.error) {
+        err.textContent = t('reg_required');
+      } else if (e.status === 401 && e.payload && e.payload.error === 'bad_credentials') {
+        err.textContent = t('reg_exists'); // email уже занят на сервере — регистрация 200, но повторная почти невозможна; на практике сюда почти не попадём
+      } else {
+        err.textContent = t('reg_required');
+      }
+      console.error('HP.register failed', e);
       return;
     }
 
-    const name=document.getElementById('regName').value.trim();
-    const country=document.getElementById('regCountry').value||'RU';
-    const city=document.getElementById('regCity').value.trim();
-    const address=document.getElementById('regAddress').value.trim();
-    const stars=+document.getElementById('regStars').value;
-    if(!name||!city||!address||!email||!pass){ err.textContent=t('reg_required'); return; }
-    const accounts=LS.getJSON('cx_hotel_accounts', []);
-    const acc={
-      email, password:pass, id:'h_'+Date.now(), accType:'hotel', name, country, city, stars, address,
-      phone:'', desc:'', rooms:[], agreedToTermsAt:new Date().toISOString(), agreedDocsVersion:'1.0',
-      // Реферальный код отеля (кто привёл ИМЕННО этот отель, не гостя) —
-      // см. addHotelReferralCredit ниже, начисление идёт с КОМИССИИ, которую
-      // отель платит Corronyx, не с брони гостя (это отдельный, уже
-      // работающий механизм в submitBooking/index.html).
-      refCode: LS.get('cx_active_ref')||null
-    };
-    accounts.push(acc); LS.setJSON('cx_hotel_accounts', accounts);
-    LS.set('cx_hotel_status_'+acc.id, 'active');
-    err.style.color='var(--ok)'; err.textContent=t('reg_success');
-    setTimeout(()=>{ this.showTab('login'); document.getElementById('hpEmail').value=email; }, 1200);
+    err.style.color='var(--ok)';
+    err.textContent = isTop
+      ? 'Заявка принята. Статус: ожидает проверки реестра туроператоров.'
+      : t('reg_success') + ' Заявка отправлена на проверку модератору.';
+    setTimeout(()=>{ this.showTab('login'); document.getElementById('hpEmail').value=email; }, 1500);
   },
-  login(){
+  async login(){
     const email=document.getElementById('hpEmail').value.trim().toLowerCase();
     const pass=document.getElementById('hpPass').value;
-    const acc=this.getAllAccounts().find(a=>a.email.trim().toLowerCase()===email && a.password===pass);
-    if(!acc){ document.getElementById('loginErr').textContent=t('login_err'); return; }
+    const errEl=document.getElementById('loginErr');
+    errEl.textContent='';
+    let loginRes, me;
+    try {
+      loginRes = await CxApi.post('/api/login', { email, password: pass });
+      LS.set('cx_hp_jwt', loginRes.token);
+      me = await CxApi.get('/api/hotels/me');
+    } catch (e) {
+      if (e.isNetwork) {
+        errEl.textContent = 'Сервер недоступен. Проверьте интернет-соединение и попробуйте снова.';
+      } else if (e.status === 401) {
+        errEl.textContent = t('login_err');
+      } else if (e.status === 404) {
+        // Токен получен (роль верная), но записи отеля ещё нет —
+        // теоретически не должно случиться при нормальной регистрации.
+        errEl.textContent = t('login_err');
+      } else {
+        errEl.textContent = t('login_err');
+      }
+      console.error('HP.login failed', e);
+      return;
+    }
+    const acc = cxMapServerHotelToLocal(me);
+    acc.email = email;
+    // Кладём в тот же локальный кэш, что и раньше — весь остальной код
+    // файла (renderAll, вкладки и т.д.) продолжает читать из него
+    // синхронно и не замечает разницы.
+    const accounts = LS.getJSON('cx_hotel_accounts', []).filter(a=>a.id!==acc.id);
+    accounts.push(acc);
+    LS.setJSON('cx_hotel_accounts', accounts);
     this.hotel=acc;
     LS.set('cx_hp_session', acc.id);
     this.ensureRoomsSeed();
+    await cxRefreshBookingsCache();
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').classList.add('open');
     document.getElementById('sbHotelName').textContent = acc.name+' · '+acc.city;
@@ -2114,6 +2953,7 @@ Contact: Corronyx@gmail.com
   },
   logout(){
     LS.set('cx_hp_session','');
+    LS.remove('cx_hp_jwt');
     document.getElementById('app').classList.remove('open');
     document.getElementById('loginScreen').style.display='flex';
     document.getElementById('hpEmail').value=''; document.getElementById('hpPass').value=''; document.getElementById('loginErr').textContent='';
@@ -2251,12 +3091,28 @@ Contact: Corronyx@gmail.com
   },
 
   /* ---- rooms storage (per hotel, shared origin -> cx_rooms_{hotelId}) ---- */
+  // ИЗМЕНЕНО 19.09.2026: раньше сидировала кэш только один раз при первом
+  // входе — дальше кэш никогда не обновлялся с сервера, даже если номера
+  // менялись с другого устройства. Теперь source of truth — сервер, и мы
+  // ВСЕГДА перезаписываем локальный кэш свежими данными сразу после
+  // login()/init() (это и есть единственные два места, откуда её вызывают).
+  // Локальные несохранённые правки при этом не теряются — если синхронизация
+  // с сервером работает как надо, к моменту следующего входа они уже там же.
   ensureRoomsSeed(){
     const key='cx_rooms_'+this.hotel.id;
-    if(!LS.get(key)){
-      const seeded = this.hotel.rooms.map(r=>({...r, roomNumbers: (r.roomNumbers||['101','102','103']).map(n=> typeof n==='object'?{num:n.num, price:(n.price!=null?n.price:r.basePrice), area:(n.area!=null?n.area:r.area), beds:(n.beds!=null?n.beds:r.beds), img:n.img||''}:{num:n, price:r.basePrice, area:r.area, beds:r.beds, img:''}), images: r.images || (r.img?[r.img]:[]) }));
-      LS.setJSON(key, seeded);
-    }
+    // ВАЖНО: сохраняем serverId и на классе, и на каждом физическом номере —
+    // без него нечего было бы синхронизировать обратно на сервер при
+    // редактировании (см. HP.syncRoomClassToServer/syncUnitToServer ниже).
+    const seeded = this.hotel.rooms.map(r=>({
+      ...r,
+      roomNumbers: (r.roomNumbers||['101','102','103']).map(n=>
+        typeof n==='object'
+          ? {serverId:n.serverId, num:n.num, price:(n.price!=null?n.price:r.basePrice), area:(n.area!=null?n.area:r.area), beds:(n.beds!=null?n.beds:r.beds), images:n.images||(n.img?[n.img]:[])}
+          : {num:n, price:r.basePrice, area:r.area, beds:r.beds, images:[]}
+      ),
+      images: r.images || (r.img?[r.img]:[])
+    }));
+    LS.setJSON(key, seeded);
   },
   getRooms(){
     const rooms = LS.getJSON('cx_rooms_'+this.hotel.id, this.hotel.rooms);
@@ -2913,16 +3769,36 @@ Contact: Corronyx@gmail.com
     });
     if(changed) LS.setJSON('cx_referral_ledger', ledger);
   },
-  setBookingStatus(id, status){
+  async setBookingStatus(id, status){
     const all=LS.getJSON('cx_bookings', []);
     const b=all.find(x=>x.id===id); if(!b) return;
+
+    // ИЗМЕНЕНО 19.09.2026: бронь теперь реальная запись на сервере — сервер
+    // и есть источник истины по статусу и по реферальному начислению
+    // (tryCreditReferral там же). У сервера нет отдельного статуса
+    // "отклонена" (rejected) — это осознанное упрощение: 'rejected' и ручная
+    // отмена ведут на один и тот же /cancel, сервер хранит их одинаково как
+    // 'cancelled'. Название кнопки у отеля при этом не меняется.
+    if (b.serverId) {
+      try {
+        if (status === 'confirmed') await CxApi.post('/api/hotels/bookings/'+b.serverId+'/confirm', {});
+        else await CxApi.post('/api/hotels/bookings/'+b.serverId+'/cancel', {});
+      } catch (e) {
+        toast(e.isNetwork ? 'Сервер недоступен — статус не изменён' : 'Не удалось изменить статус на сервере: '+(e.payload&&e.payload.error||''), 'error');
+        console.error('setBookingStatus failed', e);
+        return;
+      }
+      await cxRefreshBookingsCache();
+      this.renderBookings(); this.renderDashboard();
+      toast(LANG==='ru'?'Статус обновлён':'Status updated');
+      return;
+    }
+
+    // Старый локальный путь — оставлен для тестовых/легаси-данных без
+    // серверного id (не должно встречаться в реальной работе после этого
+    // обновления, все новые брони приходят с сервера уже с serverId).
     b.status=status; LS.setJSON('cx_bookings', all);
-    // Возврат зарезервированных баллов гостя, если бронь отклонена (см. index.html:
-    // submitBooking — резервирование через cx_referral_spent при создании брони).
     if(status==='rejected') this._refundReferralOnCancel(b);
-    // Переносим статус в леджере реферальных баллов (см. index.html: addReferralLedgerEntry).
-    // 'confirmed' = отель подтвердил получение оплаты -> запись переходит в hold на 10 дней
-    // (см. Политику лояльности п.2.2-2.4). 'rejected' обрабатывается выше, в _refundReferralOnCancel.
     if(status==='confirmed'){
       const ledger=LS.getJSON('cx_referral_ledger', []);
       let changed=false;
@@ -2936,7 +3812,6 @@ Contact: Corronyx@gmail.com
       });
       if(changed) LS.setJSON('cx_referral_ledger', ledger);
     }
-    // notify admin + hotel breakdown (см. п.4.2а Договора об оказании услуг по продвижению: сумма/баллы/комиссия сразу при подтверждении)
     const notes=LS.getJSON('cx_admin_notifications', []);
     let noteText=(LANG==='ru'?`Бронь ${id} в ${this.hotel.name}: `:`Booking ${id} at ${this.hotel.name}: `)+status;
     if(status==='confirmed'){
@@ -3048,6 +3923,9 @@ Contact: Corronyx@gmail.com
     const rooms=this.getRooms();
     const r=rooms.find(x=>x.id===id); if(!r) return;
     if(!r.roomNumbers) r.roomNumbers=[];
+    // Новый физический номер без названия (num) существует пока ТОЛЬКО
+    // локально — сервер не примет пустой num (см. cxSyncUnit). Как только
+    // владелец впишет номер через updateUnit(), он попадёт на сервер.
     r.roomNumbers.push({num:'', price:r.basePrice, area:r.area||20, beds:r.beds||'', images:[]});
     this.setRooms(rooms); this.renderRooms();
   },
@@ -3069,6 +3947,14 @@ Contact: Corronyx@gmail.com
         return;
       }
       toast(LANG==='ru'?'Фото добавлены':'Photos added');
+      // ИЗМЕНЕНО 19.09.2026: фото теперь уходят и на сервер (не мгновенно
+      // на каждый кадр — упаковано в общий cxSyncUnit после сжатия всех).
+      // ВНИМАНИЕ владельцу: фото хранятся как data-URL строки прямо в
+      // JSON-поле — рабочий вариант для нескольких фото, но для реального
+      // объёма (десятки номеров с 6 фото каждый) базе станет тесно;
+      // правильное решение на будущее — отдельная загрузка файлов
+      // (multipart) с раздачей по ссылке, не через JSON.
+      cxSyncUnit(r.serverId, n);
     }).catch(()=>{
       toast(LANG==='ru'?'Не удалось обработать файл':'Could not process the file', 'error');
     });
@@ -3079,17 +3965,34 @@ Contact: Corronyx@gmail.com
     const n=r.roomNumbers[idx]; if(!n||!n.images) return;
     n.images.splice(imgIdx,1);
     this.setRooms(rooms); this.renderRooms();
+    cxSyncUnit(r.serverId, n);
   },
   updateUnit(id, idx, field, value){
     const rooms=this.getRooms();
     const r=rooms.find(x=>x.id===id); if(!r) return;
     const n=r.roomNumbers[idx]; if(!n) return;
     n[field]=value; this.setRooms(rooms); this.renderRooms();
+    // Правки полей с задержкой (не на каждую букву) — ключ на юнит, не на
+    // класс, чтобы правки разных физических номеров не гасили друг друга.
+    cxDebounced('unit:'+id+':'+idx, ()=>cxSyncUnit(r.serverId, n));
   },
   removeUnit(id, idx){
     const rooms=this.getRooms();
     const r=rooms.find(x=>x.id===id); if(!r) return;
+    const n=r.roomNumbers[idx];
     r.roomNumbers.splice(idx,1); this.setRooms(rooms); this.renderRooms();
+    if (n && n.serverId) {
+      CxApi.del('/api/hotels/'+this.hotel.id+'/rooms/'+r.serverId+'/units/'+n.serverId).catch(e=>{
+        console.error('Не удалось удалить физический номер на сервере', e);
+        if (e.payload && e.payload.error === 'has_active_bookings') {
+          toast('На этом номере есть активные брони — удалён только локально, на сервере остался. Перезагрузите страницу.', 'error');
+        } else if (e.payload && e.payload.error === 'last_unit') {
+          toast('Нельзя было удалить последний номер класса — удалён только локально, на сервере остался. Перезагрузите страницу.', 'error');
+        } else {
+          toast(e.isNetwork ? 'Сервер недоступен — удалено только локально' : 'Не удалось удалить на сервере', 'error');
+        }
+      });
+    }
   },
   // Одно фото на класс — общая обложка (см. вопрос владельца: "на класс — только 1 фото").
   uploadClassImage(id, files){
@@ -3101,6 +4004,7 @@ Contact: Corronyx@gmail.com
       if(!this.verifyPersisted('cx_rooms_'+this.hotel.id)){
         toast(LANG==='ru'?'⚠️ Не хватило места в хранилище браузера — фото НЕ сохранилось.':'⚠️ Browser storage is full — photo was NOT saved.', 'error');
       }
+      cxSyncRoomClass(r);
     }).catch(()=>{
       toast(LANG==='ru'?'Не удалось обработать файл':'Could not process the file', 'error');
     });
@@ -3110,6 +4014,7 @@ Contact: Corronyx@gmail.com
     const r=rooms.find(x=>x.id===id); if(!r) return;
     r.img=''; delete r.images;
     this.setRooms(rooms); this.renderRooms();
+    cxSyncRoomClass(r);
   },
   updateRoom(id, field, value){
     const rooms=this.getRooms();
@@ -3117,6 +4022,7 @@ Contact: Corronyx@gmail.com
     r[field]=value;
     if(field==='basePrice' && r.roomNumbers) r.roomNumbers.forEach(n=> n.price=value);
     this.setRooms(rooms); this.renderRooms();
+    cxDebounced('room:'+id, ()=>cxSyncRoomClass(r));
   },
   // Раньше удаляло класс номера мгновенно, без единого вопроса и без всякой
   // проверки — если у класса были текущие/будущие брони, они не терялись из
@@ -3125,7 +4031,12 @@ Contact: Corronyx@gmail.com
   // (getRooms()), а у брони остаётся ссылка на уже несуществующий roomClassId.
   // Отель фактически терял возможность управлять этими бронями (заселить,
   // отменить, увидеть в календаре), хотя обязательства по ним сохранялись.
-  deleteRoom(id){
+  //
+  // ИЗМЕНЕНО 19.09.2026: локальная проверка активных броней оставлена как
+  // быстрая обратная связь (не ждать сервер, чтобы показать alert), но
+  // ОКОНЧАТЕЛЬНОЕ решение — за сервером: он видит брони со всех устройств,
+  // а не только те, что успели попасть в локальный кэш этого браузера.
+  async deleteRoom(id){
     const rooms = this.getRooms();
     const room = rooms.find(r=>r.id===id);
     if(!room) return;
@@ -3138,13 +4049,39 @@ Contact: Corronyx@gmail.com
       return;
     }
     if(!confirm('Удалить класс номера «'+room.name+'» вместе со всеми его физическими номерами и фото? Действие необратимо.')) return;
+    if (room.serverId) {
+      try {
+        await CxApi.del('/api/hotels/'+this.hotel.id+'/rooms/'+room.serverId);
+      } catch (e) {
+        if (e.payload && e.payload.error === 'has_active_bookings') {
+          alert('⛔ Сервер видит активные брони на этот класс (возможно, с другого устройства) — удаление отменено.');
+        } else {
+          toast(e.isNetwork ? 'Сервер недоступен — не удалено' : 'Не удалось удалить на сервере', 'error');
+        }
+        return; // не удаляем локально, если сервер отказал
+      }
+    }
     const newRooms = rooms.filter(r=>r.id!==id);
     this.setRooms(newRooms); this.renderRooms();
     toast('Класс номера удалён');
   },
-  addRoom(){
+  async addRoom(){
+    const draft = { name: LANG==='ru'?'Новый класс номера':'New room class', basePrice:5000, area:20, beds:'1 King size', view:'', img:'', description:'' };
+    let created;
+    try {
+      created = await CxApi.post('/api/hotels/'+this.hotel.id+'/rooms', {
+        name: draft.name, price_rub: draft.basePrice, area: draft.area, beds: draft.beds
+      });
+    } catch (e) {
+      toast(e.isNetwork ? 'Сервер недоступен — класс номера не создан' : 'Не удалось создать класс номера', 'error');
+      return;
+    }
     const rooms=this.getRooms();
-    rooms.push({id:'r'+Date.now(), name: LANG==='ru'?'Новый класс номера':'New room class', basePrice:5000, area:20, beds:'1 King size', view:'', img:'', description:'', roomNumbers:[{num:'101',price:5000,images:[]}]});
+    const autoUnit = (created.units && created.units[0]) || { id: null, num: '101' };
+    rooms.push({
+      id: String(created.id), serverId: created.id, ...draft,
+      roomNumbers: [{ serverId: autoUnit.id, num: autoUnit.num, price: draft.basePrice, area: draft.area, beds: draft.beds, images: [] }]
+    });
     this.setRooms(rooms); this.renderRooms();
     toast(LANG==='ru'?'Класс номера добавлен':'Room class added');
   },
@@ -3252,7 +4189,7 @@ Contact: Corronyx@gmail.com
   // Назначить кусок брони [ci,co) на конкретный номер. Используется и
   // модалкой (клик), и drag-and-drop — единая точка входа с одной и той же
   // проверкой, чтобы оба способа гарантированно не могли создать конфликт.
-  assignSegment(bookingId, roomId, num, ci, co){
+  async assignSegment(bookingId, roomId, num, ci, co){
     if(!this.isRoomFreeForSegment(roomId, num, ci, co, bookingId)){
       toast('⛔ Номер №'+num+' занят на эти даты — выберите другой', 'error');
       return false;
@@ -3260,21 +4197,52 @@ Contact: Corronyx@gmail.com
     const all = LS.getJSON('cx_bookings', []);
     const b = all.find(function(x){ return (x.id||x.bookingId||'')===bookingId; });
     if(!b) return false;
+
+    // ИЗМЕНЕНО 19.09.2026 (решение владельца): переселение посреди брони
+    // теперь реально пишется на сервер как отдельный сегмент — не только
+    // в локальный кэш. Ищем serverId физического номера по его "num"
+    // (строке типа "101") внутри нужного класса.
+    if (b.serverId) {
+      const rooms = this.getRooms();
+      const cls = rooms.find(r=>r.id===roomId);
+      const unit = cls && cls.roomNumbers.find(n=>n.num===num);
+      if (!unit || !unit.serverId) {
+        toast('Этот физический номер ещё не сохранён на сервере — обновите страницу и попробуйте снова', 'error');
+        return false;
+      }
+      try {
+        await CxApi.post('/api/hotels/bookings/'+b.serverId+'/segments', {
+          room_unit_id: unit.serverId, checkin: ci, checkout: co
+        });
+      } catch (e) {
+        if (e.payload && e.payload.error === 'unit_already_occupied') {
+          toast('⛔ Номер №'+num+' занят на эти даты другой бронью — обновите страницу, данные устарели', 'error');
+        } else if (e.payload && e.payload.error === 'overlaps_own_other_segment') {
+          toast('⛔ Пересекается с другим сегментом этой же брони', 'error');
+        } else {
+          toast(e.isNetwork ? 'Сервер недоступен — переселение не сохранено' : 'Не удалось сохранить на сервере', 'error');
+        }
+        console.error('assignSegment failed', e);
+        return false;
+      }
+      await cxRefreshBookingsCache();
+      this.renderChess(); this.renderDashboard();
+      if(document.getElementById('bookingsTable')) this.renderBookings();
+      if(document.getElementById('payoutStats')) this.renderPayouts();
+      toast('Номер №'+num+' назначен: '+ci+' – '+co);
+      return true;
+    }
+
+    // Старый локальный путь — для легаси-данных без serverId.
     if(!b.roomAssignments){
-      // Мигрируем legacy roomNumber (если был) в массив сегментов при первом
-      // ручном изменении — дальше бронь живёт только через roomAssignments.
       const legacyNum = b.roomNumber || b.roomNum;
       b.roomAssignments = (legacyNum && b.checkin && b.checkout) ? [{roomNumber:legacyNum, checkin:b.checkin, checkout:b.checkout}] : [];
     }
     b.roomAssignments.push({roomNumber:num, checkin:ci, checkout:co});
-    b.roomNumber = b.roomNumber || num; b.roomNum = b.roomNum || num; // не ломаем старый код, который читает эти поля
+    b.roomNumber = b.roomNumber || num; b.roomNum = b.roomNum || num;
     LS.setJSON('cx_bookings', all);
     this._autoConfirmIfPending(bookingId);
     this.renderChess();
-    // Раньше эти действия обновляли только Шахматку/таблицу броней — цифры
-    // на Дашборде и во Выплатах оставались "замороженными" до следующей
-    // полной перезагрузки страницы, что и создавало впечатление, будто
-    // назначение номера или отметка оплаты никуда не долетают.
     this.renderDashboard();
     if(document.getElementById('bookingsTable')) this.renderBookings();
     if(document.getElementById('payoutStats')) this.renderPayouts();
@@ -3289,10 +4257,25 @@ Contact: Corronyx@gmail.com
   // "Подтверждена") определяет, какие брони попадают в расчёт комиссии на
   // вкладке "Выплаты" — комиссия не может начисляться на бронь, оплата по
   // которой ещё не подтверждена самим отелем.
-  markGuestPaid(bookingId){
+  async markGuestPaid(bookingId){
     const all = LS.getJSON('cx_bookings', []);
     const b = all.find(x=>(x.id||x.bookingId||'')===bookingId);
     if(!b) return;
+    if (b.serverId) {
+      try {
+        await CxApi.post('/api/hotels/bookings/'+b.serverId+'/mark-paid', {});
+      } catch (e) {
+        toast(e.isNetwork ? 'Сервер недоступен — не сохранено' : 'Не удалось отметить оплату на сервере', 'error');
+        console.error('markGuestPaid failed', e);
+        return;
+      }
+      await cxRefreshBookingsCache();
+      this.renderBookings(); this.renderDashboard();
+      if(document.getElementById('payoutStats')) this.renderPayouts();
+      this.closeAll();
+      toast('✅ Отмечено: гость оплатил проживание');
+      return;
+    }
     b.guestPaid = true; b.guestPaidAt = new Date().toISOString();
     LS.setJSON('cx_bookings', all);
     this._autoConfirmIfPending(bookingId);
@@ -3301,10 +4284,24 @@ Contact: Corronyx@gmail.com
     this.closeAll();
     toast('✅ Отмечено: гость оплатил проживание');
   },
-  unmarkGuestPaid(bookingId){
+  async unmarkGuestPaid(bookingId){
     const all = LS.getJSON('cx_bookings', []);
     const b = all.find(x=>(x.id||x.bookingId||'')===bookingId);
     if(!b) return;
+    if (b.serverId) {
+      try {
+        await CxApi.post('/api/hotels/bookings/'+b.serverId+'/unmark-paid', {});
+      } catch (e) {
+        toast(e.isNetwork ? 'Сервер недоступен — не сохранено' : 'Не удалось отменить отметку на сервере', 'error');
+        console.error('unmarkGuestPaid failed', e);
+        return;
+      }
+      await cxRefreshBookingsCache();
+      this.renderBookings(); this.renderDashboard();
+      if(document.getElementById('payoutStats')) this.renderPayouts();
+      this.closeAll();
+      return;
+    }
     b.guestPaid = false;
     LS.setJSON('cx_bookings', all);
     this.renderBookings(); this.renderDashboard();
@@ -3312,10 +4309,33 @@ Contact: Corronyx@gmail.com
     this.closeAll();
   },
 
-  unassignSegment(bookingId, segIndex){
+  async unassignSegment(bookingId, segIndex){
     const all = LS.getJSON('cx_bookings', []);
     const b = all.find(function(x){ return (x.id||x.bookingId||'')===bookingId; });
     if(!b) return;
+    if (b.serverId) {
+      const segs = this.getSegments(b);
+      const seg = segs[segIndex];
+      if (!seg || !seg.segmentServerId) {
+        toast('Не удалось определить сегмент для снятия — обновите страницу', 'error');
+        return;
+      }
+      try {
+        await CxApi.del('/api/hotels/bookings/'+b.serverId+'/segments/'+seg.segmentServerId);
+      } catch (e) {
+        toast(e.isNetwork ? 'Сервер недоступен — не снято' : 'Не удалось снять номер на сервере', 'error');
+        console.error('unassignSegment failed', e);
+        return;
+      }
+      await cxRefreshBookingsCache();
+      this.closeAll();
+      this.renderChess();
+      this.renderDashboard();
+      if(document.getElementById('unassignedPanel')) this.renderUnassignedPanel();
+      if(document.getElementById('bookingsTable')) this.renderBookings();
+      toast('Номер снят — бронь снова в «неразмещённых»');
+      return;
+    }
     const segs = this.getSegments(b);
     if(!b.roomAssignments || !b.roomAssignments.length) b.roomAssignments = segs.slice();
     b.roomAssignments.splice(segIndex,1);
@@ -6422,34 +7442,51 @@ function applyNavBadges(){
     if(icon) el.innerHTML=swBadge(icon, 22);
   });
 }
-function init(){
+async function init(){
   applyTranslations();
   applyNavBadges();
   document.querySelectorAll('.curLangLbl').forEach(s=>s.textContent=LANG.toUpperCase());
   const gts=document.createElement('script');
   gts.src='https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
   document.head.appendChild(gts);
-  const session=LS.get('cx_hp_session');
-  if(session){
-    const acc=HP.getAllAccounts().find(a=>a.id===session);
-    if(acc){
-      HP.hotel=acc; HP.ensureRoomsSeed();
-      document.getElementById('loginScreen').style.display='none';
-      document.getElementById('app').classList.add('open');
-      document.getElementById('sbHotelName').textContent = acc.name+' · '+acc.city;
-      HP.renderAll();
-      // Восстанавливаем ту вкладку, на которой человек был до обновления
-      // страницы, вместо жёсткого возврата на Дашборд.
-      const savedSection = location.hash.replace('#','');
-      const validSections = ['dashboard','bookings','rooms','chess','payouts','profile','ical'];
-      HP.nav(validSections.includes(savedSection) ? savedSection : 'dashboard');
-      // Проверяем новые брони раз в 15 секунд независимо от того, на какой
-      // вкладке сейчас отель — раньше проверка происходила только при заходе
-      // на "Дашборд" или через межвкладочное storage-событие, и уведомление
-      // не срабатывало, если человек просто долго сидел, например, в Шахматке.
-      setInterval(()=>HP.checkNewArrivals(), 15000);
-      HP.startReminderLoop();
+  // ИЗМЕНЕНО 19.09.2026: session раньше был просто локальным id из localStorage
+  // (не пережил бы даже смену браузера). Теперь это JWT — при перезагрузке
+  // страницы спрашиваем сервер заново (свежие данные с любого устройства),
+  // а не доверяем локальному кэшу, который мог устареть.
+  const jwt = LS.get('cx_hp_jwt');
+  if (jwt) {
+    let me;
+    try {
+      me = await CxApi.get('/api/hotels/me');
+    } catch (e) {
+      // Токен истёк/недействителен, или сервер сейчас недоступен — в обоих
+      // случаях безопаснее вернуть на экран входа, а не показывать
+      // устаревший локальный кэш как будто это текущие данные.
+      console.error('Не удалось восстановить сессию', e);
+      LS.remove('cx_hp_jwt'); LS.remove('cx_hp_session');
+      return;
     }
+    const acc = cxMapServerHotelToLocal(me);
+    const accounts = LS.getJSON('cx_hotel_accounts', []).filter(a=>a.id!==acc.id);
+    accounts.push(acc);
+    LS.setJSON('cx_hotel_accounts', accounts);
+    HP.hotel=acc; HP.ensureRoomsSeed();
+    await cxRefreshBookingsCache();
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').classList.add('open');
+    document.getElementById('sbHotelName').textContent = acc.name+' · '+acc.city;
+    HP.renderAll();
+    // Восстанавливаем ту вкладку, на которой человек был до обновления
+    // страницы, вместо жёсткого возврата на Дашборд.
+    const savedSection = location.hash.replace('#','');
+    const validSections = ['dashboard','bookings','rooms','chess','payouts','profile','ical'];
+    HP.nav(validSections.includes(savedSection) ? savedSection : 'dashboard');
+    // Проверяем новые брони раз в 15 секунд независимо от того, на какой
+    // вкладке сейчас отель — раньше проверка происходила только при заходе
+    // на "Дашборд" или через межвкладочное storage-событие, и уведомление
+    // не срабатывало, если человек просто долго сидел, например, в Шахматке.
+    setInterval(()=>HP.checkNewArrivals(), 15000);
+    HP.startReminderLoop();
   }
 }
 window.addEventListener('DOMContentLoaded', init);
@@ -6658,7 +7695,7 @@ function toggleAiWidget(){
   const p=document.getElementById('aiWidgetPanel');
   p.classList.toggle('open');
   if(p.classList.contains('open') && !p.dataset.init){
-    addAiWidgetMsg('Здравствуйте! Я помощник Corronyx. Спросите про кабинет отеля, брони, чёрный список, выплаты.', 'bot');
+    addAiWidgetMsg('Здравствуйте! Я Corronyx Agent. Спросите про кабинет отеля, брони, чёрный список, выплаты.', 'bot');
     p.dataset.init='1';
   }
 }
