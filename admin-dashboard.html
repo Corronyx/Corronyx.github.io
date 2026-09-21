@@ -949,6 +949,17 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
 
 /* Ошибка в уведомлении: красная рамка (значок ⚠️ добавляет toast('…','error')). */
 .toast.toast-error{border-color:rgba(164,38,44,.6); color:var(--err-ink,#A4262C);}
+
+/* То же для телефона в альбомной ориентации (высота ≤480px, ширина до 932px): это тоже телефон — области нажатия ≥40px. */
+@media (max-height:480px) and (max-width:932px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
 </style>
 </head>
 <body>

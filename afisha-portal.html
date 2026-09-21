@@ -847,6 +847,17 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
    свечение для полей ввода. Срабатывает только при клавиатурной навигации (:focus-visible) — для мыши/пальца вид прежний. Только CSS. */
 button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible, [tabindex]:focus-visible{outline:2px solid #B8954D; outline-offset:2px;}
 input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; box-shadow:0 0 0 3px rgba(184,149,77,.22);}
+
+/* То же для телефона в альбомной ориентации (высота ≤480px, ширина до 932px): это тоже телефон — области нажатия ≥40px. */
+@media (max-height:480px) and (max-width:932px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
 </style>
 </head>
 <body>
