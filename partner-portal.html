@@ -385,6 +385,431 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
   }
   .header-add-btn-desktop{display:none;}
 }
+
+/* ===== Адаптив: плавающая «Назад» и окно ИИ-агента на телефоне (19.09.2026, визуальный агент) =====
+   Только CSS: разметка, id, onclick и JS не тронуты. Действует только на узких экранах — десктоп не затронут. */
+/* Плавающая «← Назад» стояла на фиксированных top:170px — на телефоне шапка выше (логотип, «Выйти», вкладки),
+   и пилюля ложилась ПОВЕРХ заголовка формы («Добавить размещение»). На телефоне ставим её в поток над заголовком
+   и «прилипаем» к верху при прокрутке (остаётся на виду, как и задумано, но не перекрывает заголовок в покое). */
+@media (max-width:640px){
+  .pp-floating-back{position:sticky; top:8px; left:auto; display:flex; width:fit-content; margin:0 0 14px;}
+}
+/* Окно ИИ-агента: ширина 340px + right:24px на экране 360px уводила левый край за экран на 4px (обрезалось) →
+   на узких экранах ограничиваем по ширине экрана. Селектор с id — чтобы перебить правило из style-блока в конце файла. */
+@media (max-width:400px){
+  #aiWidgetPanel.ai-widget-panel{width:calc(100vw - 32px); right:16px;}
+}
+
+/* ===== Заголовки экранов кабинета на светлом фоне (19.09.2026, визуальный агент) =====
+   .gradient-heading = градиент «белый → кремовый → золото». Он верен на ТЁМНОЙ витрине экрана входа (h1 слева),
+   но на светлых экранах кабинета (#app: «Мои размещения/афиши», «Добавить…», «Уведомления») левая половина заголовка
+   белая на кремовом фоне #FDFBF7 и практически невидима. В #app даём градиент «графит (navy) → золото» —
+   читается по всей длине; на экране входа (тёмный фон) ничего не меняется. Только CSS. */
+#app .gradient-heading{background-image:linear-gradient(90deg, var(--navy) 0%, var(--gold) 100%);}
+
+/* ===== ИИ-агент на телефоне не должен перекрывать кнопку «+» (19.09.2026, визуальный агент) =====
+   Кнопка «+» (добавить размещение/афишу — главное действие на телефоне, .mobile-fab) на 390px на 50×50px закрывалась
+   кнопкой ИИ-агента. Реализуем задуманное разработчиком правило «на маленьких экранах поднять кнопку и окно ИИ выше»
+   (оно было только на главной и в админке). Селекторы с id — чтобы перебить базовые правила из style-блока в конце файла. */
+@media (max-width:700px){
+  #aiWidgetBtn.ai-widget-btn{bottom:90px;}
+  #aiWidgetPanel.ai-widget-panel{bottom:162px;}
+}
+
+/* Режим работы в форме размещения: «время — до — время — [ ] Круглосуточно» — одна flex-строка без переноса
+   (130+130px полей + подпись nowrap) выходила за экран 360px на 23px и растягивала страницу. На узких экранах — с переносом. */
+@media (max-width:480px){
+  div:has(> #fWorkFrom){flex-wrap:wrap;}
+}
+
+/* Шапка кабинета на телефоне: логотип (flex:1 без базовой ширины) сжимался до узкой колонки рядом с именем и «Выйти» —
+   слово «Corronyx» рвалось посередине («Corro / nyx», особенно в афише, где подпись длиннее). На телефоне логотип с подписью —
+   отдельной строкой во всю ширину, имя пользователя, язык и «Выйти» — строкой ниже. Только CSS. */
+@media (max-width:640px){
+  .pp-header .logo{flex:1 1 100%;}
+}
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  #aiWidgetPanel.ai-widget-panel{max-height:calc(100vh - 190px);}
+}
+
+/* ===== Цвета статусов на светлой теме (19.09.2026, визуальный агент) =====
+   Статусные цвета (зелёный/янтарный/красный/серый), взятые из тёмной темы, на светлом фоне имели контраст 1.1–2.2:1
+   («На паузе», «Ожидает», «Подтверждена», «Оплачено», «Отменена», воскресенья в шахматке, «Долгов по комиссии нет» и др.)
+   — текст практически не читался. Введены «чернильные» тона того же оттенка, но глубже — изумруд, бронза-янтарь, бордо,
+   графит: контраст не ниже 4.5:1, в духе фирменного золота. Заливки, рамки и фирменное золото не менялись. Только CSS. */
+:root{--ok-ink:#0F6E51; --warn-ink:#8F5B00; --err-ink:#A4262C; --muted-ink:#5C6370;}
+.btn-ok{color:var(--ok-ink);}
+.btn-err{color:var(--err-ink);}
+.btn-warn{color:var(--warn-ink);}
+.status-pending{color:var(--warn-ink);}
+.status-active{color:var(--ok-ink);}
+.status-stopped{color:var(--err-ink);}
+.err-msg{color:var(--err-ink);}
+.ok-msg{color:var(--ok-ink);}
+.banner-warn{color:var(--warn-ink);}
+[style*=" color: var(--err)"],
+[style*=" color:var(--err)"],
+[style*="; color: var(--err)"],
+[style*="; color:var(--err)"],
+[style*=";color: var(--err)"],
+[style*=";color:var(--err)"],
+[style^="color: var(--err)"],
+[style^="color:var(--err)"]{color:var(--err-ink) !important;}
+
+/* ===== Цвета статусов: дополнение (19.09.2026, визуальный агент) =====
+   Ещё синий «информационный» тон (плашки «У вас есть размещения на модерации», значки тарифа) — #9bb8f0 на светло-голубом
+   давал 1.7:1 → глубокий синий. И уведомления/тосты, у которых цвет задаётся из JS (el.style.cssText / style.color). Только CSS. */
+:root{--info-ink:#2A4F94;}
+.banner-info{color:var(--info-ink);}
+[style^="color:var(--ok)"],
+[style*=";color:var(--ok)"],
+[style*="; color:var(--ok)"],
+[style*=" color:var(--ok)"],
+[style^="color: var(--ok)"],
+[style*=";color: var(--ok)"],
+[style*="; color: var(--ok)"],
+[style*=" color: var(--ok)"],
+[style^="color:#10b981"],
+[style*=";color:#10b981"],
+[style*="; color:#10b981"],
+[style*=" color:#10b981"],
+[style^="color: #10b981"],
+[style*=";color: #10b981"],
+[style*="; color: #10b981"],
+[style*=" color: #10b981"],
+[style^="color:rgb(16, 185, 129)"],
+[style*=";color:rgb(16, 185, 129)"],
+[style*="; color:rgb(16, 185, 129)"],
+[style*=" color:rgb(16, 185, 129)"],
+[style^="color: rgb(16, 185, 129)"],
+[style*=";color: rgb(16, 185, 129)"],
+[style*="; color: rgb(16, 185, 129)"],
+[style*=" color: rgb(16, 185, 129)"],
+[style^="color:#22c55e"],
+[style*=";color:#22c55e"],
+[style*="; color:#22c55e"],
+[style*=" color:#22c55e"],
+[style^="color: #22c55e"],
+[style*=";color: #22c55e"],
+[style*="; color: #22c55e"],
+[style*=" color: #22c55e"],
+[style^="color:rgb(34, 197, 94)"],
+[style*=";color:rgb(34, 197, 94)"],
+[style*="; color:rgb(34, 197, 94)"],
+[style*=" color:rgb(34, 197, 94)"],
+[style^="color: rgb(34, 197, 94)"],
+[style*=";color: rgb(34, 197, 94)"],
+[style*="; color: rgb(34, 197, 94)"],
+[style*=" color: rgb(34, 197, 94)"],
+[style^="color:#4ade80"],
+[style*=";color:#4ade80"],
+[style*="; color:#4ade80"],
+[style*=" color:#4ade80"],
+[style^="color: #4ade80"],
+[style*=";color: #4ade80"],
+[style*="; color: #4ade80"],
+[style*=" color: #4ade80"],
+[style^="color:rgb(74, 222, 128)"],
+[style*=";color:rgb(74, 222, 128)"],
+[style*="; color:rgb(74, 222, 128)"],
+[style*=" color:rgb(74, 222, 128)"],
+[style^="color: rgb(74, 222, 128)"],
+[style*=";color: rgb(74, 222, 128)"],
+[style*="; color: rgb(74, 222, 128)"],
+[style*=" color: rgb(74, 222, 128)"],
+[style^="color:#86efac"],
+[style*=";color:#86efac"],
+[style*="; color:#86efac"],
+[style*=" color:#86efac"],
+[style^="color: #86efac"],
+[style*=";color: #86efac"],
+[style*="; color: #86efac"],
+[style*=" color: #86efac"],
+[style^="color:rgb(134, 239, 172)"],
+[style*=";color:rgb(134, 239, 172)"],
+[style*="; color:rgb(134, 239, 172)"],
+[style*=" color:rgb(134, 239, 172)"],
+[style^="color: rgb(134, 239, 172)"],
+[style*=";color: rgb(134, 239, 172)"],
+[style*="; color: rgb(134, 239, 172)"],
+[style*=" color: rgb(134, 239, 172)"],
+[style^="color:#34d399"],
+[style*=";color:#34d399"],
+[style*="; color:#34d399"],
+[style*=" color:#34d399"],
+[style^="color: #34d399"],
+[style*=";color: #34d399"],
+[style*="; color: #34d399"],
+[style*=" color: #34d399"],
+[style^="color:rgb(52, 211, 153)"],
+[style*=";color:rgb(52, 211, 153)"],
+[style*="; color:rgb(52, 211, 153)"],
+[style*=" color:rgb(52, 211, 153)"],
+[style^="color: rgb(52, 211, 153)"],
+[style*=";color: rgb(52, 211, 153)"],
+[style*="; color: rgb(52, 211, 153)"],
+[style*=" color: rgb(52, 211, 153)"]{color:var(--ok-ink) !important;}
+[style^="color:var(--warn)"],
+[style*=";color:var(--warn)"],
+[style*="; color:var(--warn)"],
+[style*=" color:var(--warn)"],
+[style^="color: var(--warn)"],
+[style*=";color: var(--warn)"],
+[style*="; color: var(--warn)"],
+[style*=" color: var(--warn)"],
+[style^="color:#f59e0b"],
+[style*=";color:#f59e0b"],
+[style*="; color:#f59e0b"],
+[style*=" color:#f59e0b"],
+[style^="color: #f59e0b"],
+[style*=";color: #f59e0b"],
+[style*="; color: #f59e0b"],
+[style*=" color: #f59e0b"],
+[style^="color:rgb(245, 158, 11)"],
+[style*=";color:rgb(245, 158, 11)"],
+[style*="; color:rgb(245, 158, 11)"],
+[style*=" color:rgb(245, 158, 11)"],
+[style^="color: rgb(245, 158, 11)"],
+[style*=";color: rgb(245, 158, 11)"],
+[style*="; color: rgb(245, 158, 11)"],
+[style*=" color: rgb(245, 158, 11)"],
+[style^="color:#fbbf24"],
+[style*=";color:#fbbf24"],
+[style*="; color:#fbbf24"],
+[style*=" color:#fbbf24"],
+[style^="color: #fbbf24"],
+[style*=";color: #fbbf24"],
+[style*="; color: #fbbf24"],
+[style*=" color: #fbbf24"],
+[style^="color:rgb(251, 191, 36)"],
+[style*=";color:rgb(251, 191, 36)"],
+[style*="; color:rgb(251, 191, 36)"],
+[style*=" color:rgb(251, 191, 36)"],
+[style^="color: rgb(251, 191, 36)"],
+[style*=";color: rgb(251, 191, 36)"],
+[style*="; color: rgb(251, 191, 36)"],
+[style*=" color: rgb(251, 191, 36)"],
+[style^="color:#fcd34d"],
+[style*=";color:#fcd34d"],
+[style*="; color:#fcd34d"],
+[style*=" color:#fcd34d"],
+[style^="color: #fcd34d"],
+[style*=";color: #fcd34d"],
+[style*="; color: #fcd34d"],
+[style*=" color: #fcd34d"],
+[style^="color:rgb(252, 211, 77)"],
+[style*=";color:rgb(252, 211, 77)"],
+[style*="; color:rgb(252, 211, 77)"],
+[style*=" color:rgb(252, 211, 77)"],
+[style^="color: rgb(252, 211, 77)"],
+[style*=";color: rgb(252, 211, 77)"],
+[style*="; color: rgb(252, 211, 77)"],
+[style*=" color: rgb(252, 211, 77)"],
+[style^="color:#f0a830"],
+[style*=";color:#f0a830"],
+[style*="; color:#f0a830"],
+[style*=" color:#f0a830"],
+[style^="color: #f0a830"],
+[style*=";color: #f0a830"],
+[style*="; color: #f0a830"],
+[style*=" color: #f0a830"],
+[style^="color:rgb(240, 168, 48)"],
+[style*=";color:rgb(240, 168, 48)"],
+[style*="; color:rgb(240, 168, 48)"],
+[style*=" color:rgb(240, 168, 48)"],
+[style^="color: rgb(240, 168, 48)"],
+[style*=";color: rgb(240, 168, 48)"],
+[style*="; color: rgb(240, 168, 48)"],
+[style*=" color: rgb(240, 168, 48)"]{color:var(--warn-ink) !important;}
+[style^="color:var(--err)"],
+[style*=";color:var(--err)"],
+[style*="; color:var(--err)"],
+[style*=" color:var(--err)"],
+[style^="color: var(--err)"],
+[style*=";color: var(--err)"],
+[style*="; color: var(--err)"],
+[style*=" color: var(--err)"],
+[style^="color:#ef4444"],
+[style*=";color:#ef4444"],
+[style*="; color:#ef4444"],
+[style*=" color:#ef4444"],
+[style^="color: #ef4444"],
+[style*=";color: #ef4444"],
+[style*="; color: #ef4444"],
+[style*=" color: #ef4444"],
+[style^="color:rgb(239, 68, 68)"],
+[style*=";color:rgb(239, 68, 68)"],
+[style*="; color:rgb(239, 68, 68)"],
+[style*=" color:rgb(239, 68, 68)"],
+[style^="color: rgb(239, 68, 68)"],
+[style*=";color: rgb(239, 68, 68)"],
+[style*="; color: rgb(239, 68, 68)"],
+[style*=" color: rgb(239, 68, 68)"],
+[style^="color:#f87171"],
+[style*=";color:#f87171"],
+[style*="; color:#f87171"],
+[style*=" color:#f87171"],
+[style^="color: #f87171"],
+[style*=";color: #f87171"],
+[style*="; color: #f87171"],
+[style*=" color: #f87171"],
+[style^="color:rgb(248, 113, 113)"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*=" color:rgb(248, 113, 113)"],
+[style^="color: rgb(248, 113, 113)"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*=" color: rgb(248, 113, 113)"],
+[style^="color:#fca5a5"],
+[style*=";color:#fca5a5"],
+[style*="; color:#fca5a5"],
+[style*=" color:#fca5a5"],
+[style^="color: #fca5a5"],
+[style*=";color: #fca5a5"],
+[style*="; color: #fca5a5"],
+[style*=" color: #fca5a5"],
+[style^="color:rgb(252, 165, 165)"],
+[style*=";color:rgb(252, 165, 165)"],
+[style*="; color:rgb(252, 165, 165)"],
+[style*=" color:rgb(252, 165, 165)"],
+[style^="color: rgb(252, 165, 165)"],
+[style*=";color: rgb(252, 165, 165)"],
+[style*="; color: rgb(252, 165, 165)"],
+[style*=" color: rgb(252, 165, 165)"],
+[style^="color:#dc2626"],
+[style*=";color:#dc2626"],
+[style*="; color:#dc2626"],
+[style*=" color:#dc2626"],
+[style^="color: #dc2626"],
+[style*=";color: #dc2626"],
+[style*="; color: #dc2626"],
+[style*=" color: #dc2626"],
+[style^="color:rgb(220, 38, 38)"],
+[style*=";color:rgb(220, 38, 38)"],
+[style*="; color:rgb(220, 38, 38)"],
+[style*=" color:rgb(220, 38, 38)"],
+[style^="color: rgb(220, 38, 38)"],
+[style*=";color: rgb(220, 38, 38)"],
+[style*="; color: rgb(220, 38, 38)"],
+[style*=" color: rgb(220, 38, 38)"]{color:var(--err-ink) !important;}
+[style^="color:#9bb8f0"],
+[style*=";color:#9bb8f0"],
+[style*="; color:#9bb8f0"],
+[style*=" color:#9bb8f0"],
+[style^="color: #9bb8f0"],
+[style*=";color: #9bb8f0"],
+[style*="; color: #9bb8f0"],
+[style*=" color: #9bb8f0"],
+[style^="color:rgb(155, 184, 240)"],
+[style*=";color:rgb(155, 184, 240)"],
+[style*="; color:rgb(155, 184, 240)"],
+[style*=" color:rgb(155, 184, 240)"],
+[style^="color: rgb(155, 184, 240)"],
+[style*=";color: rgb(155, 184, 240)"],
+[style*="; color: rgb(155, 184, 240)"],
+[style*=" color: rgb(155, 184, 240)"]{color:var(--info-ink) !important;}
+
+/* ===== Баннер cookie (19.09.2026, визуальный агент) =====
+   Баннер оформлен тёмной полосой (--panel не задан в светлой теме → запасной #1a1a1a), но цвета текста остались «светлыми»:
+   текст абзаца #5a5d66 на #1a1a1a — 2.9:1, а кнопка «Только необходимые» — текст #1a1c20 на #1a1a1a, т.е. НЕВИДИМА
+   (на экране была пустая рамка рядом с «Принять все»). Оставляем тёмную «чёрно-золотую» полосу и подбираем цвета:
+   светлый текст, золотая контурная кнопка, золотая основная кнопка. Контраст ≥ 7:1. Только CSS. */
+#cookieBanner{background:#16181d !important; border-top:1px solid rgba(201,164,94,.45) !important;}
+#cookieBanner p{color:#C9CDD6 !important;}
+#cookieBanner a{color:#D9B978 !important;}
+#cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
+#cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
+
+/* ===== Цвета статусов: ещё оттенки из редких состояний (19–20.09.2026, визуальный агент) =====
+   Найдены статическим поиском по inline-стилям и JS-шаблонам (видны только в особых состояниях: «не хватает» при частичной
+   оплате, льготный режим оплаты, красная звёздочка обязательного поля, «Долгов нет», отметки о действиях админа).
+   Тот же принцип: оттенок сохранён, тон глубже (контраст ≥ 4.5:1). Только CSS. */
+[style^="color:#e2a33d"],
+[style*=";color:#e2a33d"],
+[style*="; color:#e2a33d"],
+[style*=" color:#e2a33d"],
+[style^="color: #e2a33d"],
+[style*=";color: #e2a33d"],
+[style*="; color: #e2a33d"],
+[style*=" color: #e2a33d"],
+[style^="color:rgb(226, 163, 61)"],
+[style*=";color:rgb(226, 163, 61)"],
+[style*="; color:rgb(226, 163, 61)"],
+[style*=" color:rgb(226, 163, 61)"],
+[style^="color: rgb(226, 163, 61)"],
+[style*=";color: rgb(226, 163, 61)"],
+[style*="; color: rgb(226, 163, 61)"],
+[style*=" color: rgb(226, 163, 61)"]{color:var(--warn-ink) !important;}
+
+/* ===== Реквизиты и кнопка оплаты (20.09.2026, визуальный агент) =====
+   1) Строка реквизита: подпись (min-width:110px) + значение + «Копировать» в одну flex-строку — на телефоне значению
+      оставалось ~70px, и телефон/адрес/номер счёта рвались по одному символу (word-break:break-all). На ≤640px подпись — над
+      значением, значение получает всю оставшуюся ширину; обычные слова переносятся по словам, а очень длинные адреса
+      (USDT, счёт) по-прежнему ломаются, чтобы не вылезать.
+   2) Кнопка «Прикрепить скриншот перевода» (.payment-btn.ghost) была ярко-жёлтой (#F5C518→#FFE066) — вне фирменной палитры
+      и вопреки названию «ghost». Теперь контурная золотая кнопка, как остальные вторичные кнопки. Только CSS. */
+@media (max-width:640px){
+  .platform-req-row{flex-wrap:wrap; row-gap:4px;}
+  .platform-req-label{flex:0 0 100%; min-width:0;}
+  .platform-req-value{min-width:0; word-break:normal; overflow-wrap:anywhere;}
+}
+.payment-btn.ghost{background:transparent; border:1px solid var(--gold); color:#7A5C14;}
+.payment-btn.ghost:hover{background:rgba(184,149,77,.12);}
+
+/* ===== Размер кнопок и полей под палец на телефоне (20.09.2026, визуальный агент) =====
+   По просьбе владельца: на телефонах (≤640px) кнопки, списки, поля ввода и вкладки — не ниже 40px по высоте (замер показал
+   ~160 элементов высотой 24–37px: «К текущему», «Синхронизация», «Проверить звук», языковой выбор, вкладки, поля ввода, «✕»
+   и др.). Внешний вид (цвета, шрифты, скругления) прежний — растёт только высота/область нажатия. Ссылки внутри текста и
+   подписи полей не трогаем (это не отдельные цели нажатия). Только CSS; на экранах шире 640px без изменений. */
+@media (max-width:640px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
+
+/* Остальные мелкие цели нажатия на телефоне: «глаз» пароля и крестик удаления фото (увеличиваем невидимую область нажатия,
+   вид не меняется), отдельные ссылки на документы (по одной в строке), кнопка в красной плашке, языковой выбор в верхней
+   полосе кабинета отеля (был 32px). Только CSS. */
+@media (max-width:640px){
+  .eye{position:absolute;}
+  .eye::after{content:''; position:absolute; inset:-11px;}
+  span[onclick*="removeClassImage"]::after, span[onclick*="removePhoto"]::after{content:''; position:absolute; inset:-11px;}
+  div > a[href$=".html"]:only-child{display:inline-block; padding:12px 0;}
+  #noPhoBanner button{min-height:40px;}
+  .sidebar .sidebar-foot .lang-btn{min-height:40px;}
+}
+
+/* Ссылки на документы в подвале экрана входа (flex-строка) и «Забыли пароль?» — были высотой 14px. Область нажатия 40px. Только CSS. */
+@media (max-width:640px){
+  div[style*="justify-content:center"] > a[href$=".html"]{display:inline-flex; align-items:center; min-height:40px; padding:0 4px;}
+  .link-btn{display:inline-flex; align-items:center; min-height:40px; padding-top:0; padding-bottom:0;}
+}
+
+/* ===== Видимый фокус клавиатуры (20.09.2026, визуальный агент) =====
+   У части элементов (языковой выбор, выпадающие списки, поля входа) при навигации с клавиатуры/переключателем фокус не был
+   виден — не понять, где находишься. Единый фирменный золотой контур для кнопок, ссылок и списков и мягкое золотое
+   свечение для полей ввода. Срабатывает только при клавиатурной навигации (:focus-visible) — для мыши/пальца вид прежний. Только CSS. */
+button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible, [tabindex]:focus-visible{outline:2px solid #B8954D; outline-offset:2px;}
+input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; box-shadow:0 0 0 3px rgba(184,149,77,.22);}
+
+/* То же для телефона в альбомной ориентации (высота ≤480px, ширина до 932px): это тоже телефон — области нажатия ≥40px. */
+@media (max-height:480px) and (max-width:932px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
 </style>
 </head>
 <body>
@@ -409,7 +834,7 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
     </div>
     <!-- Login -->
     <div id="formLogin">
-      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="loginEmail" placeholder="partner@example.com"></div>
+      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="loginEmail" placeholder="partner@example.com" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="form-row"><label data-t="pass_label">Пароль</label><div class="pass-wrap"><input type="password" id="loginPass"><span class="eye" onclick="PP.togglePass('loginPass',this)">👁</span></div></div>
       <div class="err-msg hidden" id="loginErr"></div>
       <button class="btn btn-primary btn-full" style="margin-top:18px;" onclick="PP.login()" data-t="pp_login_btn">Войти</button>
@@ -420,7 +845,7 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
     <!-- Register -->
     <div id="formRegister" class="hidden">
       <div class="form-row"><label data-t="org_name_label">Название организации</label><input type="text" id="regOrgName" placeholder="ООО Тур Юг" onblur="swAutoCap(this)"></div>
-      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="regEmail" placeholder="partner@example.com"></div>
+      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="regEmail" placeholder="partner@example.com" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="form-row"><label data-t="pass_label">Пароль</label><div class="pass-wrap"><input type="password" id="regPass"><span class="eye" onclick="PP.togglePass('regPass',this)">👁</span></div></div>
       <div class="form-row"><label data-t="pass_confirm_label">Подтвердите пароль</label><div class="pass-wrap"><input type="password" id="regPass2"><span class="eye" onclick="PP.togglePass('regPass2',this)">👁</span></div></div>
       <div class="err-msg hidden" id="regErr"></div>
@@ -434,7 +859,7 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
     <!-- Forgot password — step 1: запросить код -->
     <div id="formForgot1" class="hidden">
       <div style="font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.5;" data-t="forgot_intro">Укажите email, указанный при регистрации — вышлем код для сброса пароля.</div>
-      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="forgotEmail" placeholder="partner@example.com"></div>
+      <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="forgotEmail" placeholder="partner@example.com" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="err-msg hidden" id="forgotErr1"></div>
       <button class="btn btn-primary btn-full" onclick="PP.sendResetCode()" data-t="send_reset_code">Отправить код</button>
       <div style="text-align:center; margin-top:14px;"><button class="link-btn" onclick="PP.switchAuthTab('login')" data-t="back_to_login">← Назад ко входу</button></div>
@@ -550,7 +975,7 @@ h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
         <div class="form-row"><label data-t="city_label">Город</label><input type="text" id="fCity" placeholder="Анапа" onblur="swAutoCap(this)"></div>
         <div class="form-row"><label data-t="name_label">Название</label><input type="text" id="fName" placeholder="Название компании / услуги" onblur="swAutoCap(this)"></div>
         <div class="form-row"><label data-t="phone_label">Телефон</label><input type="tel" id="fPhone" placeholder="+7 (000) 000-00-00"></div>
-        <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="fEmail" placeholder="info@company.ru"></div>
+        <div class="form-row"><label data-t="email_label">Email</label><input type="email" id="fEmail" placeholder="info@company.ru" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
         <div class="form-row"><label data-t="website_label">Сайт</label><input type="url" id="fUrl" placeholder="https://company.ru"></div>
         <div class="form-row"><label data-t="desc_label">Описание / специализация</label><textarea id="fDesc" rows="3" placeholder="Кратко опишите ваши услуги..."></textarea></div>
         <div class="form-row">
@@ -1306,6 +1731,10 @@ function applyTranslations(){
 }
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// Пользовательский текст внутри JS-строки в атрибуте onclick: esc() экранирует только двойные кавычки, поэтому апостроф
+// («Joe's», «L'Hôtel», «Rock'n'Roll», «Дем'ян») обрывал строку и кнопка (оплата/буст) переставала работать. escJs() дополнительно
+// экранирует обратную косую и апостроф (и убирает переводы строк).
+function escJs(s){ return esc(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '); }
 
 // ============================================================
 // SW_BADGE_SHAPE — идентично admin-dashboard.html (см. подробный
@@ -1847,13 +2276,13 @@ const PP = {
     const boostAmountUsdt = fee.currency==='USD' ? residualFee : Math.round((residualFee/rate)*100)/100;
     document.getElementById('boostPaymentActions').innerHTML = `
       <div class="payment-actions">
-        ${req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${boostAmountUsdt}, 'Corronyx boost ${esc(card.name)}')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
+        ${req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${boostAmountUsdt}, 'Corronyx boost ${escJs(card.name)}')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
         ${req.usdt?`<button class="payment-btn" onclick="PP.checkBoostUsdtPayment()">🔎 ${LANG==='ru'?'Проверить оплату USDT':'Verify USDT payment'}</button>`:''}
         <label class="payment-btn ghost" style="cursor:pointer;">
           📎 ${LANG==='ru'?'Прикрепить скриншот перевода':'Attach transfer screenshot'}
           <input type="file" accept="image/*" style="display:none;" onchange="PP.handleBoostProofScreenshot(this)">
         </label>
-        <button class="payment-btn ghost" onclick="PP.openPointsPayModal({kind:'boost', type:'${type}', id:'${esc(cardId)}', tier:'${tier}', total:${residualFee}, currency:'${fee.currency}', label:'${esc(card.name)} — ${tier==='diamond'?'бриллиантовый буст-приоритет':'буст'}'})">🎁 ${LANG==='ru'?'Баллами':'With points'}</button>
+        <button class="payment-btn ghost" onclick="PP.openPointsPayModal({kind:'boost', type:'${type}', id:'${esc(cardId)}', tier:'${tier}', total:${residualFee}, currency:'${fee.currency}', label:'${escJs(card.name)} — ${tier==='diamond'?'бриллиантовый буст-приоритет':'буст'}'})">🎁 ${LANG==='ru'?'Баллами':'With points'}</button>
       </div>`;
     document.getElementById('boostStatusMsg').textContent='';
     document.getElementById('boostModal').classList.remove('hidden');
@@ -2358,14 +2787,14 @@ Contact: Corronyx@gmail.com
           ${o.items.map(i=>{
             const ppd=this.getPointsPrepaid(i.type, i.id, i.periodIndex);
             return `${esc(i.name)}${ppd>0?` <span style="color:var(--gold2);">(баллами внесено ${ppd.toLocaleString('ru-RU')} ₽)</span>`:''} `
-              + `<button class="btn btn-ghost btn-sm" style="padding:1px 8px; font-size:11px;" onclick="PP.openPointsPayModal({kind:'card', type:'${i.type}', id:'${esc(i.id)}', periodIndex:${i.periodIndex}, total:${i.amount}, currency:'${cur}', label:'${esc(i.name)}'})">🎁 баллами</button>`
+              + `<button class="btn btn-ghost btn-sm" style="padding:1px 8px; font-size:11px;" onclick="PP.openPointsPayModal({kind:'card', type:'${i.type}', id:'${esc(i.id)}', periodIndex:${i.periodIndex}, total:${i.amount}, currency:'${cur}', label:'${escJs(i.name)}'})">🎁 баллами</button>`
               ;
           }).join(', ')}
         </div>
         ${partial.amount>0?`<div style="font-size:12px; color:#e2a33d; margin-bottom:6px;">${LANG==='ru'?'Учтено':'Recorded'}: ${partial.amount.toLocaleString('ru-RU')} ${sign} · ${LANG==='ru'?'не хватает':'remaining'}: <b>${remaining.toLocaleString('ru-RU')} ${sign}</b></div>`:''}
         ${methodsHtml}
         <div class="payment-actions" style="margin-top:10px;">
-          ${cur==='USD' && req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${remaining}, 'Corronyx ${esc(this.account.name||this.account.email)}')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
+          ${cur==='USD' && req.usdt?`<button class="payment-btn" onclick="openPaymentModal('${esc(req.usdt)}', ${remaining}, 'Corronyx ${escJs(this.account.name||this.account.email)}')">💳 ${LANG==='ru'?'Оплатить':'Pay'}</button>`:''}
           ${cur==='USD' && req.usdt?`<button class="payment-btn" onclick="PP.checkUsdtPayment('${cur}')">🔎 ${LANG==='ru'?'Проверить оплату USDT':'Verify USDT payment'}</button>`:''}
           ${cur==='RUB'?`<label class="payment-btn ghost" style="cursor:pointer;">
             📎 ${LANG==='ru'?'Прикрепить скриншот перевода':'Attach transfer screenshot'}
@@ -2874,6 +3303,16 @@ Contact: Corronyx@gmail.com
     // редактируемая карточка (editingId) из проверки исключается.
     const normUrl = u => (u||'').trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/+$/,'');
     const rawUrl = document.getElementById('fUrl').value.trim();
+    // Адрес сайта: разрешены только http(s); без схемы добавляем https://. Раньше сохранялось что угодно — в том числе
+    // «javascript:…» — и такая ссылка на клиентском сайте выполнялась бы у гостя по клику на «Перейти на сайт».
+    let urlClean = rawUrl;
+    if(rawUrl){
+      if(/^https?:\/\//i.test(rawUrl)){ urlClean = rawUrl; }
+      else if(/^[a-z][a-z0-9+.\-]*:(?!\d)/i.test(rawUrl)){
+        errEl.textContent = LANG==='ru' ? 'Адрес сайта должен начинаться с http:// или https://' : 'Website address must start with http:// or https://';
+        errEl.classList.remove('hidden'); return;
+      } else { urlClean = 'https://' + rawUrl.replace(/^\/+/,''); }
+    }
     const cityLower = city.toLowerCase();
     const nameLower = name.toLowerCase();
     const urlNorm = normUrl(rawUrl);
@@ -2959,7 +3398,7 @@ Contact: Corronyx@gmail.com
         items[idx]={...original, country, city, name,
           phone:document.getElementById('fPhone').value.trim(),
           email:document.getElementById('fEmail').value.trim(),
-          url:document.getElementById('fUrl').value.trim(),
+          url:urlClean,
           desc:document.getElementById('fDesc').value.trim(),
           work24, workFrom, workTo, subgroups:chosenSubgroups,
           logo, monthlyFee, monthlyFeeCurrency, updatedAt:new Date().toISOString(),
@@ -3020,7 +3459,7 @@ Contact: Corronyx@gmail.com
         type, country, city, name,
         phone:document.getElementById('fPhone').value.trim(),
         email:document.getElementById('fEmail').value.trim(),
-        url:document.getElementById('fUrl').value.trim(),
+        url:urlClean,
         desc:document.getElementById('fDesc').value.trim(),
         work24, workFrom, workTo, subgroups:chosenSubgroups,
         logo, monthlyFee, monthlyFeeCurrency, status:'pending',
@@ -3436,7 +3875,7 @@ function toggleAiWidget(){
   const p=document.getElementById('aiWidgetPanel');
   p.classList.toggle('open');
   if(p.classList.contains('open') && !p.dataset.init){
-    addAiWidgetMsg('Здравствуйте! Я помощник Corronyx. Спросите про карточки услуг, буст, категории или реферальную программу.', 'bot');
+    addAiWidgetMsg('Здравствуйте! Я Corronyx Agent. Спросите про карточки услуг, буст, категории или реферальную программу.', 'bot');
     p.dataset.init='1';
   }
 }

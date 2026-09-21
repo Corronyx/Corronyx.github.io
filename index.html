@@ -695,6 +695,184 @@ body{top:0 !important; position:relative !important;}
   .mobile-bottom-nav .mbn-item .mbn-avatar{width:20px; height:20px; border-radius:50%; object-fit:cover;}
   body{padding-bottom:60px;} /* чтобы меню не перекрывало нижний контент страницы */
 }
+
+/* ===== Адаптивная шапка (19.09.2026, визуальный агент) =====
+   Проблема: .header-top / .header-right / #portalLinksBlock были flex-строками без переноса,
+   суммарно ~660px шириной — на экранах уже ~850px шапка раздувала страницу вширь
+   (горизонтальный скролл, логотип уезжал за левый край, нижнее меню и cookie-баннер
+   растягивались шире экрана, кнопка «Профиль» оказывалась за экраном).
+   Только CSS: HTML/id/onclick не тронуты. На десктопе (>900px) правил нет — вид прежний. */
+@media (max-width:900px){
+  /* display:contents — «язык» и «Войти» встают в одну строку с логотипом,
+     ссылки для отелей/партнёров идут отдельной строкой под ними */
+  .header-top{flex-wrap:wrap; justify-content:space-between; gap:8px 12px; padding:10px 16px 6px;}
+  .header-right{display:contents;}
+  .lang-switch{order:1; margin-left:auto;}
+  #navLoginBtn{order:2; white-space:nowrap;}
+  #portalLinksBlock{order:3; flex:0 0 100%; flex-wrap:wrap !important; justify-content:center;}
+}
+@media (max-width:640px){
+  .header-top{padding:10px 14px 6px;}
+  .brand{font-size:20px;}
+  /* на телефоне ссылки — одна строка-лента с горизонтальной прокруткой внутри неё (страница не ездит вбок) */
+  #portalLinksBlock{flex-wrap:nowrap !important; justify-content:flex-start;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding-bottom:2px;}
+  #portalLinksBlock::-webkit-scrollbar{display:none;}
+  #portalLinksBlock .btn{flex:0 0 auto; white-space:nowrap;}
+}
+
+/* ===== Адаптив главной: страница отеля и окно консьержа на телефоне (19.09.2026, визуальный агент) =====
+   1) Страница отеля/форма брони: колонка грида «1fr» (= minmax(auto,1fr)) раздувалась до min-content самого широкого
+      элемента (346px) и вытягивала страницу шире экрана 360–394px (обрезались звёзды, название, адрес, плашка оплаты).
+      minmax(0,1fr) позволяет колонке сжиматься по ширине экрана.
+   2) Окно консьержа: правило для ≤700px (width:calc(100vw - 32px); bottom:162px) стояло В ФАЙЛЕ РАНЬШЕ базового
+      .concierge-panel и поэтому не применялось — панель 360px при right:24px на экране 360px уходила за левый край
+      на 24px и в открытом виде перекрывала свою кнопку. Повторяем правило после базового. Только CSS. */
+@media (max-width:900px){
+  .hotel-detail-body, .form-grid{grid-template-columns:minmax(0,1fr);}
+  /* два поля даты (Заезд/Выезд) в flex-строке не сжимались меньше своего min-content и на 360px вылезали на 11px */
+  .date-row > div{min-width:0;}
+  .date-row input{min-width:0; box-sizing:border-box;}
+}
+@media (max-width:700px){
+  .concierge-panel{bottom:162px; width:calc(100vw - 32px); right:16px;}
+}
+
+/* Окно ИИ-агента на низких экранах телефона (640–667px по высоте): max-height 480–520px + отступ снизу 162px
+   поднимали верх окна выше экрана, когда переписка длинная. Ограничиваем высоту экраном. Только CSS. */
+@media (max-width:700px){
+  .concierge-panel{max-height:calc(100vh - 190px);}
+}
+
+/* ===== Цвета статусов на светлой теме (19.09.2026, визуальный агент) =====
+   Статусные цвета (зелёный/янтарный/красный/серый), взятые из тёмной темы, на светлом фоне имели контраст 1.1–2.2:1
+   («На паузе», «Ожидает», «Подтверждена», «Оплачено», «Отменена», воскресенья в шахматке, «Долгов по комиссии нет» и др.)
+   — текст практически не читался. Введены «чернильные» тона того же оттенка, но глубже — изумруд, бронза-янтарь, бордо,
+   графит: контраст не ниже 4.5:1, в духе фирменного золота. Заливки, рамки и фирменное золото не менялись. Только CSS. */
+:root{--ok-ink:#0F6E51; --warn-ink:#8F5B00; --err-ink:#A4262C; --muted-ink:#5C6370;}
+.pay-badge{color:var(--ok-ink);}
+.unit-taken-label{color:var(--warn-ink);}
+[style*=" color: var(--ok)"],
+[style*=" color:var(--ok)"],
+[style*="; color: var(--ok)"],
+[style*="; color:var(--ok)"],
+[style*=";color: var(--ok)"],
+[style*=";color:var(--ok)"],
+[style^="color: var(--ok)"],
+[style^="color:var(--ok)"]{color:var(--ok-ink) !important;}
+[style*=" color: #f87171"],
+[style*=" color: rgb(248, 113, 113)"],
+[style*=" color: var(--err)"],
+[style*=" color:#f87171"],
+[style*=" color:rgb(248, 113, 113)"],
+[style*=" color:var(--err)"],
+[style*="; color: #f87171"],
+[style*="; color: rgb(248, 113, 113)"],
+[style*="; color: var(--err)"],
+[style*="; color:#f87171"],
+[style*="; color:rgb(248, 113, 113)"],
+[style*="; color:var(--err)"],
+[style*=";color: #f87171"],
+[style*=";color: rgb(248, 113, 113)"],
+[style*=";color: var(--err)"],
+[style*=";color:#f87171"],
+[style*=";color:rgb(248, 113, 113)"],
+[style*=";color:var(--err)"],
+[style^="color: #f87171"],
+[style^="color: rgb(248, 113, 113)"],
+[style^="color: var(--err)"],
+[style^="color:#f87171"],
+[style^="color:rgb(248, 113, 113)"],
+[style^="color:var(--err)"]{color:var(--err-ink) !important;}
+[style*=" color: var(--warn)"],
+[style*=" color:var(--warn)"],
+[style*="; color: var(--warn)"],
+[style*="; color:var(--warn)"],
+[style*=";color: var(--warn)"],
+[style*=";color:var(--warn)"],
+[style^="color: var(--warn)"],
+[style^="color:var(--warn)"]{color:var(--warn-ink) !important;}
+
+/* ===== Баннер cookie (19.09.2026, визуальный агент) =====
+   Баннер оформлен тёмной полосой (--panel не задан в светлой теме → запасной #1a1a1a), но цвета текста остались «светлыми»:
+   текст абзаца #5a5d66 на #1a1a1a — 2.9:1, а кнопка «Только необходимые» — текст #1a1c20 на #1a1a1a, т.е. НЕВИДИМА
+   (на экране была пустая рамка рядом с «Принять все»). Оставляем тёмную «чёрно-золотую» полосу и подбираем цвета:
+   светлый текст, золотая контурная кнопка, золотая основная кнопка. Контраст ≥ 7:1. Только CSS. */
+#cookieBanner{background:#16181d !important; border-top:1px solid rgba(201,164,94,.45) !important;}
+#cookieBanner p{color:#C9CDD6 !important;}
+#cookieBanner a{color:#D9B978 !important;}
+#cookieBanner .btn-ghost{color:#D9B978 !important; background:transparent !important; border:1px solid rgba(201,164,94,.65) !important;}
+#cookieBanner .btn-primary{background:linear-gradient(135deg,#D3B06A,#B8954D) !important; color:#1E293B !important; border:1px solid transparent !important; font-weight:600;}
+
+/* Страница отеля на телефоне: два вложенных отступа по 24px (section#wizardContent + .hotel-detail) = 48px с каждой стороны
+   съедали ширину (контент 294px из 390). Оставляем один отступ 24px. Только CSS, на экранах шире 640px без изменений. */
+@media (max-width:640px){
+  .hotel-detail{padding-left:0; padding-right:0;}
+}
+
+/* Телефон в альбомной ориентации (высота ≤480px): закреплённая шапка (до 147px) + нижнее меню (60px) занимали до 55% и без того
+   низкого экрана — на контент оставалось ~170px из 375. В альбомной ориентации шапка не закрепляется (листается вместе со
+   страницей), нижнее меню остаётся. Только CSS; на портретных телефонах и компьютерах ничего не меняется. */
+@media (max-height:480px) and (max-width:932px){
+  header{position:static;}
+}
+
+/* ===== Клиентский сайт на телефоне: кнопка «← Назад» и длинные контакты (20.09.2026, визуальный агент) =====
+   1) «← Назад» стояла position:fixed; top:170px — на телефоне шапка ~103px, и пилюля ложилась ПОВЕРХ заголовка страницы
+      («…ства недвижимости» — начало слова закрыто) и поверх фото отеля. Теперь она в потоке над заголовком и «прилипает»
+      под шапкой при прокрутке (остаётся на виду, но в покое ничего не закрывает). В альбомной ориентации шапка не
+      закреплена — прилипает к верху экрана.
+   2) Длинный e-mail в карточке партнёра не переносился и обрезался справа. Только CSS. */
+@media (max-width:640px){
+  .back-btn-floating{position:sticky; top:112px; left:auto; display:flex; width:fit-content; margin:12px 0 0 16px;}
+  #wizardContent .back-btn-floating{margin:0 0 12px;}
+}
+@media (max-height:480px) and (max-width:932px){
+  .back-btn-floating{top:8px;}
+}
+@media (max-width:900px){
+  .card a{overflow-wrap:anywhere;}
+}
+
+/* ===== Размер кнопок и полей под палец на телефоне (20.09.2026, визуальный агент) =====
+   По просьбе владельца: на телефонах (≤640px) кнопки, списки, поля ввода и вкладки — не ниже 40px по высоте (замер показал
+   ~160 элементов высотой 24–37px: «К текущему», «Синхронизация», «Проверить звук», языковой выбор, вкладки, поля ввода, «✕»
+   и др.). Внешний вид (цвета, шрифты, скругления) прежний — растёт только высота/область нажатия. Ссылки внутри текста и
+   подписи полей не трогаем (это не отдельные цели нажатия). Только CSS; на экранах шире 640px без изменений. */
+@media (max-width:640px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
+
+/* ===== Видимый фокус клавиатуры (20.09.2026, визуальный агент) =====
+   У части элементов (языковой выбор, выпадающие списки, поля входа) при навигации с клавиатуры/переключателем фокус не был
+   виден — не понять, где находишься. Единый фирменный золотой контур для кнопок, ссылок и списков и мягкое золотое
+   свечение для полей ввода. Срабатывает только при клавиатурной навигации (:focus-visible) — для мыши/пальца вид прежний. Только CSS. */
+button:focus-visible, a:focus-visible, select:focus-visible, summary:focus-visible, [tabindex]:focus-visible{outline:2px solid #B8954D; outline-offset:2px;}
+input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; box-shadow:0 0 0 3px rgba(184,149,77,.22);}
+
+/* То же для телефона в альбомной ориентации (высота ≤480px, ширина до 932px): это тоже телефон — области нажатия ≥40px. */
+@media (max-height:480px) and (max-width:932px){
+  .btn, .btn-sm, .payment-btn, .lang-btn, .chess-btn, .pp-tab, .tab-login, .mobile-hamburger-btn, .back-btn, .back-btn-floating,
+  button.on-active, .hp-email-chip, .stat-card[onclick]{min-height:40px;}
+  .btn, .btn-sm, .payment-btn, .chess-btn, .tab-login, .back-btn, .back-btn-floating, .hp-email-chip{display:inline-flex; align-items:center; justify-content:center;}
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=color]), select{min-height:40px;}
+  .pass-eye{padding:11px; right:1px;}
+  .modal .close{padding:8px; top:10px; right:14px;}
+  .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
+}
+
+/* Форма бронирования на телефоне: три вложенных отступа (секция 24 + .form-grid 24 + .form-box 26) оставляли полям 240px из 390
+   (62% ширины). Убираем средний отступ и немного уплотняем рамку — поля ~306px. Только CSS. */
+@media (max-width:640px){
+  .form-grid{padding-left:0; padding-right:0;}
+  .form-box{padding:22px 18px;}
+}
 </style>
 </head>
 <body>
@@ -2359,7 +2537,7 @@ const CX = {
   /* ---------- navigation helpers ---------- */
   goHome(){
     this.view='home'; this.wizard={step:null,country:null,countryName:null,city:null,hotelClass:null,hotel:null,room:null,checkin:null,checkout:null}; this.history=[];
-    show('view-home'); hide('view-wizard'); hide('view-realtors'); hide('view-travel'); hide('view-excursions'); hide('view-restaurants'); hide('view-afisha');
+    show('view-home'); hide('view-wizard'); hide('view-partnercat'); /* страница категории (красота/здоровье/юристы/медицина и пользовательские) раньше НЕ скрывалась при возврате на главную — обе страницы были на экране одновременно */ hide('view-realtors'); hide('view-travel'); hide('view-excursions'); hide('view-restaurants'); hide('view-afisha');
     window.scrollTo(0,0);
     this.saveState();
   },
@@ -4080,7 +4258,7 @@ function partnerCatCardHtml(r, catKey){
       ${hours?`<p style="margin-top:6px; color:var(--muted); font-size:12px;">🕒 ${hours}</p>`:''}
       ${r.phone?`<p style="margin-top:6px;">📞 <a href="tel:${esc2(r.phone)}">${esc2(r.phone)}</a></p>`:''}
       ${r.email?`<p>✉️ <a href="mailto:${esc2(r.email)}">${esc2(r.email)}</a></p>`:''}
-      ${r.url?`<div style="margin-top:10px;"><a class="btn btn-primary" style="display:inline-block;" href="${esc2(r.url)}" target="_blank">${t('realtors_visit')}</a></div>`:''}
+      ${r.url?`<div style="margin-top:10px;"><a class="btn btn-primary" style="display:inline-block;" href="${esc2(safeUrl(r.url)||'#')}" target="_blank">${t('realtors_visit')}</a></div>`:''}
     </div>
   </div>`;
 }
@@ -4098,7 +4276,7 @@ function realtorCardHtml(r){
       ${translateBtnHtml(r.desc||'')}
       ${r.phone?`<p style="margin-top:6px;">\ud83d\udcde <a href="tel:${esc2(r.phone)}">${esc2(r.phone)}</a></p>`:''}
       ${r.email?`<p>\u2709\ufe0f <a href="mailto:${esc2(r.email)}">${esc2(r.email)}</a></p>`:''}
-      ${r.url?`<div style="margin-top:10px;"><a class="btn btn-primary" style="display:inline-block;" href="${esc2(r.url)}" target="_blank">${t('realtors_visit')}</a></div>`:''}
+      ${r.url?`<div style="margin-top:10px;"><a class="btn btn-primary" style="display:inline-block;" href="${esc2(safeUrl(r.url)||'#')}" target="_blank">${t('realtors_visit')}</a></div>`:''}
     </div>
   </div>`;
 }
@@ -4446,7 +4624,7 @@ function travelAgencyCardHtml(a){
       ${translateBtnHtml(a.desc||'')}
       ${a.phone?`<p style="margin-top:6px;">\ud83d\udcde <a href="tel:${esc2(a.phone)}">${esc2(a.phone)}</a></p>`:''}
       ${a.email?`<p>\u2709\ufe0f <a href="mailto:${esc2(a.email)}">${esc2(a.email)}</a></p>`:''}
-      ${a.url?`<div style="margin-top:10px;"><a class="btn btn-primary" style="display:inline-block;" href="${esc2(a.url)}" target="_blank">${t('travel_visit')}</a></div>`:''}
+      ${a.url?`<div style="margin-top:10px;"><a class="btn btn-primary" style="display:inline-block;" href="${esc2(safeUrl(a.url)||'#')}" target="_blank">${t('travel_visit')}</a></div>`:''}
     </div>
   </div>`;
 }
@@ -4688,7 +4866,7 @@ const TRAVEL_NEWS_BY_COUNTRY = {
 };
 function travelNewsCardHtml(n){
   const clickAttr = n.agencyMatch
-    ? `onclick="CX.showTravelAgencies('${esc2(n.agencyMatch.country)}','${esc2(n.agencyMatch.city)}')"`
+    ? `onclick="CX.showTravelAgencies('${escJs2(n.agencyMatch.country)}','${escJs2(n.agencyMatch.city)}')"`
     : (n.country ? `onclick="CX.showTravelAgencies('${esc2(n.country)}')"` : '');
   return `<div class="card" ${clickAttr} style="${clickAttr?'':'cursor:default;'}">
     <div class="card-img"><img src="${esc2(n.img)}" alt="" loading="lazy"></div>
@@ -4696,7 +4874,7 @@ function travelNewsCardHtml(n){
       <span class="tag">${flagEmoji(n.country)} ${esc2(countryDisplayName(n.country))}${n.city?', '+esc2(n.city):''}</span>
       <h3>${esc2(n.title)}</h3>
       <p style="margin-top:6px;">${esc2(n.desc||'')}</p>
-      ${n.url?`<div style="margin-top:10px;"><a class="tag" style="color:var(--gold2); border:1px solid var(--gold);" href="${esc2(n.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${t('news_read_source')}</a></div>`:''}
+      ${n.url?`<div style="margin-top:10px;"><a class="tag" style="color:var(--gold2); border:1px solid var(--gold);" href="${esc2(safeUrl(n.url)||'#')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${t('news_read_source')}</a></div>`:''}
     </div>
   </div>`;
 }
@@ -4733,7 +4911,7 @@ function excursionCardHtml(a){
     ${translateBtnHtml(a.desc||'')}
     ${a.phone?`<p style="margin-top:6px;">📞 <a href="tel:${esc2(a.phone)}">${esc2(a.phone)}</a></p>`:''}
     ${a.email?`<p>✉️ <a href="mailto:${esc2(a.email)}">${esc2(a.email)}</a></p>`:''}
-    ${a.url?`<div style="margin-top:10px;"><a class="btn btn-primary" style="display:inline-block;" href="${esc2(a.url)}" target="_blank">${t('travel_visit')}</a></div>`:''}
+    ${a.url?`<div style="margin-top:10px;"><a class="btn btn-primary" style="display:inline-block;" href="${esc2(safeUrl(a.url)||'#')}" target="_blank">${t('travel_visit')}</a></div>`:''}
   </div></div>`;
 }
 function renderExcursionStage(){
@@ -4972,7 +5150,7 @@ const EXCURSION_NEWS_BY_COUNTRY = {
 };
 function excursionNewsCardHtml(n){
   const clickAttr = n.agencyMatch
-    ? `onclick="CX.showExcursions('${esc2(n.agencyMatch.country)}','${esc2(n.agencyMatch.city)}')"`
+    ? `onclick="CX.showExcursions('${escJs2(n.agencyMatch.country)}','${escJs2(n.agencyMatch.city)}')"`
     : (n.country ? `onclick="CX.showExcursions('${esc2(n.country)}')"` : '');
   return `<div class="card" ${clickAttr} style="${clickAttr?'':'cursor:default;'}">
     <div class="card-img"><img src="${esc2(n.img)}" alt="" loading="lazy"></div>
@@ -4980,7 +5158,7 @@ function excursionNewsCardHtml(n){
       <span class="tag">${flagEmoji(n.country)} ${esc2(countryDisplayName(n.country))}${n.city?', '+esc2(n.city):''}</span>
       <h3>${esc2(n.title)}</h3>
       <p style="margin-top:6px;">${esc2(n.desc||'')}</p>
-      ${n.url?`<div style="margin-top:10px;"><a class="tag" style="color:var(--gold2); border:1px solid var(--gold);" href="${esc2(n.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${t('news_read_source')}</a></div>`:''}
+      ${n.url?`<div style="margin-top:10px;"><a class="tag" style="color:var(--gold2); border:1px solid var(--gold);" href="${esc2(safeUrl(n.url)||'#')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${t('news_read_source')}</a></div>`:''}
     </div>
   </div>`;
 }
@@ -5328,7 +5506,7 @@ const RESTAURANT_NEWS_BY_COUNTRY = {
 };
 function restaurantNewsCardHtml(n){
   const clickAttr = n.agencyMatch
-    ? `onclick="CX.showRestaurants('${esc2(n.agencyMatch.country)}','${esc2(n.agencyMatch.city)}')"`
+    ? `onclick="CX.showRestaurants('${escJs2(n.agencyMatch.country)}','${escJs2(n.agencyMatch.city)}')"`
     : (n.country ? `onclick="CX.showRestaurants('${esc2(n.country)}')"` : '');
   return `<div class="card" ${clickAttr} style="${clickAttr?'':'cursor:default;'}">
     <div class="card-img"><img src="${esc2(n.img)}" alt="" loading="lazy"></div>
@@ -5336,7 +5514,7 @@ function restaurantNewsCardHtml(n){
       <span class="tag">${flagEmoji(n.country)} ${esc2(countryDisplayName(n.country))}${n.city?', '+esc2(n.city):''}</span>
       <h3>${esc2(n.title)}</h3>
       <p style="margin-top:6px;">${esc2(n.desc||'')}</p>
-      ${n.url?`<div style="margin-top:10px;"><a class="tag" style="color:var(--gold2); border:1px solid var(--gold);" href="${esc2(n.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${t('news_read_source')}</a></div>`:''}
+      ${n.url?`<div style="margin-top:10px;"><a class="tag" style="color:var(--gold2); border:1px solid var(--gold);" href="${esc2(safeUrl(n.url)||'#')}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${t('news_read_source')}</a></div>`:''}
     </div>
   </div>`;
 }
@@ -5536,7 +5714,7 @@ function wzForm(){
     <div class="form-box">
       <div class="form-row"><label>${t('form_firstname')}</label><input type="text" id="bkFirst" value="${esc2(pf.first)}"></div>
       <div class="form-row"><label>${t('form_lastname')}</label><input type="text" id="bkLast" value="${esc2(pf.last)}"></div>
-      <div class="form-row"><label>${t('form_email')}</label><input type="email" id="bkEmail" value="${esc2(pf.email)}"></div>
+      <div class="form-row"><label>${t('form_email')}</label><input type="email" id="bkEmail" value="${esc2(pf.email)}" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="form-row"><label>${t('form_phone')}</label><input type="tel" id="bkPhone" value="${esc2(pf.phone)}"></div>
       ${pointsBlockHtml}
       <div class="pay-badge">\u2705 ${t('pay_at_hotel')}</div>
@@ -6096,7 +6274,12 @@ function showConciergeResults(){
   }
   resetConciergeState();
 }
-function esc2(s){ return (s||'').replace(/</g,'&lt;'); }
+// БЕЗОПАСНОСТЬ (20.09.2026): раньше экранировался только «<» — кавычка в названии/городе/адресе сайта партнёра выходила из
+// атрибута (в DOM появлялись чужие onmouseover/onerror). Теперь экранируются & < > ". Для строк внутри JS в onclick — escJs2().
+function esc2(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escJs2(s){ return esc2(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '); }
+// Адрес сайта партнёра в ссылке: только http(s); без схемы — добавляем https://; javascript:/data:/vbscript: — не ссылка.
+function safeUrl(u){ u=String(u==null?'':u).trim(); if(!u) return ''; if(/^https?:\/\//i.test(u)) return u; if(/^[a-z][a-z0-9+.\-]*:(?!\d)/i.test(u)) return ''; return 'https://'+u.replace(/^\/+/,''); }
 // Единая заглушка для пустых списков (нет партнёров/афиш в этом городе/категории).
 // По решению владельца: не откатываемся автоматически на уровень выше — честно
 // показываем, что тут пусто. Раньше здесь была ещё и кнопка "На главную" — но
@@ -6333,7 +6516,7 @@ function renderModal(type){
       body.innerHTML=`
       <div class="tabs-login"><button class="tab-login" onclick="setAuthMode('login')">${t('login_title')}</button><button class="tab-login active" onclick="setAuthMode('register')">${t('reg_title')}</button></div>
       <div class="form-row"><label>${t('reg_name')}</label><input type="text" id="authName"></div>
-      <div class="form-row"><label>${t('reg_email')}</label><input type="email" id="authEmail"></div>
+      <div class="form-row"><label>${t('reg_email')}</label><input type="email" id="authEmail" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="form-row"><label>${t('reg_pass')}</label><div class="pass-wrap"><input type="password" id="authPass"><span class="pass-eye" onclick="toggleEye('authPass',this)">👁</span></div></div>
       <div class="form-row"><label>${t('reg_pass_confirm')}</label><div class="pass-wrap"><input type="password" id="authPass2"><span class="pass-eye" onclick="toggleEye('authPass2',this)">👁</span></div></div>
       <div class="form-row" style="display:flex; align-items:flex-start; gap:8px; margin-top:10px;">
@@ -6348,7 +6531,7 @@ function renderModal(type){
         body.innerHTML=`
         <h2 class="font-cormorant gradient-heading">${t('forgot_title')}</h2>
         <p style="color:var(--muted); font-size:14px; margin-bottom:14px;">${t('forgot_sub')}</p>
-        <div class="form-row"><label>${t('reg_email')}</label><input type="email" id="forgotEmail"></div>
+        <div class="form-row"><label>${t('reg_email')}</label><input type="email" id="forgotEmail" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
         <button class="btn btn-primary" style="width:100%;" onclick="doForgotSend()">${t('forgot_send')}</button>
         <p id="authMsg" style="margin-top:10px; color:var(--err); font-size:13px;"></p>
         <p style="margin-top:14px; font-size:13px; text-align:center;"><a onclick="setAuthMode('login')" style="color:var(--gold2); cursor:pointer;">← ${t('modal_login_btn')}</a></p>`;
@@ -6371,7 +6554,7 @@ function renderModal(type){
     } else {
       body.innerHTML=`
       <div class="tabs-login"><button class="tab-login active" onclick="setAuthMode('login')">${t('login_title')}</button><button class="tab-login" onclick="setAuthMode('register')">${t('reg_title')}</button></div>
-      <div class="form-row"><label>${t('modal_login_email')}</label><input type="email" id="authEmail"></div>
+      <div class="form-row"><label>${t('modal_login_email')}</label><input type="email" id="authEmail" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="form-row"><label>${t('modal_login_pass')}</label><div class="pass-wrap"><input type="password" id="authPass"><span class="pass-eye" onclick="toggleEye('authPass',this)">👁</span></div></div>
       <button class="btn btn-primary" style="width:100%;" onclick="doLogin()">${t('modal_login_btn')}</button>
       <p id="authMsg" style="margin-top:10px; color:var(--err); font-size:13px;"></p>
@@ -6518,7 +6701,7 @@ function renderModal(type){
       if(step==='email'){
         body.innerHTML=`<h2 class="font-cormorant gradient-heading">${t('forgot_title')}</h2>
         <p style="color:var(--muted);font-size:14px;margin-bottom:14px;">${t('forgot_sub')}</p>
-        <div class="form-row"><label>${t('reg_email')}</label><input type="email" id="refForgotEmail"></div>
+        <div class="form-row"><label>${t('reg_email')}</label><input type="email" id="refForgotEmail" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
         <button class="btn btn-primary" style="width:100%;" onclick="handleRefForgotSend()">${t('forgot_send')}</button>
         <p id="refForgotMsg" style="margin-top:10px;color:var(--err);font-size:13px;"></p>
         <p style="margin-top:14px;font-size:13px;text-align:center;"><a onclick="setRefModalMode('login')" style="color:var(--gold2);cursor:pointer;">← ${t('ref_login_btn')}</a></p>`;
@@ -6538,7 +6721,7 @@ function renderModal(type){
     } else if(mode==='login'){
       body.innerHTML=`
       <h2 class="font-cormorant gradient-heading">${t('ref_login_title')}</h2>
-      <div class="form-row"><label>${t('form_email')}</label><input type="email" id="refLoginEmail"></div>
+      <div class="form-row"><label>${t('form_email')}</label><input type="email" id="refLoginEmail" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div class="form-row"><label>${t('ref_password')}</label><div class="pass-wrap"><input type="password" id="refLoginPass"><span class="pass-eye" onclick="toggleEye('refLoginPass',this)">👁</span></div></div>
       <button class="btn btn-primary" style="width:100%;" onclick="doRefLogin()">${t('ref_login_btn')}</button>
       <p id="refLoginMsg" style="margin-top:10px; color:var(--err); font-size:13px;"></p>
@@ -6555,7 +6738,7 @@ function renderModal(type){
         <select id="refCountry" onchange="toggleRefPayoutField()">${getAllCountryCodes().sort((a,b)=>countryDisplayName(a).localeCompare(countryDisplayName(b),'ru')).map(cc=>`<option value="${cc}" ${cc==='RU'?'selected':''}>${flagEmoji(cc)} ${esc2(countryDisplayName(cc))}</option>`).join('')}</select>
       </div>
       <div style="font-size:11.5px; color:var(--muted); margin:-6px 0 10px;">${LANG==='ru'?'От этого зависит способ вывода вознаграждения — резидентам РФ выплаты идут рублями, остальным — в криптовалюте (закон РФ не позволяет платить криптовалютой резидентам).':'This determines your payout method — RF residents are paid in rubles, others in cryptocurrency (Russian law does not allow crypto payouts to residents).'}</div>
-      <div class="form-row"><label>${t('form_email')}</label><input type="email" id="refEmail"></div>
+      <div class="form-row"><label>${t('form_email')}</label><input type="email" id="refEmail" autocomplete="email" autocapitalize="off" spellcheck="false" inputmode="email"></div>
       <div style="font-size:11.5px; color:var(--muted); margin:-6px 0 10px;">${LANG==='ru'?'При выводе средств мы подтвердим этот адрес кодом — укажите настоящий, иначе не сможете получить подарок.':'Before withdrawing, we\'ll verify this address with a code — use a real one or you won\'t be able to claim your gift.'}</div>
       <div class="form-row"><label>${t('ref_password')}</label><div class="pass-wrap"><input type="password" id="refPassword"><span class="pass-eye" onclick="toggleEye('refPassword',this)">👁</span></div></div>
       <div class="form-row"><label>${t('reg_pass_confirm')}</label><div class="pass-wrap"><input type="password" id="refPassword2"><span class="pass-eye" onclick="toggleEye('refPassword2',this)">👁</span></div></div>
@@ -6735,10 +6918,10 @@ function doRefLogout(){
   renderModal('referral');
 }
 function doRefLogin(){
-  const email=document.getElementById('refLoginEmail').value.trim();
+  const email=normEmail(document.getElementById('refLoginEmail').value);
   const pass=document.getElementById('refLoginPass').value;
   const refs=LS.getJSON('cx_referrals', []);
-  const found=refs.find(r=>r.email===email && r.password===pass);
+  const found=refs.find(r=>sameEmail(r.email,email) && r.password===pass);
   if(!found){ document.getElementById('refLoginMsg').textContent=t('ref_login_err'); return; }
   LS.setJSON('cx_referral_session', {code:found.code});
   renderModal('referral');
@@ -6757,10 +6940,15 @@ function toggleEye(inputId, btn){
   inp.type = show?'text':'password';
   btn.textContent = show?'🙈':'👁';
 }
-function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e); }
+function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e||'').trim()); }
+// E-mail всегда сравниваем без учёта регистра и лишних пробелов: у гостей по всему миру телефон сам делает первую букву
+// заглавной («John@gmail.com»), а почтовые адреса регистронезависимы. Раньше вход/регистрация сравнивали строку «как есть»:
+// зарегистрировался как John@Gmail.com, а вошёл как john@gmail.com — «неверный логин», и один ящик мог зарегистрироваться дважды.
+function normEmail(e){ return String(e||'').trim().toLowerCase(); }
+function sameEmail(a,b){ return normEmail(a)===normEmail(b); }
 async function doRegister(){
   const name=document.getElementById('authName')?.value.trim();
-  const email=document.getElementById('authEmail')?.value.trim();
+  const email=normEmail(document.getElementById('authEmail')?.value);
   const pass=document.getElementById('authPass')?.value;
   const pass2=document.getElementById('authPass2')?.value;
   const agree=document.getElementById('authAgree')?.checked;
@@ -6773,6 +6961,9 @@ async function doRegister(){
   // ИЗМЕНЕНО 19.09.2026: регистрация гостя теперь идёт на сервер (тот же
   // сервер, что и hotel-portal.html) вместо localStorage — иначе бронь,
   // сделанная тут, не была бы видна отелю нигде, кроме этого же браузера.
+  // email уже приведён к нижнему регистру через normEmail() выше — иначе
+  // "John@x.ru" и "john@x.ru" были бы для сервера разными пользователями
+  // (SQLite сравнивает TEXT с учётом регистра по умолчанию).
   try {
     await CxApi.post('/api/register', { email, password: pass, role: 'guest', name });
     const loginRes = await CxApi.post('/api/login', { email, password: pass });
@@ -6791,7 +6982,7 @@ async function doRegister(){
   toast(t('reg_success')+' '+name+'!');
 }
 async function doLogin(){
-  const email=document.getElementById('authEmail')?.value.trim();
+  const email=normEmail(document.getElementById('authEmail')?.value);
   const pass=document.getElementById('authPass')?.value;
   const msg=document.getElementById('authMsg');
   if(!email||!pass){ msg.textContent=t('err_required'); return; }
@@ -6914,10 +7105,12 @@ function updateNavLoginBtn(){
 
 /* ---- forgot password ---- */
 function doForgotSend(){
-  const email=document.getElementById('forgotEmail')?.value.trim();
+  const typedEmail=normEmail(document.getElementById('forgotEmail')?.value);
   const msg=document.getElementById('authMsg');
   const users=LS.getJSON('cx_users',[]);
-  if(!users.find(u=>u.email===email)){ msg.textContent=t('forgot_email_not_found'); return; }
+  const foundUser=users.find(u=>sameEmail(u.email,typedEmail));
+  if(!foundUser){ msg.textContent=t('forgot_email_not_found'); return; }
+  const email=foundUser.email;   // адрес как в аккаунте — по нему потом ищем при смене пароля
   const code=Math.floor(100000+Math.random()*900000).toString();
   LS.set('cx_forgot_email', email);
   LS.set('cx_forgot_code', code);
@@ -6962,10 +7155,12 @@ function setRefForgot(){
   renderModal('referral');
 }
 function handleRefForgotSend(){
-  const email=document.getElementById('refForgotEmail')?.value.trim();
+  const typedEmail=normEmail(document.getElementById('refForgotEmail')?.value);
   const msg=document.getElementById('refForgotMsg');
   const refs=LS.getJSON('cx_referrals',[]);
-  if(!refs.find(r=>r.email===email)){ msg.textContent=t('forgot_email_not_found'); return; }
+  const foundRef=refs.find(r=>sameEmail(r.email,typedEmail));
+  if(!foundRef){ msg.textContent=t('forgot_email_not_found'); return; }
+  const email=foundRef.email;
   const code=Math.floor(100000+Math.random()*900000).toString();
   LS.set('cx_ref_forgot_email',email); LS.set('cx_ref_forgot_code',code); LS.set('cx_ref_forgot_step','code');
   const sentByEmail = sendRecoveryCodeEmail(email, code);
@@ -6998,7 +7193,7 @@ function handleRefForgotSave(){
 function doRefRegister(){
   const name=document.getElementById('refName').value.trim();
   const country=document.getElementById('refCountry')?.value||'RU';
-  const email=document.getElementById('refEmail').value.trim();
+  const email=normEmail(document.getElementById('refEmail').value);
   const password=document.getElementById('refPassword').value;
   const password2=document.getElementById('refPassword2').value;
   const wallet=document.getElementById('refWallet').value.trim();
@@ -7010,7 +7205,7 @@ function doRefRegister(){
   if(password!==password2){ msg.textContent=t('reg_pass_mismatch'); return; }
   if(!agree){ msg.textContent=t('err_agree_required'); return; }
   const refs=LS.getJSON('cx_referrals', []);
-  if(refs.find(r=>r.email===email)){ msg.textContent=t('ref_email_exists'); return; }
+  if(refs.find(r=>sameEmail(r.email,email))){ msg.textContent=t('ref_email_exists'); return; }
   const code='CX'+Math.random().toString(36).slice(2,8).toUpperCase();
   const entry={code, name, country, email, password, wallet, payoutRub, earned:0, clicks:0, status:'active', createdAt:new Date().toISOString(), agreedToTermsAt:new Date().toISOString(), agreedDocsVersion:'1.0',
     // Email НЕ проверяется на этом шаге (решение владельца 22.08.2026) — только
