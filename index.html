@@ -1169,8 +1169,43 @@ const LS = {
     }
   },
   getJSON:(k,fallback)=>{ const v=LS.get(k); try{return v?JSON.parse(v):fallback;}catch(e){return fallback;} },
-  setJSON:(k,v)=>LS.set(k, JSON.stringify(v))
+  setJSON:(k,v)=>LS.set(k, JSON.stringify(v)),
+  remove:(k)=>{ try{localStorage.removeItem(k);}catch(e){delete _memStore[k];} }
 };
+
+// ---------- подключение к серверу Corronyx (19.09.2026) — см. тот же блок
+// и подробный комментарий в hotel-portal.html: localStorage остаётся
+// быстрым локальным кэшем, сервер — источник правды. CX_API_BASE меняется
+// на реальный адрес одной строкой, как только появится хостинг.
+const CX_API_BASE = window.CX_API_BASE || 'https://api.corronyx.ru';
+const CxApi = {
+  token(){ return LS.get('cx_guest_jwt') || ''; },
+  async call(method, path, body){
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    const tok = this.token();
+    if (tok) opts.headers['Authorization'] = 'Bearer ' + tok;
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    let res, data;
+    try { res = await fetch(CX_API_BASE + path, opts); }
+    catch (networkErr) { const e = new Error('network'); e.isNetwork = true; throw e; }
+    try { data = await res.json(); } catch(e) { data = {}; }
+    if (!res.ok) { const e = new Error(data.error || 'request_failed'); e.status = res.status; e.payload = data; throw e; }
+    return data;
+  },
+  get(path){ return this.call('GET', path); },
+  post(path, body){ return this.call('POST', path, body); },
+  put(path, body){ return this.call('PUT', path, body); },
+  del(path){ return this.call('DELETE', path); }
+};
+// Если человек принял cookie ДО входа/регистрации (обычный порядок —
+// баннер виден сразу при заходе на сайт), локальный факт есть, а на
+// сервере — ещё нет (там это привязано к конкретному пользователю).
+// Досылаем сразу после того, как появился токен.
+function cxSyncCookieConsentIfLocal(){
+  if (LS.getJSON('cx_cookie_consent', null)) {
+    CxApi.post('/api/auth/cookie-consent', {}).catch(e=>console.error('Не удалось записать согласие на cookie на сервере', e));
+  }
+}
 
 /* ---------- Business logic constants ---------- */
 const COMMISSION = 0.12;
@@ -1753,13 +1788,49 @@ async function showClientHotelMap(lat, lng, name){
 }
 
 function getAllHotels(){
-  const real = LS.getJSON('cx_hotel_accounts', []);
+  // ИЗМЕНЕНО 19.09.2026: реальные отели теперь читаются из кэша, который
+  // наполняет cxRefreshHotelsCache() с сервера (GET /api/hotels), а не из
+  // cx_hotel_accounts — та работала только внутри одного браузера и не
+  // показывала гостям на других устройствах отели, зарегистрированные с
+  // компьютера отеля. Демо-отели (HOTELS) остаются для примера.
+  const real = LS.getJSON('cx_real_hotels_cache', []);
   return [...HOTELS, ...real]
     .map(applyLiveRoomData)
     .map(applyLiveProfileData)
     .filter(h => (LS.get('cx_hotel_status_'+h.id) || 'active') === 'active')
     .filter(h => h.rooms && h.rooms.length>0)
     .map(h => (h.images && h.images.length) ? h : {...h, images:[h.rooms[0].img || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=75']});
+}
+// Переводит форму сервера (hotels+rooms+room_units) в форму, которую ждёт
+// остальной код этого файла (та же форма, что у демо-отелей HOTELS выше):
+// class-номер с basePrice, а не price_rub, и т.д. — см. точно такую же
+// функцию и комментарий в hotel-portal.html.
+function cxMapServerHotelsToLocal(list){
+  return list.map(h => ({
+    id: String(h.id), serverId: h.id, country: h.country, city: h.city,
+    stars: h.class ? Number(h.class) : 0, name: h.name, address: h.address || '',
+    phone: h.phone || '', email: h.email || '', desc: h.description || '',
+    amenities: h.amenities || [], images: h.images || [],
+    lat: h.lat, lng: h.lng,
+    rooms: (h.rooms || []).map(r => ({
+      id: String(r.id), name: r.name, basePrice: r.price_rub, area: r.area || 20,
+      beds: r.beds || '', view: r.view || '', img: r.img || '',
+      // Юниты — нужны только при самой брони (submitBooking передаёт room_id
+      // класса, конкретный физический номер отель назначит позже сам через
+      // Шахматку), но храним на всякий случай для будущей проверки наличия.
+      units: r.units || []
+    }))
+  }));
+}
+async function cxRefreshHotelsCache(){
+  try {
+    const hotels = await CxApi.get('/api/hotels');
+    LS.setJSON('cx_real_hotels_cache', cxMapServerHotelsToLocal(hotels));
+  } catch (e) {
+    // Сервер недоступен (или ещё не развёрнут) — не страшно: остаётся
+    // прошлый кэш (если был) или пустой список, демо-отели всё равно видны.
+    console.error('Не удалось обновить список отелей с сервера', e);
+  }
 }
 function findHotelById(id){ return getAllHotels().find(h=>h.id===id); }
 
@@ -3286,7 +3357,7 @@ const CX = {
   },
 
   /* ---------- booking submit ---------- */
-  submitBooking(){
+  async submitBooking(){
     const session = LS.getJSON('cx_user_session', null);
     if(!session){
       toast(LANG==='ru' ? 'Для бронирования нужно войти в аккаунт' : 'Please log in to complete your booking');
@@ -3315,6 +3386,10 @@ const CX = {
     // валидации полей (номер и email должны быть заполнены и валидны), но
     // ДО создания брони — гость из ЧС этого отеля не должен суметь пройти
     // дальше, пока отель сам его не снимет с учёта.
+    // ВАЖНО (честно, не скрываю): эта проверка пока только локальная — на
+    // сервере таблицы чёрного списка ещё нет вообще. Если гость забронирует
+    // с другого браузера/устройства, эта проверка его не остановит. Нужно
+    // отдельно перенести ЧС на сервер — пока это реальный пробел.
     {
       const guestPhone = document.getElementById('bkPhone').value.trim();
       const guestEmail = document.getElementById('bkEmail').value.trim();
@@ -3325,6 +3400,44 @@ const CX = {
         return;
       }
     }
+
+    // ДОБАВЛЕНО 19.09.2026: сервер требует подтверждённую почту и принятое
+    // согласие на cookie у САМОГО пользователя перед бронью (проверяется на
+    // сервере в /api/bookings, не только тут — это не обходится прямым
+    // запросом к API). Проверяем и закрываем оба условия здесь же, не
+    // отправляя гостя на отдельный экран.
+    let me;
+    try {
+      me = await CxApi.get('/api/auth/me');
+    } catch (e) {
+      toast(e.isNetwork ? 'Сервер недоступен. Попробуйте ещё раз позже.' : 'Не удалось проверить аккаунт', true);
+      return;
+    }
+    if (!me.cookie_consent_at) {
+      cxSyncCookieConsentIfLocal();
+      if (!LS.getJSON('cx_cookie_consent', null)) {
+        toast(LANG==='ru' ? 'Сначала примите использование cookie (баннер внизу экрана)' : 'Please accept cookies first (banner at the bottom)', true);
+        const banner = document.getElementById('cookieBanner'); if (banner) banner.style.display='';
+        return;
+      }
+      try { await CxApi.post('/api/auth/cookie-consent', {}); } catch(e){ toast('Не удалось записать согласие на cookie', true); return; }
+    }
+    if (!me.email_verified) {
+      // ЧЕСТНО: здесь простой prompt(), не отдельный красивый экран — модалка
+      // бронирования сейчас не рассчитана на дополнительный шаг. Работает
+      // правильно, но не так гладко, как остальной интерфейс; можно
+      // впоследствии заменить на полноценный шаг мастера бронирования.
+      let dev_code;
+      try { const r = await CxApi.post('/api/auth/verify-email/request', {}); dev_code = r.dev_code; }
+      catch(e){ toast('Не удалось отправить код подтверждения', true); return; }
+      const sentByEmail = dev_code && sendReferralVerifyCodeEmail(session.email, dev_code);
+      if (!sentByEmail && dev_code) alert((LANG==='ru'?'Код подтверждения почты: ':'Email confirmation code: ')+dev_code);
+      const entered = prompt(LANG==='ru' ? 'Подтвердите почту — введите код из письма:' : 'Confirm your email — enter the code:');
+      if (!entered) return;
+      try { await CxApi.post('/api/auth/verify-email/confirm', { code: entered.trim() }); }
+      catch(e){ toast(LANG==='ru'?'Неверный или просроченный код':'Wrong or expired code', true); return; }
+    }
+
     const w=this.wizard, nights=getNights(w.checkin,w.checkout);
     // Оплата баллами (см. Политику лояльности п.4.2): пересчитываем лимит на сервере-эквиваленте
     // (не доверяем только клиентскому значению) — не больше 12% от цены отеля и не больше
@@ -3344,29 +3457,45 @@ const CX = {
       }
     }
     const sessionUser = session? LS.getJSON('cx_users',[]).find(x=>x.email===session.email) : null;
-    // Финальная подстраховка от гонки: пока гость заполнял форму, номер могли
-    // забронировать в другой вкладке/устройстве — проверяем ещё раз перед
-    // самым созданием брони (та же проверка, что и на шаге выбора номера).
-    if(w.room.classId && w.room.num && !isUnitFree(w.hotel.id, w.room.classId, w.room.num, w.checkin, w.checkout)){
-      toast(t('err_room_taken')||'Этот номер уже заняли, пока вы заполняли форму — выберите другой', true);
-      this.wizard.step='units';
-      renderWizard();
+
+    // ИЗМЕНЕНО 19.09.2026: бронь теперь реально создаётся на сервере — окончательная
+    // проверка занятости (была здесь через isUnitFree по локальному кэшу) делает
+    // сам сервер и отвечает конкретной ошибкой, если номер/класс уже занят.
+    const roomServerId = Number(w.room.classId || w.room.id);
+    let created;
+    try {
+      created = await CxApi.post('/api/bookings', {
+        room_id: roomServerId, checkin: w.checkin, checkout: w.checkout,
+        guest_first_name: document.getElementById('bkFirst').value,
+        guest_last_name: document.getElementById('bkLast').value,
+        guest_email: document.getElementById('bkEmail').value,
+        guest_phone: document.getElementById('bkPhone').value,
+        requested_room_number: w.room.num || '',
+        points_to_apply: pointsApplied
+      });
+    } catch (e) {
+      if (e.isNetwork) toast('Сервер недоступен. Бронь не создана — попробуйте ещё раз позже.', true);
+      else if (e.payload && e.payload.error === 'dates_unavailable') {
+        toast(t('err_room_taken')||'Этот номер уже заняли, пока вы заполняли форму — выберите другой', true);
+        this.wizard.step='units'; renderWizard();
+      } else if (e.payload && e.payload.error === 'hotel_not_active') {
+        toast('Этот отель сейчас недоступен для бронирования', true);
+      } else {
+        toast('Не удалось создать бронь: ' + (e.payload && e.payload.error || 'неизвестная ошибка'), true);
+      }
+      console.error('submitBooking failed', e);
       return;
     }
+
     const booking = {
-      id:'CX-'+Date.now(), bookingId:'CX-'+Date.now(),
+      id:'CX-'+created.id, bookingId:'CX-'+created.id, serverId: created.id,
       hotelId:w.hotel.id, hotelName:w.hotel.name, roomName:w.room.name,
-      roomClassId: w.room.classId || w.room.id, // classId — если гость выбрал конкретный номер (новый флоу); id — legacy-путь
+      roomClassId: w.room.classId || w.room.id,
       checkin:w.checkin, checkout:w.checkout, nights,
-      // Гость выбрал номер для примера/предпочтения, но НЕ размещаем его сразу —
-      // бронь всё равно уходит в очередь "не размещено" у отеля, а отель сам
-      // подтверждает этот номер или назначает другой, если этот уже заняли
-      // (см. hotel-portal.html: requestedRoomNumber показывается как подсказка
-      // в окне назначения, чекбоксом её нужно явно подтвердить).
       requestedRoomNumber: w.room.num || '',
       basePrice:w.room.basePrice, clientPriceNight: clientPrice(w.room.basePrice),
-      total: clientPrice(w.room.basePrice)*nights,
-      pointsApplied, pointsRefCode: myRefCode, // см. Политику лояльности п.4.2.3-4.2.4 — резерв, снимается при confirmed/cancelled
+      total: created.total_price_rub,
+      pointsApplied: created.points_applied, pointsRefCode: myRefCode,
       firstName:document.getElementById('bkFirst').value, lastName:document.getElementById('bkLast').value,
       guestName:document.getElementById('bkFirst').value+' '+document.getElementById('bkLast').value,
       guest:document.getElementById('bkFirst').value+' '+document.getElementById('bkLast').value,
@@ -3375,15 +3504,16 @@ const CX = {
       source:'site', payStatus:'pending',
       refCode: getRefCode(),
       userEmail: session? session.email : null,
-      // Фото гостя — необязательное, берётся из личного кабинета, если гость
-      // его туда загрузил. Отель видит его в деталях брони (hotel-portal.html),
-      // чтобы знать, кто должен заселиться. Если фото нет — просто null,
-      // ничего не подделываем.
       guestPhoto: (sessionUser && sessionUser.photo) || null
     };
-    // Резервируем баллы сразу (временно исключаем из доступного остатка) — окончательно
-    // спишутся при подтверждении оплаты отелем, вернутся на баланс при отмене/отказе
-    // (см. HP.setBookingStatus в hotel-portal.html).
+    // ВРЕМЕННОЕ ДУБЛИРОВАНИЕ (убрать, когда действия отеля с бронью —
+    // подтверждение/оплата/отмена в hotel-portal.html — тоже переедут на
+    // сервер): "Мои брони" гостя и локальная проверка занятости номера
+    // (isUnitFree) пока читают именно cx_bookings, поэтому продолжаемсюда
+    // же писать копию, иначе эти два места сломались бы прямо сейчас.
+    // Реферальный леджер по той же причине пока тоже ведётся локально —
+    // серверный леджер начисляет только когда отель подтвердит+оплатит
+    // бронь ЧЕРЕЗ СЕРВЕР, а это действие ещё не подключено.
     if(pointsApplied>0 && myRefCode){
       const spentMap=LS.getJSON('cx_referral_spent', {});
       spentMap[myRefCode]=(spentMap[myRefCode]||0)+pointsApplied;
@@ -3391,29 +3521,17 @@ const CX = {
     }
     const bookings = LS.getJSON('cx_bookings', []);
     bookings.push(booking); LS.setJSON('cx_bookings', bookings);
-    // Проверяем, что бронь РЕАЛЬНО долетела до диска, а не осела только в
-    // памяти страницы (см. LS.set) — иначе гость увидит "успех", получит
-    // письмо, а бронь исчезнет при следующей перезагрузке или у отеля её
-    // просто не будет видно. Останавливаемся здесь и говорим прямо, а не
-    // притворяемся, что всё получилось.
     let persistedOk = false;
     try{ persistedOk = JSON.parse(localStorage.getItem('cx_bookings')||'[]').some(b=>b.id===booking.id); }catch(e){}
     if(!persistedOk){
-      toast('⚠️ Не удалось сохранить бронь — не хватило места в хранилище браузера. Откройте настройки браузера и очистите данные сайтов, или напишите отелю напрямую.', true);
-      return;
+      toast('⚠️ Бронь создана на сервере, но не удалось сохранить локальную копию (не хватило места в хранилище браузера) — это не страшно, отель её всё равно увидит.', true);
     }
-    // referral earnings bookkeeping — создаём запись в леджере со статусом pending;
-    // в available она перейдёт только после подтверждения оплаты отелем + 10 дней удержания
-    // (см. HP.setBookingStatus в hotel-portal.html и Политику лояльности п.2.2-2.4)
     if(booking.refCode){
       const refs = LS.getJSON('cx_referrals', []);
       const ref = refs.find(r=>r.code===booking.refCode);
       if(ref){ addReferralLedgerEntry(booking.refCode, booking.id, booking.total*REFERRAL_SHARE); }
     }
     sendBookingEmail(booking);
-    // Уведомление админу о заезде — минимум информации: кто, куда, когда. Пишется в общий
-    // список cx_admin_notifications (тот же, что "Уведомления" в админке), с привязкой к
-    // стране/городу/отелю для перехода одним кликом прямо к этому отелю.
     try{
       const adminNotes=LS.getJSON('cx_admin_notifications', []);
       const checkinDate=new Date(booking.checkin).toLocaleDateString('ru-RU');
@@ -3425,8 +3543,6 @@ const CX = {
       });
       LS.setJSON('cx_admin_notifications', adminNotes);
     }catch(e){}
-    // Растущий профиль: сохраняем имя/фамилию/телефон в cx_users, чтобы при следующей
-    // брони эти поля заполнились автоматически (email — логин, его не трогаем).
     if(booking.userEmail){
       const users=LS.getJSON('cx_users', []);
       const u=users.find(x=>x.email===booking.userEmail);
@@ -6642,7 +6758,7 @@ function toggleEye(inputId, btn){
   btn.textContent = show?'🙈':'👁';
 }
 function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e); }
-function doRegister(){
+async function doRegister(){
   const name=document.getElementById('authName')?.value.trim();
   const email=document.getElementById('authEmail')?.value.trim();
   const pass=document.getElementById('authPass')?.value;
@@ -6651,37 +6767,55 @@ function doRegister(){
   const msg=document.getElementById('authMsg');
   if(!name||!email||!pass){ msg.textContent=t('err_required'); return; }
   if(!validateEmail(email)){ msg.textContent=t('err_email_invalid'); return; }
+  if(pass.length<6){ msg.textContent='Пароль минимум 6 символов'; return; }
   if(pass!==pass2){ msg.textContent=t('reg_pass_mismatch'); return; }
   if(!agree){ msg.textContent=t('err_agree_required'); return; }
-  const users=LS.getJSON('cx_users', []);
-  if(users.find(u=>u.email===email)){ msg.textContent=t('reg_exists'); return; }
-  const user={name, email, password:pass, createdAt:new Date().toISOString(), agreedToTermsAt:new Date().toISOString(), agreedDocsVersion:'1.0'};
-  users.push(user); LS.setJSON('cx_users', users);
-  LS.setJSON('cx_user_session', {email});
+  // ИЗМЕНЕНО 19.09.2026: регистрация гостя теперь идёт на сервер (тот же
+  // сервер, что и hotel-portal.html) вместо localStorage — иначе бронь,
+  // сделанная тут, не была бы видна отелю нигде, кроме этого же браузера.
+  try {
+    await CxApi.post('/api/register', { email, password: pass, role: 'guest', name });
+    const loginRes = await CxApi.post('/api/login', { email, password: pass });
+    LS.set('cx_guest_jwt', loginRes.token);
+    cxSyncCookieConsentIfLocal();
+  } catch (e) {
+    if (e.isNetwork) msg.textContent = 'Сервер недоступен. Проверьте интернет-соединение и попробуйте снова.';
+    else if (e.payload && e.payload.error === 'bad_email_format') msg.textContent = t('err_email_invalid');
+    else msg.textContent = t('reg_exists'); // сервер не даёт узнать точную причину для чужого email — трактуем как "уже занят"
+    console.error('doRegister failed', e);
+    return;
+  }
+  LS.setJSON('cx_user_session', {email, name});
   updateNavLoginBtn();
   CX.closeModal();
   toast(t('reg_success')+' '+name+'!');
 }
-function doLogin(){
+async function doLogin(){
   const email=document.getElementById('authEmail')?.value.trim();
   const pass=document.getElementById('authPass')?.value;
   const msg=document.getElementById('authMsg');
   if(!email||!pass){ msg.textContent=t('err_required'); return; }
   if(!validateEmail(email)){ msg.textContent=t('err_email_invalid'); return; }
-  const users=LS.getJSON('cx_users', []);
-  const u=users.find(x=>x.email===email && x.password===pass);
-  if(u){
-    LS.setJSON('cx_user_session', {email});
-    LS.set('cx_auth_mode','login');
-    updateNavLoginBtn();
-    CX.closeModal();
-    toast((LANG==='ru'?'Добро пожаловать, ':'Welcome, ')+u.name+'!');
-  } else {
-    msg.textContent=t('modal_login_err');
+  let me;
+  try {
+    const loginRes = await CxApi.post('/api/login', { email, password: pass });
+    LS.set('cx_guest_jwt', loginRes.token);
+    cxSyncCookieConsentIfLocal();
+    me = await CxApi.get('/api/auth/me');
+  } catch (e) {
+    msg.textContent = e.isNetwork ? 'Сервер недоступен. Проверьте интернет-соединение и попробуйте снова.' : t('modal_login_err');
+    console.error('doLogin failed', e);
+    return;
   }
+  LS.setJSON('cx_user_session', {email, name: me.name || email});
+  LS.set('cx_auth_mode','login');
+  updateNavLoginBtn();
+  CX.closeModal();
+  toast((LANG==='ru'?'Добро пожаловать, ':'Welcome, ')+(me.name || email)+'!');
 }
 function doUserLogout(){
   LS.set('cx_user_session','');
+  LS.remove('cx_guest_jwt');
   LS.set('cx_auth_mode','login');
   updateNavLoginBtn();
   CX.closeModal();
@@ -6927,7 +7061,7 @@ document.addEventListener('click', e=>{
 /* =========================================================
    INIT
    ========================================================= */
-function init(){
+async function init(){
   captureRefCode();
   applyTranslations();
   document.getElementById('curLangLabel2').textContent = LANG.toUpperCase();
@@ -6939,7 +7073,30 @@ function init(){
   seedRealtorsIfEmpty();
   seedTravelAgenciesIfEmpty();
   CX.restoreState();
+  // ИЗМЕНЕНО 19.09.2026: реальные отели теперь приходят с сервера — ждём
+  // первого ответа перед отрисовкой пикера/поиска, иначе первая отрисовка
+  // покажет только демо-отели, а реальные появятся только после
+  // повторного клика. Если сервер недоступен, cxRefreshHotelsCache сама
+  // не бросает исключение наружу — страница всё равно отрисуется с тем,
+  // что было в кэше (или только демо-отелями).
+  await cxRefreshHotelsCache();
   renderHomeClassPicker();
+  // Сессия гостя восстанавливается по JWT, а не слепо по localStorage —
+  // если токен просрочен/недействителен, тихо разлогиниваем, а не
+  // показываем интерфейс залогиненного человека с "мёртвым" токеном.
+  const jwt = LS.get('cx_guest_jwt');
+  if (jwt) {
+    try {
+      const me = await CxApi.get('/api/auth/me');
+      LS.setJSON('cx_user_session', {email: me.email, name: me.name || me.email});
+      updateNavLoginBtn();
+    } catch (e) {
+      console.error('Сессия гостя недействительна, разлогиниваю', e);
+      LS.remove('cx_guest_jwt');
+      LS.set('cx_user_session', '');
+      updateNavLoginBtn();
+    }
+  }
   const s=document.createElement('script');
   s.src='https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
   document.head.appendChild(s);
@@ -7011,6 +7168,13 @@ function cookieChoice(choice){
   LS.setJSON('cx_cookie_consent', {choice, at:new Date().toISOString()});
   document.getElementById('cookieBanner').style.display='none';
   positionConciergeBtn(false);
+  // ИЗМЕНЕНО 19.09.2026: бронь на сервере требует cookie_consent_at у
+  // САМОГО пользователя (не у анонимного браузера) — если человек уже
+  // вошёл, синхронизируем сразу; если нет — см. doLogin/doRegister ниже,
+  // где этот же локальный факт досылается на сервер сразу после входа.
+  if (LS.get('cx_guest_jwt')) {
+    CxApi.post('/api/auth/cookie-consent', {}).catch(e=>console.error('Не удалось записать согласие на cookie на сервере', e));
+  }
 }
 // Кнопка консьержа (🎩) раньше пряталась под баннером cookie — z-index баннера
 // выше, и она физически перекрывалась. Теперь: пока баннер виден — кнопка сама

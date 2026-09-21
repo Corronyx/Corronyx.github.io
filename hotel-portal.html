@@ -1268,7 +1268,175 @@ const LS = {
   remove:(k)=>{ try{localStorage.removeItem(k);}catch(e){delete _memStore[k];} }
 };
 
-// ============================================================
+// ---------- подключение к реальному серверу Corronyx (19.09.2026) ----------
+// ВАЖНО: до этого момента отель хранился ЦЕЛИКОМ в localStorage браузера —
+// удобно для черновика, но данные не пережили бы переустановку браузера и
+// не были видны с другого устройства. Теперь источник правды — сервер;
+// localStorage остаётся ТОЛЬКО быстрым локальным кэшем той же формы, что
+// уже умеет читать весь остальной код этого файла (renderAll и т.д.),
+// поэтому сотни существующих мест чтения ниже НЕ пришлось переписывать.
+//
+// CX_API_BASE указывает на настоящий сервер. Пока сервер нигде не развёрнут
+// (см. заметку владельца — хостинг ещё не подключали), тут заглушка — как
+// только появится реальный адрес (SprintHost или другой), достаточно
+// поменять ЭТУ ОДНУ строку.
+const CX_API_BASE = window.CX_API_BASE || 'https://api.corronyx.ru';
+
+const CxApi = {
+  token(){ return LS.get('cx_hp_jwt') || ''; },
+  async call(method, path, body){
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    const tok = this.token();
+    if (tok) opts.headers['Authorization'] = 'Bearer ' + tok;
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    let res, data;
+    try {
+      res = await fetch(CX_API_BASE + path, opts);
+    } catch (networkErr) {
+      // Сервер недоступен (не развёрнут, нет интернета, CORS и т.п.) —
+      // раньше такой ошибки в принципе не могло быть (всё было в
+      // localStorage). Теперь это реальная ситуация, и человеку нужно
+      // понятное сообщение, а не тихий сбой.
+      const e = new Error('network');
+      e.isNetwork = true;
+      throw e;
+    }
+    try { data = await res.json(); } catch(e) { data = {}; }
+    if (!res.ok) {
+      const e = new Error(data.error || 'request_failed');
+      e.status = res.status; e.payload = data;
+      throw e;
+    }
+    return data;
+  },
+  get(path){ return this.call('GET', path); },
+  post(path, body){ return this.call('POST', path, body); },
+  put(path, body){ return this.call('PUT', path, body); },
+  del(path){ return this.call('DELETE', path); }
+};
+
+// Превращает ответ сервера (hotel + rooms[] реляционно) в объект той же
+// ФОРМЫ, что раньше жила целиком в localStorage — чтобы renderAll() и
+// десятки других мест ниже, которые читают this.hotel.name/.city/.rooms
+// синхронно, продолжали работать без изменений.
+function cxMapServerHotelToLocal(h){
+  return {
+    id: String(h.id), accType: h.account_type, name: h.name, country: h.country,
+    city: h.city, stars: h.class ? Number(h.class) : 0, address: h.address || '',
+    phone: h.phone || '', desc: h.desc || '', email: h.email || '',
+    inn: h.inn, reestrNumber: h.reestr_number, finObespechenie: h.fin_obespechenie, sfera: h.sfera,
+    status: h.status, refCode: h.referred_by_code || null,
+    // ИЗМЕНЕНО 19.09.2026: сервер теперь отдаёт номер класса в форме,
+    // близкой к старой ("Стандарт" + basePrice + area/beds/view/img/
+    // description), а физические номера — вложенным массивом units[].
+    // Переводим в старую форму roomNumbers[], которую понимает весь
+    // остальной код файла (renderRooms, Шахматка и т.д.). serverId
+    // хранится отдельно от num, чтобы редактирование текста "номера"
+    // (num, произвольная строка типа "101") не путалось с тем, какая
+    // это строка в базе — CxSync ниже использует именно serverId.
+    rooms: (h.rooms || []).map(r => ({
+      id: String(r.id), serverId: r.id, name: r.name, basePrice: r.price_rub,
+      area: r.area || 20, beds: r.beds || '', view: r.view || '', img: r.img || '',
+      description: r.description || '',
+      roomNumbers: (r.units || []).map(u => ({
+        serverId: u.id, num: u.num,
+        price: (u.price_rub !== null && u.price_rub !== undefined) ? u.price_rub : r.price_rub,
+        area: u.area || r.area || 20, beds: u.beds || r.beds || '',
+        images: u.images || []
+      }))
+    }))
+  };
+}
+
+// ---------- синхронизация номеров/физических номеров с сервером ----------
+window._cxDebounce = window._cxDebounce || {};
+function cxDebounced(key, fn, delay){
+  if (window._cxDebounce[key]) clearTimeout(window._cxDebounce[key]);
+  window._cxDebounce[key] = setTimeout(fn, delay || 600);
+}
+// Правки полей (цена, описание, площадь) идут пока человек печатает —
+// синхронизируем с задержкой 600мс после последнего изменения, а не на
+// каждую букву, иначе на каждое нажатие клавиши уходил бы запрос на сервер.
+async function cxSyncRoomClass(room){
+  if (!room.serverId) return; // ещё не создан на сервере — нечего обновлять
+  try {
+    await CxApi.put('/api/hotels/'+HP.hotel.id+'/rooms/'+room.serverId, {
+      name: room.name, price_rub: room.basePrice, area: room.area,
+      beds: room.beds, view: room.view, img: room.img, description: room.description
+    });
+  } catch (e) {
+    console.error('Не удалось сохранить класс номера на сервере', e);
+    toast(e.isNetwork ? 'Сервер недоступен — изменения сохранены только локально' : 'Не удалось сохранить на сервере', 'error');
+  }
+}
+async function cxSyncUnit(roomServerId, unit){
+  if (!unit.num) return; // сервер не примет физический номер без названия (num)
+  try {
+    if (unit.serverId) {
+      await CxApi.put('/api/hotels/'+HP.hotel.id+'/rooms/'+roomServerId+'/units/'+unit.serverId, {
+        num: unit.num, price_rub: unit.price, area: unit.area, beds: unit.beds, images: unit.images || []
+      });
+    } else {
+      const created = await CxApi.post('/api/hotels/'+HP.hotel.id+'/rooms/'+roomServerId+'/units', {
+        num: unit.num, price_rub: unit.price, area: unit.area, beds: unit.beds
+      });
+      unit.serverId = created.id; // запоминаем, чтобы дальнейшие правки шли через PUT, не POST
+    }
+  } catch (e) {
+    console.error('Не удалось сохранить физический номер на сервере', e);
+    if (e.payload && e.payload.error === 'num_already_exists') {
+      toast('Номер «'+unit.num+'» уже существует в этом классе', 'error');
+    } else {
+      toast(e.isNetwork ? 'Сервер недоступен — изменения сохранены только локально' : 'Не удалось сохранить на сервере', 'error');
+    }
+  }
+}
+
+// ---------- синхронизация броней с сервером ----------
+// Переводит серверную бронь (реляционная, с массивом segments[]) в форму,
+// которую ждёт весь остальной код файла (renderBookings/renderChess/
+// renderDashboard/renderPayouts) — ту же, что раньше жила целиком в
+// cx_bookings. roomAssignments — прямое отражение segments[] с сервера
+// (переселение посреди брони, см. серверную часть от 19.09.2026).
+function cxMapServerBookingToLocal(b, hotelId){
+  const nights = Math.round((new Date(b.checkout) - new Date(b.checkin)) / 86400000);
+  return {
+    id: 'CX-'+b.id, bookingId: 'CX-'+b.id, serverId: b.id, hotelId,
+    roomClassId: String(b.room_id), roomName: b.room_name,
+    checkin: b.checkin, checkout: b.checkout, nights,
+    requestedRoomNumber: b.requested_room_number || '',
+    total: b.total_price_rub, basePrice: nights ? b.total_price_rub/nights : b.total_price_rub,
+    pointsApplied: b.points_applied || 0,
+    firstName: b.guest_first_name || '', lastName: b.guest_last_name || '',
+    guestName: (b.guest_first_name||'')+' '+(b.guest_last_name||''),
+    guest: (b.guest_first_name||'')+' '+(b.guest_last_name||''),
+    email: b.guest_email || '', phone: b.guest_phone || '',
+    status: b.status, createdAt: b.created_at,
+    source: 'site', payStatus: b.paid ? 'paid' : 'pending', guestPaid: !!b.paid,
+    commissionSettled: !!b.commission_settled,
+    roomAssignments: (b.segments || []).map(s => ({
+      segmentServerId: s.id, roomNumber: s.unit_num, roomUnitId: s.room_unit_id,
+      checkin: s.checkin, checkout: s.checkout
+    })),
+    roomNumber: (b.segments && b.segments[0]) ? b.segments[0].unit_num : '',
+    roomNum: (b.segments && b.segments[0]) ? b.segments[0].unit_num : ''
+  };
+}
+async function cxRefreshBookingsCache(){
+  if (!HP.hotel) return;
+  try {
+    const resp = await CxApi.get('/api/hotels/bookings');
+    const mapped = resp.bookings.map(b => cxMapServerBookingToLocal(b, HP.hotel.id));
+    // ВАЖНО: заменяем ТОЛЬКО брони этого отеля, остальные (если в этом же
+    // браузере тестировался другой аккаунт) не трогаем.
+    const others = LS.getJSON('cx_bookings', []).filter(b => b.hotelId !== HP.hotel.id);
+    LS.setJSON('cx_bookings', [...others, ...mapped]);
+  } catch (e) {
+    console.error('Не удалось обновить брони с сервера', e);
+  }
+}
+
+
 // TON-ПЛАТЕЖИ — идентичный блок есть в partner-portal.html/afisha-portal.html,
 // см. подробный комментарий там. Сеть TON (не TRC20/Tron) — потому что кошелёк
 // у владельца платформы TonKeeper, а он именно TON-кошелёк.
@@ -1840,35 +2008,45 @@ const HP = {
     btn.textContent=isText?'👁':'🙈';
   },
   /* ---- Восстановление пароля по email (тот же механизм и общий ключ cx_password_resets, что в afisha/partner-portal) ---- */
-  sendResetCode(){
+  async sendResetCode(){
     const email=document.getElementById('forgotEmail').value.trim().toLowerCase();
     const errEl=document.getElementById('forgotErr1');
     errEl.textContent='';
     if(!email){ errEl.textContent=t('err_fill_all'); return; }
-    const acc=this.getAllAccounts().find(a=>a.email===email);
-    if(!acc){ errEl.textContent=t('err_email_not_found'); return; }
-    const isDemo=!LS.getJSON('cx_hotel_accounts',[]).find(a=>a.email===email);
-    if(isDemo){ errEl.textContent='Пароль демо-аккаунтов менять нельзя — используйте пароль с экрана входа.'; return; }
 
-    const code=String(Math.floor(100000+Math.random()*900000));
-    const resets=LS.getJSON('cx_password_resets',[]).filter(r=>r.email!==email);
-    resets.push({email, code, expiresAt:Date.now()+15*60*1000});
-    LS.setJSON('cx_password_resets', resets);
+    // ИЗМЕНЕНО 19.09.2026: код теперь генерирует СЕРВЕР (та же логика, что
+    // /api/auth/password-reset/request), а не localStorage — иначе сброс
+    // пароля с одного устройства не мог бы подействовать на сервере.
+    // Сервер намеренно отвечает {ok:true} даже для незарегистрированной
+    // почты (чтобы через эту форму нельзя было проверять чужие email),
+    // поэтому реального "email не найден" здесь больше не будет — вместо
+    // этого просто показываем следующий шаг в любом случае.
+    let resp;
+    try {
+      resp = await CxApi.post('/api/auth/password-reset/request', { email });
+    } catch (e) {
+      errEl.textContent = e.isNetwork ? 'Сервер недоступен. Попробуйте ещё раз позже.' : t('err_fill_all');
+      console.error('sendResetCode failed', e);
+      return;
+    }
     this._resetEmailInProgress=email;
     const devNote=document.getElementById('forgotDevNote');
+    const code = resp.dev_code; // временно, пока нет реальной отправки почты сервером
     const c=(typeof getEmailjsConfig==='function') ? getEmailjsConfig() : {};
-    if(typeof emailjs!=='undefined' && c.service && c.templateRecovery && c.pub){
+    if(code && typeof emailjs!=='undefined' && c.service && c.templateRecovery && c.pub){
       ensureEmailjsInit(c.pub);
       emailjs.send(c.service, c.templateRecovery, {to_email:email, reset_code:code})
         .then(()=>{ devNote.classList.add('hidden'); })
         .catch(()=>{ devNote.classList.remove('hidden'); devNote.textContent=t('reset_dev_note')+code; });
-    } else {
+    } else if (code) {
       devNote.classList.remove('hidden');
       devNote.textContent=t('reset_dev_note')+code;
+    } else {
+      devNote.classList.add('hidden');
     }
     this.showTab('forgot2');
   },
-  confirmReset(){
+  async confirmReset(){
     const email=this._resetEmailInProgress;
     const code=document.getElementById('resetCode').value.trim();
     const p1=document.getElementById('resetNewPass').value;
@@ -1878,15 +2056,16 @@ const HP = {
     if(!code||!p1||!p2){ errEl.textContent=t('err_fill_all'); return; }
     if(p1.length<6){ errEl.textContent='Пароль минимум 6 символов'; return; }
     if(p1!==p2){ errEl.textContent=t('reg_pass_mismatch'); return; }
-    const resets=LS.getJSON('cx_password_resets',[]);
-    const entry=resets.find(r=>r.email===email && r.code===code && r.expiresAt>Date.now());
-    if(!entry){ errEl.textContent=t('err_code_invalid'); return; }
-    const accounts=LS.getJSON('cx_hotel_accounts',[]);
-    const idx=accounts.findIndex(a=>a.email===email);
-    if(idx<0){ errEl.textContent=t('err_email_not_found'); return; }
-    accounts[idx].password=p1;
-    LS.setJSON('cx_hotel_accounts', accounts);
-    LS.setJSON('cx_password_resets', resets.filter(r=>r.email!==email));
+    try {
+      await CxApi.post('/api/auth/password-reset/confirm', { email, code, new_password: p1 });
+    } catch (e) {
+      if (e.isNetwork) errEl.textContent = 'Сервер недоступен. Попробуйте ещё раз позже.';
+      else if (e.payload && e.payload.error==='bad_code') errEl.textContent = t('err_code_invalid');
+      else if (e.payload && e.payload.error==='code_expired') errEl.textContent = t('err_code_invalid');
+      else errEl.textContent = t('err_code_invalid');
+      console.error('confirmReset failed', e);
+      return;
+    }
     document.getElementById('hpEmail').value=email;
     document.getElementById('hpPass').value='';
     this.showTab('login');
@@ -2038,7 +2217,7 @@ Contact: Corronyx@gmail.com
     document.body.appendChild(overlay);
   },
   closeKPModal(){ document.querySelectorAll('.sw-pay-modal-overlay').forEach(o=>o.remove()); },
-  register(){
+  async register(){
     const email=document.getElementById('regEmail').value.trim();
     const pass=document.getElementById('regPass').value;
     const pass2=document.getElementById('regPass2').value;
@@ -2048,64 +2227,102 @@ Contact: Corronyx@gmail.com
     if(pass.length<6){ err.textContent='Пароль минимум 6 символов'; return; }
     if(pass!==pass2){ err.textContent=t('reg_pass_mismatch'); return; }
     if(!agree){ err.textContent='Необходимо принять условия договора'; return; }
-    if(this.getAllAccounts().find(a=>a.email.trim().toLowerCase()===email.toLowerCase())){ err.textContent=t('reg_exists'); return; }
 
-    if(this.accType==='touroperator'){
+    // ИЗМЕНЕНО 19.09.2026: регистрация теперь идёт на сервер, а не в
+    // localStorage. Источник правды — сервер, поэтому дубликат email
+    // проверяет ОН (наш локальный кэш мог устареть или не видеть
+    // аккаунты, созданные с другого устройства).
+    const isTop = this.accType==='touroperator';
+    const body = { email, password: pass, role: isTop ? 'touroperator' : 'hotel' };
+    const refCode = LS.get('cx_active_ref');
+    if (refCode) body.referral_code = refCode;
+
+    let hotelBody;
+    if (isTop) {
       const topName=document.getElementById('topName').value.trim();
       const topInn=document.getElementById('topInn').value.trim();
       const topReestr=document.getElementById('topReestr').value.trim();
       const topFin=document.getElementById('topFinObespechenie').value.trim();
       const topSfera=document.getElementById('topSfera').value;
       if(!topName||!topInn||!topReestr||!topFin||!email||!pass){ err.textContent=t('reg_required'); return; }
-      const accounts=LS.getJSON('cx_hotel_accounts', []);
-      const acc={
-        email, password:pass, id:'top_'+Date.now(), accType:'touroperator',
-        name:topName, inn:topInn, reestrNumber:topReestr, finObespechenie:topFin, sfera:topSfera,
-        agreedToTermsAt:new Date().toISOString(), agreedDocsVersion:'1.0',
-        country:'RU', city:'', stars:0, address:'', phone:'', desc:'', rooms:[],
-        refCode: LS.get('cx_active_ref')||null
-      };
-      accounts.push(acc); LS.setJSON('cx_hotel_accounts', accounts);
-      LS.set('cx_hotel_status_'+acc.id, 'pending_verification');
-      // Уведомляем админа — без этого заявка "молча" висит в pending_verification и
-      // никто о ней не узнаёт (нужна проверка номера в реестре туроператоров, см. 132-ФЗ Rider).
-      const opNotes=LS.getJSON('cx_admin_notifications', []);
-      opNotes.unshift({id:'N'+Date.now(), text:(LANG==='ru'?`Новая заявка туроператора «${topName}» (реестр №${topReestr}) — требуется проверка перед активацией`:`New tour operator application "${topName}" (registry #${topReestr}) — verification required before activation`), read:false, createdAt:new Date().toISOString()});
-      LS.setJSON('cx_admin_notifications', opNotes);
-      err.style.color='var(--ok)'; err.textContent='Заявка принята. Статус: ожидает проверки реестра туроператоров.';
-      setTimeout(()=>{ this.showTab('login'); document.getElementById('hpEmail').value=email; }, 1500);
+      hotelBody = { account_type:'touroperator', name:topName, inn:topInn, reestr_number:topReestr, fin_obespechenie:topFin, sfera:topSfera, referral_code: refCode || undefined };
+    } else {
+      const name=document.getElementById('regName').value.trim();
+      const country=document.getElementById('regCountry').value||'RU';
+      const city=document.getElementById('regCity').value.trim();
+      const address=document.getElementById('regAddress').value.trim();
+      const stars=+document.getElementById('regStars').value;
+      if(!name||!city||!address||!email||!pass){ err.textContent=t('reg_required'); return; }
+      hotelBody = { account_type:'hotel', name, country, city, class: stars, referral_code: refCode || undefined };
+    }
+
+    try {
+      await CxApi.post('/api/register', body);
+      const loginRes = await CxApi.post('/api/login', { email, password: pass });
+      LS.set('cx_hp_jwt', loginRes.token);
+      // Регистрация организации требует токен только что созданного
+      // пользователя — поэтому логин делаем ДО создания отеля/туроператора,
+      // а не после (иначе /api/hotels ответит 401).
+      await CxApi.post('/api/hotels', hotelBody);
+    } catch (e) {
+      if (e.isNetwork) {
+        err.textContent = 'Сервер недоступен. Проверьте интернет-соединение и попробуйте снова.';
+      } else if (e.payload && e.payload.error === 'bad_role') {
+        err.textContent = 'Такая роль недоступна для регистрации.';
+      } else if (e.status === 400 && e.payload && e.payload.error) {
+        err.textContent = t('reg_required');
+      } else if (e.status === 401 && e.payload && e.payload.error === 'bad_credentials') {
+        err.textContent = t('reg_exists'); // email уже занят на сервере — регистрация 200, но повторная почти невозможна; на практике сюда почти не попадём
+      } else {
+        err.textContent = t('reg_required');
+      }
+      console.error('HP.register failed', e);
       return;
     }
 
-    const name=document.getElementById('regName').value.trim();
-    const country=document.getElementById('regCountry').value||'RU';
-    const city=document.getElementById('regCity').value.trim();
-    const address=document.getElementById('regAddress').value.trim();
-    const stars=+document.getElementById('regStars').value;
-    if(!name||!city||!address||!email||!pass){ err.textContent=t('reg_required'); return; }
-    const accounts=LS.getJSON('cx_hotel_accounts', []);
-    const acc={
-      email, password:pass, id:'h_'+Date.now(), accType:'hotel', name, country, city, stars, address,
-      phone:'', desc:'', rooms:[], agreedToTermsAt:new Date().toISOString(), agreedDocsVersion:'1.0',
-      // Реферальный код отеля (кто привёл ИМЕННО этот отель, не гостя) —
-      // см. addHotelReferralCredit ниже, начисление идёт с КОМИССИИ, которую
-      // отель платит Corronyx, не с брони гостя (это отдельный, уже
-      // работающий механизм в submitBooking/index.html).
-      refCode: LS.get('cx_active_ref')||null
-    };
-    accounts.push(acc); LS.setJSON('cx_hotel_accounts', accounts);
-    LS.set('cx_hotel_status_'+acc.id, 'active');
-    err.style.color='var(--ok)'; err.textContent=t('reg_success');
-    setTimeout(()=>{ this.showTab('login'); document.getElementById('hpEmail').value=email; }, 1200);
+    err.style.color='var(--ok)';
+    err.textContent = isTop
+      ? 'Заявка принята. Статус: ожидает проверки реестра туроператоров.'
+      : t('reg_success') + ' Заявка отправлена на проверку модератору.';
+    setTimeout(()=>{ this.showTab('login'); document.getElementById('hpEmail').value=email; }, 1500);
   },
-  login(){
+  async login(){
     const email=document.getElementById('hpEmail').value.trim().toLowerCase();
     const pass=document.getElementById('hpPass').value;
-    const acc=this.getAllAccounts().find(a=>a.email.trim().toLowerCase()===email && a.password===pass);
-    if(!acc){ document.getElementById('loginErr').textContent=t('login_err'); return; }
+    const errEl=document.getElementById('loginErr');
+    errEl.textContent='';
+    let loginRes, me;
+    try {
+      loginRes = await CxApi.post('/api/login', { email, password: pass });
+      LS.set('cx_hp_jwt', loginRes.token);
+      me = await CxApi.get('/api/hotels/me');
+    } catch (e) {
+      if (e.isNetwork) {
+        errEl.textContent = 'Сервер недоступен. Проверьте интернет-соединение и попробуйте снова.';
+      } else if (e.status === 401) {
+        errEl.textContent = t('login_err');
+      } else if (e.status === 404) {
+        // Токен получен (роль верная), но записи отеля ещё нет —
+        // теоретически не должно случиться при нормальной регистрации.
+        errEl.textContent = t('login_err');
+      } else {
+        errEl.textContent = t('login_err');
+      }
+      console.error('HP.login failed', e);
+      return;
+    }
+    const acc = cxMapServerHotelToLocal(me);
+    acc.email = email;
+    // Кладём в тот же локальный кэш, что и раньше — весь остальной код
+    // файла (renderAll, вкладки и т.д.) продолжает читать из него
+    // синхронно и не замечает разницы.
+    const accounts = LS.getJSON('cx_hotel_accounts', []).filter(a=>a.id!==acc.id);
+    accounts.push(acc);
+    LS.setJSON('cx_hotel_accounts', accounts);
     this.hotel=acc;
     LS.set('cx_hp_session', acc.id);
     this.ensureRoomsSeed();
+    await cxRefreshBookingsCache();
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('app').classList.add('open');
     document.getElementById('sbHotelName').textContent = acc.name+' · '+acc.city;
@@ -2114,6 +2331,7 @@ Contact: Corronyx@gmail.com
   },
   logout(){
     LS.set('cx_hp_session','');
+    LS.remove('cx_hp_jwt');
     document.getElementById('app').classList.remove('open');
     document.getElementById('loginScreen').style.display='flex';
     document.getElementById('hpEmail').value=''; document.getElementById('hpPass').value=''; document.getElementById('loginErr').textContent='';
@@ -2251,12 +2469,28 @@ Contact: Corronyx@gmail.com
   },
 
   /* ---- rooms storage (per hotel, shared origin -> cx_rooms_{hotelId}) ---- */
+  // ИЗМЕНЕНО 19.09.2026: раньше сидировала кэш только один раз при первом
+  // входе — дальше кэш никогда не обновлялся с сервера, даже если номера
+  // менялись с другого устройства. Теперь source of truth — сервер, и мы
+  // ВСЕГДА перезаписываем локальный кэш свежими данными сразу после
+  // login()/init() (это и есть единственные два места, откуда её вызывают).
+  // Локальные несохранённые правки при этом не теряются — если синхронизация
+  // с сервером работает как надо, к моменту следующего входа они уже там же.
   ensureRoomsSeed(){
     const key='cx_rooms_'+this.hotel.id;
-    if(!LS.get(key)){
-      const seeded = this.hotel.rooms.map(r=>({...r, roomNumbers: (r.roomNumbers||['101','102','103']).map(n=> typeof n==='object'?{num:n.num, price:(n.price!=null?n.price:r.basePrice), area:(n.area!=null?n.area:r.area), beds:(n.beds!=null?n.beds:r.beds), img:n.img||''}:{num:n, price:r.basePrice, area:r.area, beds:r.beds, img:''}), images: r.images || (r.img?[r.img]:[]) }));
-      LS.setJSON(key, seeded);
-    }
+    // ВАЖНО: сохраняем serverId и на классе, и на каждом физическом номере —
+    // без него нечего было бы синхронизировать обратно на сервер при
+    // редактировании (см. HP.syncRoomClassToServer/syncUnitToServer ниже).
+    const seeded = this.hotel.rooms.map(r=>({
+      ...r,
+      roomNumbers: (r.roomNumbers||['101','102','103']).map(n=>
+        typeof n==='object'
+          ? {serverId:n.serverId, num:n.num, price:(n.price!=null?n.price:r.basePrice), area:(n.area!=null?n.area:r.area), beds:(n.beds!=null?n.beds:r.beds), images:n.images||(n.img?[n.img]:[])}
+          : {num:n, price:r.basePrice, area:r.area, beds:r.beds, images:[]}
+      ),
+      images: r.images || (r.img?[r.img]:[])
+    }));
+    LS.setJSON(key, seeded);
   },
   getRooms(){
     const rooms = LS.getJSON('cx_rooms_'+this.hotel.id, this.hotel.rooms);
@@ -2913,16 +3147,36 @@ Contact: Corronyx@gmail.com
     });
     if(changed) LS.setJSON('cx_referral_ledger', ledger);
   },
-  setBookingStatus(id, status){
+  async setBookingStatus(id, status){
     const all=LS.getJSON('cx_bookings', []);
     const b=all.find(x=>x.id===id); if(!b) return;
+
+    // ИЗМЕНЕНО 19.09.2026: бронь теперь реальная запись на сервере — сервер
+    // и есть источник истины по статусу и по реферальному начислению
+    // (tryCreditReferral там же). У сервера нет отдельного статуса
+    // "отклонена" (rejected) — это осознанное упрощение: 'rejected' и ручная
+    // отмена ведут на один и тот же /cancel, сервер хранит их одинаково как
+    // 'cancelled'. Название кнопки у отеля при этом не меняется.
+    if (b.serverId) {
+      try {
+        if (status === 'confirmed') await CxApi.post('/api/hotels/bookings/'+b.serverId+'/confirm', {});
+        else await CxApi.post('/api/hotels/bookings/'+b.serverId+'/cancel', {});
+      } catch (e) {
+        toast(e.isNetwork ? 'Сервер недоступен — статус не изменён' : 'Не удалось изменить статус на сервере: '+(e.payload&&e.payload.error||''), 'error');
+        console.error('setBookingStatus failed', e);
+        return;
+      }
+      await cxRefreshBookingsCache();
+      this.renderBookings(); this.renderDashboard();
+      toast(LANG==='ru'?'Статус обновлён':'Status updated');
+      return;
+    }
+
+    // Старый локальный путь — оставлен для тестовых/легаси-данных без
+    // серверного id (не должно встречаться в реальной работе после этого
+    // обновления, все новые брони приходят с сервера уже с serverId).
     b.status=status; LS.setJSON('cx_bookings', all);
-    // Возврат зарезервированных баллов гостя, если бронь отклонена (см. index.html:
-    // submitBooking — резервирование через cx_referral_spent при создании брони).
     if(status==='rejected') this._refundReferralOnCancel(b);
-    // Переносим статус в леджере реферальных баллов (см. index.html: addReferralLedgerEntry).
-    // 'confirmed' = отель подтвердил получение оплаты -> запись переходит в hold на 10 дней
-    // (см. Политику лояльности п.2.2-2.4). 'rejected' обрабатывается выше, в _refundReferralOnCancel.
     if(status==='confirmed'){
       const ledger=LS.getJSON('cx_referral_ledger', []);
       let changed=false;
@@ -2936,7 +3190,6 @@ Contact: Corronyx@gmail.com
       });
       if(changed) LS.setJSON('cx_referral_ledger', ledger);
     }
-    // notify admin + hotel breakdown (см. п.4.2а Договора об оказании услуг по продвижению: сумма/баллы/комиссия сразу при подтверждении)
     const notes=LS.getJSON('cx_admin_notifications', []);
     let noteText=(LANG==='ru'?`Бронь ${id} в ${this.hotel.name}: `:`Booking ${id} at ${this.hotel.name}: `)+status;
     if(status==='confirmed'){
@@ -3048,6 +3301,9 @@ Contact: Corronyx@gmail.com
     const rooms=this.getRooms();
     const r=rooms.find(x=>x.id===id); if(!r) return;
     if(!r.roomNumbers) r.roomNumbers=[];
+    // Новый физический номер без названия (num) существует пока ТОЛЬКО
+    // локально — сервер не примет пустой num (см. cxSyncUnit). Как только
+    // владелец впишет номер через updateUnit(), он попадёт на сервер.
     r.roomNumbers.push({num:'', price:r.basePrice, area:r.area||20, beds:r.beds||'', images:[]});
     this.setRooms(rooms); this.renderRooms();
   },
@@ -3069,6 +3325,14 @@ Contact: Corronyx@gmail.com
         return;
       }
       toast(LANG==='ru'?'Фото добавлены':'Photos added');
+      // ИЗМЕНЕНО 19.09.2026: фото теперь уходят и на сервер (не мгновенно
+      // на каждый кадр — упаковано в общий cxSyncUnit после сжатия всех).
+      // ВНИМАНИЕ владельцу: фото хранятся как data-URL строки прямо в
+      // JSON-поле — рабочий вариант для нескольких фото, но для реального
+      // объёма (десятки номеров с 6 фото каждый) базе станет тесно;
+      // правильное решение на будущее — отдельная загрузка файлов
+      // (multipart) с раздачей по ссылке, не через JSON.
+      cxSyncUnit(r.serverId, n);
     }).catch(()=>{
       toast(LANG==='ru'?'Не удалось обработать файл':'Could not process the file', 'error');
     });
@@ -3079,17 +3343,34 @@ Contact: Corronyx@gmail.com
     const n=r.roomNumbers[idx]; if(!n||!n.images) return;
     n.images.splice(imgIdx,1);
     this.setRooms(rooms); this.renderRooms();
+    cxSyncUnit(r.serverId, n);
   },
   updateUnit(id, idx, field, value){
     const rooms=this.getRooms();
     const r=rooms.find(x=>x.id===id); if(!r) return;
     const n=r.roomNumbers[idx]; if(!n) return;
     n[field]=value; this.setRooms(rooms); this.renderRooms();
+    // Правки полей с задержкой (не на каждую букву) — ключ на юнит, не на
+    // класс, чтобы правки разных физических номеров не гасили друг друга.
+    cxDebounced('unit:'+id+':'+idx, ()=>cxSyncUnit(r.serverId, n));
   },
   removeUnit(id, idx){
     const rooms=this.getRooms();
     const r=rooms.find(x=>x.id===id); if(!r) return;
+    const n=r.roomNumbers[idx];
     r.roomNumbers.splice(idx,1); this.setRooms(rooms); this.renderRooms();
+    if (n && n.serverId) {
+      CxApi.del('/api/hotels/'+this.hotel.id+'/rooms/'+r.serverId+'/units/'+n.serverId).catch(e=>{
+        console.error('Не удалось удалить физический номер на сервере', e);
+        if (e.payload && e.payload.error === 'has_active_bookings') {
+          toast('На этом номере есть активные брони — удалён только локально, на сервере остался. Перезагрузите страницу.', 'error');
+        } else if (e.payload && e.payload.error === 'last_unit') {
+          toast('Нельзя было удалить последний номер класса — удалён только локально, на сервере остался. Перезагрузите страницу.', 'error');
+        } else {
+          toast(e.isNetwork ? 'Сервер недоступен — удалено только локально' : 'Не удалось удалить на сервере', 'error');
+        }
+      });
+    }
   },
   // Одно фото на класс — общая обложка (см. вопрос владельца: "на класс — только 1 фото").
   uploadClassImage(id, files){
@@ -3101,6 +3382,7 @@ Contact: Corronyx@gmail.com
       if(!this.verifyPersisted('cx_rooms_'+this.hotel.id)){
         toast(LANG==='ru'?'⚠️ Не хватило места в хранилище браузера — фото НЕ сохранилось.':'⚠️ Browser storage is full — photo was NOT saved.', 'error');
       }
+      cxSyncRoomClass(r);
     }).catch(()=>{
       toast(LANG==='ru'?'Не удалось обработать файл':'Could not process the file', 'error');
     });
@@ -3110,6 +3392,7 @@ Contact: Corronyx@gmail.com
     const r=rooms.find(x=>x.id===id); if(!r) return;
     r.img=''; delete r.images;
     this.setRooms(rooms); this.renderRooms();
+    cxSyncRoomClass(r);
   },
   updateRoom(id, field, value){
     const rooms=this.getRooms();
@@ -3117,6 +3400,7 @@ Contact: Corronyx@gmail.com
     r[field]=value;
     if(field==='basePrice' && r.roomNumbers) r.roomNumbers.forEach(n=> n.price=value);
     this.setRooms(rooms); this.renderRooms();
+    cxDebounced('room:'+id, ()=>cxSyncRoomClass(r));
   },
   // Раньше удаляло класс номера мгновенно, без единого вопроса и без всякой
   // проверки — если у класса были текущие/будущие брони, они не терялись из
@@ -3125,7 +3409,12 @@ Contact: Corronyx@gmail.com
   // (getRooms()), а у брони остаётся ссылка на уже несуществующий roomClassId.
   // Отель фактически терял возможность управлять этими бронями (заселить,
   // отменить, увидеть в календаре), хотя обязательства по ним сохранялись.
-  deleteRoom(id){
+  //
+  // ИЗМЕНЕНО 19.09.2026: локальная проверка активных броней оставлена как
+  // быстрая обратная связь (не ждать сервер, чтобы показать alert), но
+  // ОКОНЧАТЕЛЬНОЕ решение — за сервером: он видит брони со всех устройств,
+  // а не только те, что успели попасть в локальный кэш этого браузера.
+  async deleteRoom(id){
     const rooms = this.getRooms();
     const room = rooms.find(r=>r.id===id);
     if(!room) return;
@@ -3138,13 +3427,39 @@ Contact: Corronyx@gmail.com
       return;
     }
     if(!confirm('Удалить класс номера «'+room.name+'» вместе со всеми его физическими номерами и фото? Действие необратимо.')) return;
+    if (room.serverId) {
+      try {
+        await CxApi.del('/api/hotels/'+this.hotel.id+'/rooms/'+room.serverId);
+      } catch (e) {
+        if (e.payload && e.payload.error === 'has_active_bookings') {
+          alert('⛔ Сервер видит активные брони на этот класс (возможно, с другого устройства) — удаление отменено.');
+        } else {
+          toast(e.isNetwork ? 'Сервер недоступен — не удалено' : 'Не удалось удалить на сервере', 'error');
+        }
+        return; // не удаляем локально, если сервер отказал
+      }
+    }
     const newRooms = rooms.filter(r=>r.id!==id);
     this.setRooms(newRooms); this.renderRooms();
     toast('Класс номера удалён');
   },
-  addRoom(){
+  async addRoom(){
+    const draft = { name: LANG==='ru'?'Новый класс номера':'New room class', basePrice:5000, area:20, beds:'1 King size', view:'', img:'', description:'' };
+    let created;
+    try {
+      created = await CxApi.post('/api/hotels/'+this.hotel.id+'/rooms', {
+        name: draft.name, price_rub: draft.basePrice, area: draft.area, beds: draft.beds
+      });
+    } catch (e) {
+      toast(e.isNetwork ? 'Сервер недоступен — класс номера не создан' : 'Не удалось создать класс номера', 'error');
+      return;
+    }
     const rooms=this.getRooms();
-    rooms.push({id:'r'+Date.now(), name: LANG==='ru'?'Новый класс номера':'New room class', basePrice:5000, area:20, beds:'1 King size', view:'', img:'', description:'', roomNumbers:[{num:'101',price:5000,images:[]}]});
+    const autoUnit = (created.units && created.units[0]) || { id: null, num: '101' };
+    rooms.push({
+      id: String(created.id), serverId: created.id, ...draft,
+      roomNumbers: [{ serverId: autoUnit.id, num: autoUnit.num, price: draft.basePrice, area: draft.area, beds: draft.beds, images: [] }]
+    });
     this.setRooms(rooms); this.renderRooms();
     toast(LANG==='ru'?'Класс номера добавлен':'Room class added');
   },
@@ -3252,7 +3567,7 @@ Contact: Corronyx@gmail.com
   // Назначить кусок брони [ci,co) на конкретный номер. Используется и
   // модалкой (клик), и drag-and-drop — единая точка входа с одной и той же
   // проверкой, чтобы оба способа гарантированно не могли создать конфликт.
-  assignSegment(bookingId, roomId, num, ci, co){
+  async assignSegment(bookingId, roomId, num, ci, co){
     if(!this.isRoomFreeForSegment(roomId, num, ci, co, bookingId)){
       toast('⛔ Номер №'+num+' занят на эти даты — выберите другой', 'error');
       return false;
@@ -3260,21 +3575,52 @@ Contact: Corronyx@gmail.com
     const all = LS.getJSON('cx_bookings', []);
     const b = all.find(function(x){ return (x.id||x.bookingId||'')===bookingId; });
     if(!b) return false;
+
+    // ИЗМЕНЕНО 19.09.2026 (решение владельца): переселение посреди брони
+    // теперь реально пишется на сервер как отдельный сегмент — не только
+    // в локальный кэш. Ищем serverId физического номера по его "num"
+    // (строке типа "101") внутри нужного класса.
+    if (b.serverId) {
+      const rooms = this.getRooms();
+      const cls = rooms.find(r=>r.id===roomId);
+      const unit = cls && cls.roomNumbers.find(n=>n.num===num);
+      if (!unit || !unit.serverId) {
+        toast('Этот физический номер ещё не сохранён на сервере — обновите страницу и попробуйте снова', 'error');
+        return false;
+      }
+      try {
+        await CxApi.post('/api/hotels/bookings/'+b.serverId+'/segments', {
+          room_unit_id: unit.serverId, checkin: ci, checkout: co
+        });
+      } catch (e) {
+        if (e.payload && e.payload.error === 'unit_already_occupied') {
+          toast('⛔ Номер №'+num+' занят на эти даты другой бронью — обновите страницу, данные устарели', 'error');
+        } else if (e.payload && e.payload.error === 'overlaps_own_other_segment') {
+          toast('⛔ Пересекается с другим сегментом этой же брони', 'error');
+        } else {
+          toast(e.isNetwork ? 'Сервер недоступен — переселение не сохранено' : 'Не удалось сохранить на сервере', 'error');
+        }
+        console.error('assignSegment failed', e);
+        return false;
+      }
+      await cxRefreshBookingsCache();
+      this.renderChess(); this.renderDashboard();
+      if(document.getElementById('bookingsTable')) this.renderBookings();
+      if(document.getElementById('payoutStats')) this.renderPayouts();
+      toast('Номер №'+num+' назначен: '+ci+' – '+co);
+      return true;
+    }
+
+    // Старый локальный путь — для легаси-данных без serverId.
     if(!b.roomAssignments){
-      // Мигрируем legacy roomNumber (если был) в массив сегментов при первом
-      // ручном изменении — дальше бронь живёт только через roomAssignments.
       const legacyNum = b.roomNumber || b.roomNum;
       b.roomAssignments = (legacyNum && b.checkin && b.checkout) ? [{roomNumber:legacyNum, checkin:b.checkin, checkout:b.checkout}] : [];
     }
     b.roomAssignments.push({roomNumber:num, checkin:ci, checkout:co});
-    b.roomNumber = b.roomNumber || num; b.roomNum = b.roomNum || num; // не ломаем старый код, который читает эти поля
+    b.roomNumber = b.roomNumber || num; b.roomNum = b.roomNum || num;
     LS.setJSON('cx_bookings', all);
     this._autoConfirmIfPending(bookingId);
     this.renderChess();
-    // Раньше эти действия обновляли только Шахматку/таблицу броней — цифры
-    // на Дашборде и во Выплатах оставались "замороженными" до следующей
-    // полной перезагрузки страницы, что и создавало впечатление, будто
-    // назначение номера или отметка оплаты никуда не долетают.
     this.renderDashboard();
     if(document.getElementById('bookingsTable')) this.renderBookings();
     if(document.getElementById('payoutStats')) this.renderPayouts();
@@ -3289,10 +3635,25 @@ Contact: Corronyx@gmail.com
   // "Подтверждена") определяет, какие брони попадают в расчёт комиссии на
   // вкладке "Выплаты" — комиссия не может начисляться на бронь, оплата по
   // которой ещё не подтверждена самим отелем.
-  markGuestPaid(bookingId){
+  async markGuestPaid(bookingId){
     const all = LS.getJSON('cx_bookings', []);
     const b = all.find(x=>(x.id||x.bookingId||'')===bookingId);
     if(!b) return;
+    if (b.serverId) {
+      try {
+        await CxApi.post('/api/hotels/bookings/'+b.serverId+'/mark-paid', {});
+      } catch (e) {
+        toast(e.isNetwork ? 'Сервер недоступен — не сохранено' : 'Не удалось отметить оплату на сервере', 'error');
+        console.error('markGuestPaid failed', e);
+        return;
+      }
+      await cxRefreshBookingsCache();
+      this.renderBookings(); this.renderDashboard();
+      if(document.getElementById('payoutStats')) this.renderPayouts();
+      this.closeAll();
+      toast('✅ Отмечено: гость оплатил проживание');
+      return;
+    }
     b.guestPaid = true; b.guestPaidAt = new Date().toISOString();
     LS.setJSON('cx_bookings', all);
     this._autoConfirmIfPending(bookingId);
@@ -3301,10 +3662,24 @@ Contact: Corronyx@gmail.com
     this.closeAll();
     toast('✅ Отмечено: гость оплатил проживание');
   },
-  unmarkGuestPaid(bookingId){
+  async unmarkGuestPaid(bookingId){
     const all = LS.getJSON('cx_bookings', []);
     const b = all.find(x=>(x.id||x.bookingId||'')===bookingId);
     if(!b) return;
+    if (b.serverId) {
+      try {
+        await CxApi.post('/api/hotels/bookings/'+b.serverId+'/unmark-paid', {});
+      } catch (e) {
+        toast(e.isNetwork ? 'Сервер недоступен — не сохранено' : 'Не удалось отменить отметку на сервере', 'error');
+        console.error('unmarkGuestPaid failed', e);
+        return;
+      }
+      await cxRefreshBookingsCache();
+      this.renderBookings(); this.renderDashboard();
+      if(document.getElementById('payoutStats')) this.renderPayouts();
+      this.closeAll();
+      return;
+    }
     b.guestPaid = false;
     LS.setJSON('cx_bookings', all);
     this.renderBookings(); this.renderDashboard();
@@ -3312,10 +3687,33 @@ Contact: Corronyx@gmail.com
     this.closeAll();
   },
 
-  unassignSegment(bookingId, segIndex){
+  async unassignSegment(bookingId, segIndex){
     const all = LS.getJSON('cx_bookings', []);
     const b = all.find(function(x){ return (x.id||x.bookingId||'')===bookingId; });
     if(!b) return;
+    if (b.serverId) {
+      const segs = this.getSegments(b);
+      const seg = segs[segIndex];
+      if (!seg || !seg.segmentServerId) {
+        toast('Не удалось определить сегмент для снятия — обновите страницу', 'error');
+        return;
+      }
+      try {
+        await CxApi.del('/api/hotels/bookings/'+b.serverId+'/segments/'+seg.segmentServerId);
+      } catch (e) {
+        toast(e.isNetwork ? 'Сервер недоступен — не снято' : 'Не удалось снять номер на сервере', 'error');
+        console.error('unassignSegment failed', e);
+        return;
+      }
+      await cxRefreshBookingsCache();
+      this.closeAll();
+      this.renderChess();
+      this.renderDashboard();
+      if(document.getElementById('unassignedPanel')) this.renderUnassignedPanel();
+      if(document.getElementById('bookingsTable')) this.renderBookings();
+      toast('Номер снят — бронь снова в «неразмещённых»');
+      return;
+    }
     const segs = this.getSegments(b);
     if(!b.roomAssignments || !b.roomAssignments.length) b.roomAssignments = segs.slice();
     b.roomAssignments.splice(segIndex,1);
@@ -6422,34 +6820,51 @@ function applyNavBadges(){
     if(icon) el.innerHTML=swBadge(icon, 22);
   });
 }
-function init(){
+async function init(){
   applyTranslations();
   applyNavBadges();
   document.querySelectorAll('.curLangLbl').forEach(s=>s.textContent=LANG.toUpperCase());
   const gts=document.createElement('script');
   gts.src='https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
   document.head.appendChild(gts);
-  const session=LS.get('cx_hp_session');
-  if(session){
-    const acc=HP.getAllAccounts().find(a=>a.id===session);
-    if(acc){
-      HP.hotel=acc; HP.ensureRoomsSeed();
-      document.getElementById('loginScreen').style.display='none';
-      document.getElementById('app').classList.add('open');
-      document.getElementById('sbHotelName').textContent = acc.name+' · '+acc.city;
-      HP.renderAll();
-      // Восстанавливаем ту вкладку, на которой человек был до обновления
-      // страницы, вместо жёсткого возврата на Дашборд.
-      const savedSection = location.hash.replace('#','');
-      const validSections = ['dashboard','bookings','rooms','chess','payouts','profile','ical'];
-      HP.nav(validSections.includes(savedSection) ? savedSection : 'dashboard');
-      // Проверяем новые брони раз в 15 секунд независимо от того, на какой
-      // вкладке сейчас отель — раньше проверка происходила только при заходе
-      // на "Дашборд" или через межвкладочное storage-событие, и уведомление
-      // не срабатывало, если человек просто долго сидел, например, в Шахматке.
-      setInterval(()=>HP.checkNewArrivals(), 15000);
-      HP.startReminderLoop();
+  // ИЗМЕНЕНО 19.09.2026: session раньше был просто локальным id из localStorage
+  // (не пережил бы даже смену браузера). Теперь это JWT — при перезагрузке
+  // страницы спрашиваем сервер заново (свежие данные с любого устройства),
+  // а не доверяем локальному кэшу, который мог устареть.
+  const jwt = LS.get('cx_hp_jwt');
+  if (jwt) {
+    let me;
+    try {
+      me = await CxApi.get('/api/hotels/me');
+    } catch (e) {
+      // Токен истёк/недействителен, или сервер сейчас недоступен — в обоих
+      // случаях безопаснее вернуть на экран входа, а не показывать
+      // устаревший локальный кэш как будто это текущие данные.
+      console.error('Не удалось восстановить сессию', e);
+      LS.remove('cx_hp_jwt'); LS.remove('cx_hp_session');
+      return;
     }
+    const acc = cxMapServerHotelToLocal(me);
+    const accounts = LS.getJSON('cx_hotel_accounts', []).filter(a=>a.id!==acc.id);
+    accounts.push(acc);
+    LS.setJSON('cx_hotel_accounts', accounts);
+    HP.hotel=acc; HP.ensureRoomsSeed();
+    await cxRefreshBookingsCache();
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').classList.add('open');
+    document.getElementById('sbHotelName').textContent = acc.name+' · '+acc.city;
+    HP.renderAll();
+    // Восстанавливаем ту вкладку, на которой человек был до обновления
+    // страницы, вместо жёсткого возврата на Дашборд.
+    const savedSection = location.hash.replace('#','');
+    const validSections = ['dashboard','bookings','rooms','chess','payouts','profile','ical'];
+    HP.nav(validSections.includes(savedSection) ? savedSection : 'dashboard');
+    // Проверяем новые брони раз в 15 секунд независимо от того, на какой
+    // вкладке сейчас отель — раньше проверка происходила только при заходе
+    // на "Дашборд" или через межвкладочное storage-событие, и уведомление
+    // не срабатывало, если человек просто долго сидел, например, в Шахматке.
+    setInterval(()=>HP.checkNewArrivals(), 15000);
+    HP.startReminderLoop();
   }
 }
 window.addEventListener('DOMContentLoaded', init);

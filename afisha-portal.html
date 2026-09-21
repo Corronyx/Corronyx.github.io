@@ -720,6 +720,53 @@ const LS = {
   setJSON:(k,v)=>LS.set(k,JSON.stringify(v))
 };
 
+// ---------- подключение к серверу Corronyx (19.09.2026) — см. тот же блок
+// и подробный комментарий в hotel-portal.html/index.html/partner-portal.html.
+const CX_API_BASE = window.CX_API_BASE || 'https://api.corronyx.ru';
+const CxApi = {
+  token(){ return LS.get('cx_ap_jwt') || ''; },
+  async call(method, path, body){
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    const tok = this.token();
+    if (tok) opts.headers['Authorization'] = 'Bearer ' + tok;
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    let res, data;
+    try { res = await fetch(CX_API_BASE + path, opts); }
+    catch (networkErr) { const e = new Error('network'); e.isNetwork = true; throw e; }
+    try { data = await res.json(); } catch(e) { data = {}; }
+    if (!res.ok) { const e = new Error(data.error || 'request_failed'); e.status = res.status; e.payload = data; throw e; }
+    return data;
+  },
+  get(path){ return this.call('GET', path); },
+  post(path, body){ return this.call('POST', path, body); },
+  put(path, body){ return this.call('PUT', path, body); },
+  del(path){ return this.call('DELETE', path); }
+};
+
+// Переводит серверную афишу в форму, которую ждёт остальной код файла (та же
+// форма, что раньше жила целиком в localStorage под STORE_KEY).
+function cxMapServerEventToLocal(e, accountId){
+  return {
+    id: 'srv'+e.id, serverId: e.id, ownerId: accountId,
+    title: e.title, tier: e.tier, country: e.country, city: e.city, venue: e.venue || '',
+    eventDate: e.event_date, createdAt: e.created_at, expiresAt: e.expires_at,
+    free: !!e.free, price: e.price || '', desc: e.description || '',
+    organizerName: e.organizer_name || '', phone: e.phone || '', contact: e.contact || '',
+    poster: e.poster || '', posterVideoUrl: e.poster_video_url || '',
+    lat: e.lat, lng: e.lng, status: e.status, paid: !!e.paid, refCode: e.referred_by_code || null
+  };
+}
+async function cxRefreshEventsCache(accountId){
+  try {
+    const events = await CxApi.get('/api/afisha/events/mine');
+    const mapped = events.map(e => cxMapServerEventToLocal(e, accountId));
+    const others = LS.getJSON(STORE_KEY, []).filter(i => i.ownerId !== accountId);
+    LS.setJSON(STORE_KEY, [...others, ...mapped]);
+  } catch (e) {
+    console.error('Не удалось обновить афиши с сервера', e);
+  }
+}
+
 /* ---------- Оплата баллами реферала — перенесено из partner-portal.html (12.09.2026) ----------
    Раньше в afisha-portal.html такой возможности не было вообще — по прямому
    запросу владельца перенесено сюда с той же логикой (общий cx_referral_ledger,
@@ -1204,43 +1251,36 @@ const AP = {
     ['loginErr','regErr','forgotErr1','forgotErr2'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   },
 
-  login(){
+  async login(){
     const email=document.getElementById('loginEmail').value.trim().toLowerCase();
     const pass=document.getElementById('loginPass').value;
     const errEl=document.getElementById('loginErr');
     errEl.classList.add('hidden');
     if(!email||!pass){ errEl.textContent=t('err_auth_fill_all'); errEl.classList.remove('hidden'); return; }
-    const accounts=LS.getJSON(ACC_KEY,[]);
-    let acc=accounts.find(a=>a.email===email&&a.password===pass);
-
-    // v3, п.3: единая регистрация — если аккаунта в Афише нет, но есть такой же
-    // email+пароль в партнёрском портале (cx_partner_accounts), автоматически
-    // "подключаем" его к Афише вместо требования регистрироваться заново.
-    // Событие подключения логируется админу как заявка/уведомление (не блокирующее).
-    let linkedFromPartner=false;
-    if(!acc){
-      const partnerAccounts=LS.getJSON('cx_partner_accounts',[]);
-      const partnerAcc=partnerAccounts.find(a=>a.email===email&&a.password===pass);
-      if(partnerAcc){
-        acc={id:'ao_'+Date.now()+Math.random().toString(36).slice(2,8), email, password:pass,
-             name:partnerAcc.orgName||partnerAcc.name||email, createdAt:new Date().toISOString(), linkedFrom:'partner-portal'};
-        accounts.push(acc);
-        LS.setJSON(ACC_KEY, accounts);
-        linkedFromPartner=true;
-        const notifs=LS.getJSON('cx_admin_notifications',[]);
-        notifs.unshift({id:'N'+Date.now()+Math.random().toString(36).slice(2,7), type:'cross_portal_link', text:`Аккаунт ${email} подключил Афишу через партнёрский портал`, read:false, createdAt:new Date().toISOString()});
-        LS.setJSON('cx_admin_notifications', notifs);
-      }
+    // ИЗМЕНЕНО 19.09.2026: вход теперь идёт на реальный сервер вместо
+    // localStorage — см. тот же переход в остальных 3 файлах. Автолинковка
+    // с partner-portal через общий email+пароль (была тут раньше) больше не
+    // нужна: аккаунты теперь и так общие на сервере — один email/пароль
+    // работает во всех разделах, потому что это буквально один и тот же
+    // пользователь в одной таблице users, просто с разными ролями.
+    let loginRes, me;
+    try {
+      loginRes = await CxApi.post('/api/login', { email, password: pass });
+      LS.set('cx_ap_jwt', loginRes.token);
+      me = await CxApi.get('/api/auth/me');
+    } catch (e) {
+      errEl.textContent = e.isNetwork ? 'Сервер недоступен. Проверьте интернет-соединение и попробуйте снова.' : t('err_not_found');
+      errEl.classList.remove('hidden');
+      console.error('AP.login failed', e);
+      return;
     }
-
-    if(!acc){ errEl.textContent=t('err_not_found'); errEl.classList.remove('hidden'); return; }
-    LS.set(SESSION_KEY, acc.id);
-    this.account=acc;
+    LS.set(SESSION_KEY, email);
+    this.account = { id: 'srv_'+email, email, name: me.name || email };
+    await cxRefreshEventsCache(this.account.id);
     this.showApp();
-    if(linkedFromPartner) this.showToast(t('linked_from_partner'));
   },
 
-  register(){
+  async register(){
     const name=document.getElementById('regOrgName').value.trim();
     const email=document.getElementById('regEmail').value.trim().toLowerCase();
     const pass=document.getElementById('regPass').value;
@@ -1253,18 +1293,25 @@ const AP = {
     if(pass.length<6){ errEl.textContent=t('err_pass_short'); errEl.classList.remove('hidden'); return; }
     if(pass!==pass2){ errEl.textContent=t('err_pass_mismatch'); errEl.classList.remove('hidden'); return; }
     if(!agree){ errEl.textContent='Необходимо принять условия Договора для афиши'; errEl.classList.remove('hidden'); return; }
-    const accounts=LS.getJSON(ACC_KEY,[]);
-    if(accounts.find(a=>a.email===email)){ errEl.textContent=t('err_email_exists'); errEl.classList.remove('hidden'); return; }
-    const acc={id:'ao_'+Date.now()+Math.random().toString(36).slice(2,8), email, password:pass, name, createdAt:new Date().toISOString(), agreedToTermsAt:new Date().toISOString(), agreedDocsVersion:'1.0'};
-    accounts.push(acc);
-    LS.setJSON(ACC_KEY, accounts);
-    LS.set(SESSION_KEY, acc.id);
-    this.account=acc;
+    try {
+      await CxApi.post('/api/register', { email, password: pass, role: 'afisha_organizer', name });
+      const loginRes = await CxApi.post('/api/login', { email, password: pass });
+      LS.set('cx_ap_jwt', loginRes.token);
+    } catch (e) {
+      if (e.isNetwork) errEl.textContent = 'Сервер недоступен. Проверьте интернет-соединение и попробуйте снова.';
+      else errEl.textContent = t('err_email_exists');
+      errEl.classList.remove('hidden');
+      console.error('AP.register failed', e);
+      return;
+    }
+    LS.set(SESSION_KEY, email);
+    this.account = { id: 'srv_'+email, email, name };
     this.showApp();
   },
 
   logout(){
     LS.set(SESSION_KEY,'');
+    LS.remove('cx_ap_jwt');
     this.account=null;
     document.getElementById('app').style.display='none';
     document.getElementById('loginScreen').style.display='flex';
@@ -1832,7 +1879,7 @@ const AP = {
     }
   },
 
-  saveForm(){
+  async saveForm(){
     const title=document.getElementById('fTitle').value.trim();
     const country=document.getElementById('fCountry').value;
     const city=document.getElementById('fCity').value.trim();
@@ -1884,11 +1931,6 @@ const AP = {
       const idx=items.findIndex(i=>i.id===this.editingId);
       if(idx>=0){
         const original=items[idx];
-        // Смена тарифа или страны меняет цену размещения (главный экран/по стране/в
-        // городе — разные суммы; Россия/зарубеж — разные валюты). Раньше при
-        // редактировании paid оставался true независимо от новой цены — можно было
-        // оплатить дешёвый тариф, дождаться одобрения, затем молча «повысить» до
-        // дорогого без доплаты. Найдено и закрыто 14.08.2026.
         const priceRelevantChange = (tier!==original.tier) || (country!==original.country);
         if(priceRelevantChange && original.paid){
           const newFee=getPlacementFeeFor(tier, country);
@@ -1896,6 +1938,22 @@ const AP = {
             ?`Вы меняете место размещения — цена может измениться. Оплата этой афиши будет сброшена, и потребуется оплатить заново по новому тарифу (${newFee.amount?(+newFee.amount).toLocaleString('ru-RU')+' '+newFee.sign:'цена не задана'}). Продолжить?`
             :`You're changing the placement tier — the price may change. Payment for this listing will be reset, and you'll need to pay again for the new tier (${newFee.amount?(+newFee.amount).toLocaleString('en-US')+' '+newFee.sign:'price not set'}). Continue?`;
           if(!confirm(msg)) return;
+        }
+        // ИЗМЕНЕНО 19.09.2026: если у афиши уже есть serverId, правки уходят
+        // и на сервер — expires_at/event_date там намеренно не трогаются
+        // (правило владельца: правка текста не должна продлевать срок показа).
+        if (original.serverId) {
+          try {
+            await CxApi.put('/api/afisha/events/'+original.serverId, {
+              title, venue, description: desc, organizer_name: organizerName,
+              phone, contact, poster, price, free, tier, country
+            });
+          } catch (e) {
+            errEl.textContent = e.isNetwork ? 'Сервер недоступен — изменения не сохранены' : 'Не удалось сохранить на сервере: '+(e.payload&&e.payload.error||'');
+            errEl.classList.remove('hidden');
+            console.error('AP.saveForm (edit) failed', e);
+            return;
+          }
         }
         const createdAt=original.createdAt||new Date().toISOString();
         items[idx]={...original,
@@ -1920,11 +1978,28 @@ const AP = {
       // afisha-portal.html этого не было вообще — привлечение организатора
       // афиши никак не отслеживалось (пробел найден и закрыт 12.09.2026).
       const referredBy = LS.get('cx_active_ref') || null;
+      // ИЗМЕНЕНО 19.09.2026: афиша теперь реально создаётся на сервере —
+      // видна модератору и с любого устройства, а не только в этом браузере.
+      let created;
+      try {
+        created = await CxApi.post('/api/afisha/events', {
+          title, tier, country, city, venue, lat, lng, event_date: eventDateIso,
+          free, price, description: desc, organizer_name: organizerName, phone, contact,
+          poster, poster_video_url: posterVideoUrl, referral_code: referredBy || undefined
+        });
+      } catch (e) {
+        if (e.isNetwork) errEl.textContent = 'Сервер недоступен — афиша не создана';
+        else if (e.payload && e.payload.error === 'missing_map_point') errEl.textContent = 'Отметьте место проведения на карте';
+        else errEl.textContent = 'Не удалось создать афишу на сервере: '+(e.payload&&e.payload.error||'');
+        errEl.classList.remove('hidden');
+        console.error('AP.saveForm (create) failed', e);
+        return;
+      }
       const card={
-        id:'ev_'+Date.now()+Math.random().toString(36).slice(2,6),
+        id:'srv'+created.id, serverId: created.id,
         ownerId:this.account.id,
         title, tier, country, city, venue, eventDate:eventDateIso,
-        createdAt, expiresAt:this.computeExpiresAt(eventDateIso, createdAt),
+        createdAt, expiresAt: created.expires_at,
         free, price, desc, organizerName, phone, contact, poster, posterVideoUrl, posterVideoData, lat, lng,
         status:'pending', paid:isPaymentFree, refCode:referredBy
       };
@@ -3179,18 +3254,29 @@ document.addEventListener('click', e=>{
 /* ============================================================
    INIT
    ============================================================ */
-function init(){
+async function init(){
   applyTranslations();
   document.querySelectorAll('.curLangLbl').forEach(s=>s.textContent=LANG.toUpperCase());
   renderShowcaseOrbit();
   const s=document.createElement('script');
   s.src='https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
   document.head.appendChild(s);
-  const sid=LS.get(SESSION_KEY);
-  if(sid){
-    const accounts=LS.getJSON(ACC_KEY,[]);
-    const acc=accounts.find(a=>a.id===sid);
-    if(acc){ AP.account=acc; AP.showApp(); return; }
+  // ИЗМЕНЕНО 19.09.2026: сессия восстанавливается по JWT с реальным запросом
+  // к серверу — см. тот же переход в остальных 3 файлах.
+  const jwt = LS.get('cx_ap_jwt');
+  const email = LS.get(SESSION_KEY);
+  if (jwt && email) {
+    try {
+      const me = await CxApi.get('/api/auth/me');
+      const account = { id: 'srv_'+email, email, name: me.name || email };
+      await cxRefreshEventsCache(account.id);
+      AP.account = account;
+      AP.showApp();
+      return;
+    } catch (e) {
+      console.error('Не удалось восстановить сессию организатора афиши', e);
+      LS.remove('cx_ap_jwt'); LS.set(SESSION_KEY,'');
+    }
   }
   document.getElementById('loginScreen').style.display='flex';
 }
