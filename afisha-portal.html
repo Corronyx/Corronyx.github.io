@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google" content="notranslate">
+<!-- Логотип-монограмма CX (21.09.2026, визуальный агент): вкладка браузера, значок при добавлении на
+     главный экран телефона, закладки. Раньше сайт не имел значка вовсе (браузер показывал пустой лист).
+     Тот же файл svg встроен во все 5 файлов проекта — правка цвета/формы делается в одном месте
+     (см. /home/claude/logo/cx.svg в пакете передачи) и копируется. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTdDODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTU0RCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNTEzMEEiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWYiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZm9udC13ZWlnaHQ9IjcwMCIKICAgICAgICBmb250LXNpemU9IjM0IiBsZXR0ZXItc3BhY2luZz0iLTMiIGZpbGw9InVybCgjZykiPkNYPC90ZXh0Pgo8L3N2Zz4K">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTdDODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTU0RCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNTEzMEEiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWYiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZm9udC13ZWlnaHQ9IjcwMCIKICAgICAgICBmb250LXNpemU9IjM0IiBsZXR0ZXItc3BhY2luZz0iLTMiIGZpbGw9InVybCgjZykiPkNYPC90ZXh0Pgo8L3N2Zz4K">
 <title>Corronyx — Афиша</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
@@ -1254,7 +1260,9 @@ function cxMapServerEventToLocal(e, accountId){
     free: !!e.free, price: e.price || '', desc: e.description || '',
     organizerName: e.organizer_name || '', phone: e.phone || '', contact: e.contact || '',
     poster: e.poster || '', posterVideoUrl: e.poster_video_url || '',
-    lat: e.lat, lng: e.lng, status: e.status, paid: !!e.paid, refCode: e.referred_by_code || null
+    lat: e.lat, lng: e.lng, status: e.status, paid: !!e.paid, refCode: e.referred_by_code || null,
+    frameTier: e.frame_tier || 'none', frameExpiresAtServer: e.frame_expires_at || null,
+    frameSource: e.frame_source || null
   };
 }
 async function cxRefreshEventsCache(accountId){
@@ -1266,6 +1274,13 @@ async function cxRefreshEventsCache(accountId){
   } catch (e) {
     console.error('Не удалось обновить афиши с сервера', e);
   }
+}
+// ДОБАВЛЕНО 23.09.2026: бесплатные рамки теперь выдаёт админ через сервер
+// (не localStorage account.freeFrame) — см. то же в partner-portal.html.
+let AP_freeFrameGrants = [];
+async function cxRefreshFreeFrameGrants(){
+  try { AP_freeFrameGrants = await CxApi.get('/api/afisha/me/free-frame-grants'); }
+  catch (e) { AP_freeFrameGrants = []; }
 }
 
 /* ---------- Оплата баллами реферала — перенесено из partner-portal.html (12.09.2026) ----------
@@ -1560,14 +1575,9 @@ function isDiamondFrameActive(card){
   if(acc && acc.unlimitedDiamondFrameForAll) return true;
   return !!(card.diamondFrameExpiresAt && new Date(card.diamondFrameExpiresAt) > new Date());
 }
-// Бесплатный ярус (05-06.09.2026) — грант выдаёт только админ (admin-dashboard.html
-// → «Бесплатные рамки»), хранится на аккаунте как account.freeFrame[tier]. Зеркало
-// ADM.isFreeFrameGrantUsable — синхронизировать при изменениях там.
-function isFreeFrameGrantUsable(grant){
-  if(!grant) return false;
-  if(grant.unlimited) return true;
-  return !!(grant.limit>0 && grant.expiresAt && new Date(grant.expiresAt) > new Date());
-}
+// ПЕРЕПИСАНО 23.09.2026: бесплатный ярус теперь целиком на сервере
+// (boost_grants + AP_freeFrameGrants) — см. renderEvents/toggleFreeFrame.
+// Старая isFreeFrameGrantUsable(grant) на localStorage.account.freeFrame удалена.
 function isPermanentlyClosed(card){
   if(isAfishaUnlimited(card)) return false;
   if(!card.expiresAt) return false;
@@ -1782,6 +1792,7 @@ const AP = {
     LS.set(SESSION_KEY, email);
     this.account = { id: 'srv_'+email, email, name: me.name || email };
     await cxRefreshEventsCache(this.account.id);
+    await cxRefreshFreeFrameGrants();
     this.showApp();
   },
 
@@ -1956,7 +1967,6 @@ const AP = {
 
   /* ---- Events list ---- */
   renderEvents(){
-    this.checkFreeFrameExpiry();
     this.renderDocsKpBlock();
     this.renderPaymentDue();
     const list=document.getElementById('eventsList');
@@ -2059,21 +2069,20 @@ const AP = {
           }
         });
       }
-      // Бесплатный ярус (05-06.09.2026): показываем переключатель, только если
-      // у аккаунта вообще есть пригодный грант этого яруса — иначе блок скрыт
-      // полностью (не захламляем карточку для тех, кому бонус не выдавали).
+      // Бесплатный ярус — ПЕРЕПИСАНО 23.09.2026 на серверный источник правды
+      // (AP_freeFrameGrants + card.frameTier/frameSource), см. то же в
+      // partner-portal.html. Срок гранта может быть бессрочным, количество —
+      // всегда конкретное число (решение владельца 23.09.2026).
       let freeFrameHtml='';
       if(dispStatus!=='pending'){
-        const acc=LS.getJSON(ACC_KEY,[]).find(a=>a.id===this.account.id);
-        ['gold','diamond'].forEach(tier=>{
-          const grant=acc?.freeFrame?.[tier];
-          if(!isFreeFrameGrantUsable(grant)) return;
-          const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-          const isOn=!!card[field];
-          const activeCount=this.getMyEvents().filter(i=>i[field]).length;
+        AP_freeFrameGrants.filter(g=>g.tier==='gold'||g.tier==='diamond').forEach(grant=>{
+          const tier=grant.tier;
+          const isOn = card.frameSource==='admin_grant' && card.frameTier===tier;
           const label=tier==='diamond'?'💎 бриллиантовую':'🖼️ золотую';
           const labelEn=tier==='diamond'?'💎 diamond':'🖼️ gold';
-          const limitStr=grant.unlimited?(LANG==='ru'?'без ограничений':'unlimited'):`${activeCount}/${grant.limit}`;
+          const limitStr=grant.expires_at
+            ? `${grant.used}/${grant.limit_count}`
+            : (LANG==='ru'?`${grant.used}/${grant.limit_count} (бессрочно)`:`${grant.used}/${grant.limit_count} (no end date)`);
           const otherPaidActive=(tier==='diamond'?isDiamondFrameActive(card):isFrameActive(card)) && !isOn;
           freeFrameHtml+=`<div style="font-size:12px; color:${isOn?'var(--ok)':'var(--muted)'}; background:rgba(26,28,32,.03); border:1px solid rgba(26,28,32,.08); border-radius:8px; padding:8px 10px; margin-top:8px;">
             🎁 ${LANG==='ru'?`Бесплатная ${label} рамка (доступно администратором)`:`Free ${labelEn} frame (granted by admin)`} — ${limitStr}
@@ -3142,75 +3151,26 @@ const AP = {
     const usdAmt=+LS.get(prefix+'_price_usd')||0;
     return {days, ru:ruAmt, usd:usdAmt};
   },
-  /* ---- Бесплатный ярус рамки (05-06.09.2026) — грант выдаёт только админ
-     (см. admin-dashboard.html → «Бесплатные рамки»), здесь только применение
-     на своих афишах в пределах разрешённого счётчика. Использует ТЕ ЖЕ поля
-     (frameExpiresAt/framePurchasedAt, diamondFrameExpiresAt/...), что и
-     платная рамка — isFrameActive/isDiamondFrameActive в index.html не
-     нужно ничего знать про "бесплатно это или платно". Отдельные булевы
-     freeGoldFrame/freeDiamondFrame — только чтобы отличать "это выключил бы
-     я" от чужого платного статуса при авто-истечении гранта. */
-  toggleFreeFrame(cardId, tier){
-    const acc=LS.getJSON(ACC_KEY,[]).find(a=>a.id===this.account.id);
-    const grant=acc?.freeFrame?.[tier];
-    if(!grant || !isFreeFrameGrantUsable(grant)){
-      this.showToast(LANG==='ru'?'Бесплатный доступ для этого яруса сейчас недоступен.':'Free access for this tier is not available right now.');
+  /* ---- Бесплатный ярус рамки — ПЕРЕПИСАНО 23.09.2026 на серверный API
+     (AP_freeFrameGrants + /api/afisha/:id/free-frame). Срок гранта гасится
+     на сервере (sweepExpiredFreeBoosts, раз в сутки) — клиент больше не
+     симулирует истечение сам, только показывает актуальное состояние после
+     каждого обновления списка с сервера (cxRefreshEventsCache). ---- */
+  async toggleFreeFrame(cardId, tier){
+    const card=this.getMyEvents().find(i=>i.id===cardId);
+    if(!card || !card.serverId) return;
+    const isOn = card.frameSource==='admin_grant' && card.frameTier===tier;
+    try {
+      await CxApi.post('/api/afisha/'+card.serverId+'/free-frame', { tier, on: !isOn });
+    } catch(e) {
+      if(e.status===403) this.showToast(LANG==='ru'?'Бесплатный доступ для этого яруса сейчас недоступен.':'Free access for this tier is not available right now.');
+      else if(e.status===409) this.showToast(LANG==='ru'?'Достигнут лимит бесплатных рамок для этого тарифа.':'Free frame limit reached for this tier.');
+      else this.showToast(LANG==='ru'?'Не удалось изменить рамку. Попробуйте ещё раз.':'Could not change the frame. Please try again.');
       return;
     }
-    const items=LS.getJSON(STORE_KEY,[]);
-    const card=items.find(i=>i.id===cardId);
-    if(!card) return;
-    const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-    const expField=tier==='diamond'?'diamondFrameExpiresAt':'frameExpiresAt';
-    const purField=tier==='diamond'?'diamondFramePurchasedAt':'framePurchasedAt';
-    const activeCheck=tier==='diamond'?isDiamondFrameActive:isFrameActive;
-    if(card[field]){
-      card[field]=false; delete card[expField]; delete card[purField];
-    } else {
-      if(activeCheck(card)){
-        this.showToast(LANG==='ru'?'У этой афиши уже активна платная рамка.':'This listing already has a paid frame active.');
-        return;
-      }
-      const activeCount=items.filter(i=>i.ownerId===this.account.id && i[field]).length;
-      if(!grant.unlimited && activeCount>=grant.limit){
-        this.showToast(LANG==='ru'?`Достигнут лимит бесплатных рамок (${grant.limit}).`:`Free frame limit reached (${grant.limit}).`);
-        return;
-      }
-      card[field]=true;
-      card[expField]=grant.unlimited ? '2099-12-31T00:00:00.000Z' : grant.expiresAt;
-      card[purField]=new Date().toISOString();
-    }
-    LS.setJSON(STORE_KEY, items);
+    await cxRefreshEventsCache(this.account.id);
+    await cxRefreshFreeFrameGrants();
     this.renderEvents();
-  },
-  checkFreeFrameExpiry(){
-    if(!this.account) return;
-    const accounts=LS.getJSON(ACC_KEY,[]);
-    const acc=accounts.find(a=>a.id===this.account.id);
-    if(!acc || !acc.freeFrame) return;
-    ['gold','diamond'].forEach(tier=>{
-      const grant=acc.freeFrame[tier];
-      if(!grant || grant.unlimited || !grant.expiresAt) return;
-      if(new Date(grant.expiresAt) > new Date()) return;
-      const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-      const expField=tier==='diamond'?'diamondFrameExpiresAt':'frameExpiresAt';
-      const purField=tier==='diamond'?'diamondFramePurchasedAt':'framePurchasedAt';
-      const items=LS.getJSON(STORE_KEY,[]);
-      let changed=false;
-      items.forEach(i=>{
-        if(i.ownerId===this.account.id && i[field]){ i[field]=false; delete i[expField]; delete i[purField]; changed=true; }
-      });
-      if(changed){
-        LS.setJSON(STORE_KEY, items);
-        const notes=LS.getJSON('cx_afisha_notif_'+this.account.id, []);
-        const label=tier==='diamond'?(LANG==='ru'?'бриллиантовой':'diamond'):(LANG==='ru'?'золотой':'gold');
-        notes.unshift({id:'N'+Date.now(), text:(LANG==='ru'
-          ?`Период бесплатного пользования ${label} рамкой закончился. Хотите продолжить — можно приобрести рамку самостоятельно.`
-          :`Your free ${label} frame period has ended. You can purchase the frame yourself to continue.`), read:false, createdAt:new Date().toISOString()});
-        LS.setJSON('cx_afisha_notif_'+this.account.id, notes);
-        this.showToast(LANG==='ru'?`Бесплатный период ${label} рамки закончился`:`Free ${label} frame period ended`);
-      }
-    });
   },
 
   requestFrame(id, tier='gold'){
@@ -3775,6 +3735,7 @@ async function init(){
       const me = await CxApi.get('/api/auth/me');
       const account = { id: 'srv_'+email, email, name: me.name || email };
       await cxRefreshEventsCache(account.id);
+      await cxRefreshFreeFrameGrants();
       AP.account = account;
       AP.showApp();
       return;
@@ -3845,13 +3806,29 @@ window.addEventListener('storage', e=>{
   </div>
 </div>
 <script>
+// Кнопка агента (🤖) пряталась под баннером cookie — z-index баннера выше, и она физически
+// перекрывалась (жалоба владельца 21.09.2026, тот же приём, что уже есть в index.html и
+// hotel-portal.html: см. там positionConciergeBtn/positionAiBtn). Пока баннер виден — кнопка
+// поднимается ровно на измеренную высоту баннера; после закрытия — возвращается на место.
+function positionAiBtn(bannerVisible){
+  const btn=document.getElementById('aiWidgetBtn');
+  if(!btn) return;
+  if(bannerVisible){
+    const banner=document.getElementById('cookieBanner');
+    const h=(banner && banner.offsetHeight) || 90;
+    btn.style.bottom=(h+16)+'px';
+  } else {
+    btn.style.bottom='';
+  }
+}
 function cookieChoice(choice){
   LS.setJSON('cx_cookie_consent', {choice, at:new Date().toISOString()});
   document.getElementById('cookieBanner').style.display='none';
+  positionAiBtn(false);
 }
 (function initCookieBanner(){
   const existing = LS.getJSON('cx_cookie_consent', null);
-  if(!existing){ document.getElementById('cookieBanner').style.display='block'; }
+  if(!existing){ document.getElementById('cookieBanner').style.display='block'; requestAnimationFrame(()=>requestAnimationFrame(()=>positionAiBtn(true))); }
 })();
 </script>
 
@@ -3880,6 +3857,49 @@ function cookieChoice(choice){
 .ai-widget-input{display:flex; border-top:1px solid rgba(26,28,32,.06); padding:8px;}
 .ai-widget-input input{flex:1; background:var(--bg3); border:1px solid rgba(26,28,32,.08); color:var(--text); padding:9px 11px; border-radius:8px; font-family:inherit; font-size:13px;}
 .ai-widget-input button{margin-left:8px; background:var(--gold); border:none; border-radius:8px; padding:0 14px; cursor:pointer; font-weight:700; color:#15130a;}
+
+/* ===== Письмо справа налево (арабский, иврит, персидский, урду…) — 21.09.2026, визуальный агент =====
+   Перевод на такие языки включает Google Translate: он ставит на <html> класс translated-rtl (а при смене языка на
+   другой — translated-ltr). Раньше вёрстка при этом оставалась «левой»: текст выровнен неправильно, панели, кнопки «Назад»,
+   ИИ-агент, «глаз» пароля, боковое меню, значки «закрыть» — всё стояло на левой стороне. Ниже — зеркальные правила:
+   основное направление direction:rtl (ряды flex разворачиваются сами), а всё, что было жёстко привязано к левой/правой
+   стороне (left/right, margin/padding/border-left/right, text-align, скругления), сгенерировано зеркально из существующих
+   правил. Поля e-mail/телефон/адрес сайта/пароль и календарные сетки остаются слева направо (так их читают и на арабском).
+   Работает только когда включён RTL-язык (или задан dir="rtl") — для остальных языков вид не меняется. Только CSS. */
+html.translated-rtl, html[dir="rtl"]{direction:rtl}
+html.translated-rtl input[type=email], html.translated-rtl input[type=tel], html.translated-rtl input[type=url], html.translated-rtl input[type=password], html.translated-rtl input[type=number], html.translated-rtl input[type=date], html.translated-rtl input[type=datetime-local], html.translated-rtl input[type=time],
+html[dir="rtl"] input[type=email], html[dir="rtl"] input[type=tel], html[dir="rtl"] input[type=url], html[dir="rtl"] input[type=password], html[dir="rtl"] input[type=number], html[dir="rtl"] input[type=date], html[dir="rtl"] input[type=datetime-local], html[dir="rtl"] input[type=time]{direction:ltr; text-align:right}
+html.translated-rtl .pp-tab .tab-badge, html[dir="rtl"] .pp-tab .tab-badge{right:auto; left:4px}
+html.translated-rtl .back-btn-floating, html[dir="rtl"] .back-btn-floating{left:auto; right:24px}
+html.translated-rtl .pass-wrap input, html[dir="rtl"] .pass-wrap input{padding-right:0; padding-left:44px}
+html.translated-rtl .pass-wrap .eye, html[dir="rtl"] .pass-wrap .eye{right:auto; left:12px}
+html.translated-rtl .tier-summary .ts-change, html[dir="rtl"] .tier-summary .ts-change{margin-left:0; margin-right:auto}
+html.translated-rtl .sw-pay-close, html[dir="rtl"] .sw-pay-close{right:auto; left:14px}
+html.translated-rtl .sw-kp-modal, html[dir="rtl"] .sw-kp-modal{text-align:right}
+html.translated-rtl .sw-pay-address-row code, html[dir="rtl"] .sw-pay-address-row code{text-align:right}
+html.translated-rtl .notif-item.unread, html[dir="rtl"] .notif-item.unread{border-left:none; border-right:3px solid var(--gold)}
+html.translated-rtl .lang-dropdown, html[dir="rtl"] .lang-dropdown{right:auto; left:0}
+html.translated-rtl .ai-widget-btn, html[dir="rtl"] .ai-widget-btn{right:auto; left:24px}
+html.translated-rtl .ai-widget-panel, html[dir="rtl"] .ai-widget-panel{right:auto; left:24px}
+html.translated-rtl .ai-widget-input button, html[dir="rtl"] .ai-widget-input button{margin-left:0; margin-right:8px}
+@media(max-width:640px){
+html.translated-rtl .back-btn-floating, html[dir="rtl"] .back-btn-floating{left:auto; right:16px}
+}
+@media(max-width:760px){
+html.translated-rtl .mobile-fab, html[dir="rtl"] .mobile-fab{right:auto; left:18px}
+}
+@media (max-width:640px){
+html.translated-rtl .back-btn-floating, html[dir="rtl"] .back-btn-floating{left:auto; right:auto}
+html.translated-rtl .pass-eye, html[dir="rtl"] .pass-eye{right:auto; left:1px}
+html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; left:14px}
+}
+@media (max-width:400px){
+html.translated-rtl #aiWidgetPanel.ai-widget-panel, html[dir="rtl"] #aiWidgetPanel.ai-widget-panel{right:auto; left:16px}
+}
+@media (max-height:480px) and (max-width:932px){
+html.translated-rtl .pass-eye, html[dir="rtl"] .pass-eye{right:auto; left:1px}
+html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; left:14px}
+}
 </style>
 <button class="ai-widget-btn" id="aiWidgetBtn" onclick="toggleAiWidget()"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAYAAABV7bNHAAAniklEQVR4nM2cebRlZXnmf9+wpzPdc+dbt2ZqgiqhCgQBBQUHnLAj2I6J6djd2kknMZ2oSSdGu6NiurMSNSa2vRyWCaAJDsExIiiDzBRUFVVAVVHzXHc894x7/r7+Y58qIQxBYcX+1rrrnrvWuXt49js87/O+3xaBX7f8kpdSik63wZVvfhtRr8dPbv4B5XKdPM9/2ZeG+GUDJITAmBzH0Xz7ni0EeZdXXvQShHQQCKz95T4/+Us9OyClIopbvO+DH2btmcu5eNN6PvDf/4QwXEAq9cu+vBfGgqy1SCmRUv5cbiGlJIy6XHTJZXz2G9+mrGDlgEucZrzm8it4aPN9+H4ZY8xzPqZSCmMMxhiEEL/I7Txp6ed7AGstWmuSOCbJupSC+nMHSgiMSRlevIzHjjaYnZ7h2MkZqqUSTrmGtQZ4bjeplCI3hk63gatLuJ5HlmXPG6Tn5WJCCPIsozowwPU33shb3/Yu4jii053n2UKHEAKlFFIIqpUhfvxP/8j2u+8gl5rZXs69P/5nHrj9ZsqVQaTsf1c+841aC51ugyyJeP2b386Xv/ktBgfrv3yAEEUQ9XyfDS+7jK/fcD2333Ub73rnu3CcJx9aSonWGiEESZLQ6S7Q7szS7swRxm1u+NTHSKMQ221w3ze+SGpi2u0Z2p1ZOt0FojBGCIHWGqWefGztSK686m185Qe38Jmvfo0rr7yCUil4QdzshXExpWg02/SqdS65+EKysTU8euDtPHr/nZSqA2RpSrfXBWK0KjG5ZJIXbTiL9evPYsXKZSyenKRWKXHGixaTbBzhPedfR7PV5cTxkxw8dIidO3fz2KO7OHToML2wCziU/AqO69BuL/CSi17NBz77dwxXPNaUoB3GmOfomv/ael4ACcBYQ6lcplyucNe+GX5y3w4OznbI04zcGlqtOZRyefH55/HqK17FpS9/OWvXrmVifJRqqfQvjpgDgrXLlz/lXJ3OAjt37ea2W+/gBz+4iXvvfYBeqwlAmmZseWwfeRKxsGqUi89aSq1axdjnHtyfaT1vCxJSkKUp23fvZyF3MNqjFiSEvQ6VSom3vePtvPXtb2P92WdTq9WIooQwCjk+NYfvLjA5VkdJwalgbAGsRQBWFJ+tsZTLJS44/0IuOP9C/vAPP8gDmx/k76/9B/7xq9fTbTYo+y7bDh1j856TbNt7nDRNkFLwfFP0807zQgiyLGV4fILXvO3dnHvFVRw6NsV3rnk/H/6TD3H1O95Bu9slDCOyLAMBFoGwBUEMPA+tJVlui3QuQEmFoyW+qyn5Dr7noJUkS3Msph+0fSxw4w9+xEf/12e4+nc/wrETMxzf+lM233QjrbkZHMd53kTzBeFBQgjSJCHNu2y64BLOOfc8VowP8fo3XklQq5ELcLSLMYbcGoyx5NZirCU3xW8pBCARQiBEcUytJK5SlHyXicEy1bKHNRYhoBenTLcyeu0mN91xN1v2HeOBH32fvQ/diaPL6BcAHHghXEwIjLFoVzM5tpKst8CJQ3u58nW/Q71WpRWGCNcjNzG5MWTGkOVgrSHLC6BO8R0hJFIIhCwYtlaKVBvCNKcdxiwaqjI+VEYgiFJLnKZUq1Ve87ILuO+ee4izlOXrzmb6yBHy3KCk/OVakBCCPM9xHMXkSBnpaF78ijeyYt0GVkxO8tJN65hdaILngxSnwcmMJc8NubHkeWFFFk6zcSEL61FK4TgKRym0VmgpWTRUYcV4nbl2j+NzIbWSy3jVZX6hwx985OPseOgBTBxy/OgJoihFa/28QPqFLUhKQZJm1AfKLJ+oYbKMbmoYWrSUoZXryaMF8jwljkKMsVgpyHJI++BkxpIZ+gAZcmsRQhQgnQJHO7ipwnE0jja4juLwTJta4GKtxdWCQCtOLrQZGl/E5a96JQ/fdzcl32PNGcs5OjXH3Nw8nuNgzC8G0tMCVMSBJ/OIJ9ZDUkp6Ucz44CDnrV1OuzNLD3CUIjOG3Xv24i0c5WWbVpFEIWlmMUqSGUhzS5qZ4ifPSXNDlhuMLbKWlAU4WhcAeY6D67p4roOXaRzH8siRBoEWrJ6sU3Ed7t1xmIOPz+FqH9dxESLHy2MuWrmErUJyeGqasu8/5R6An2U5a5/W0p4CkLWWNE1PH8xYg0AQBEG/KBVEccyK8WGuff9VmMY0f/PdIxxVHjg+cWuerXf8mI1nrsbmGSZNiRODUZIoNcRpTpQY4iQlyTKyNCM1OcZYhJAIrZBKoR0Hx3FwPR/f9wk8l8Dz8H2PNLNQcvG0QihFb2GWr9/4Tc5dXKdarZC35zhDp3zwtcswAxfy7k9/j51HjxP4Xv88grDXw2KRQoIQSCFQfab/jABZa1FKMzo6QikIMEJQq1RI05SdO3fhui55lhH4JT7+m/+eS/79iyBss/vQYb68bQqn6lHzNWlngSyJUCaDPCEMM3Jj6XV7dMOYMDNEmSFLM/I8LzIZhdUKKRFKIbWDcl0cP8APSgSlEuVSQDnL8H2PkisweQZewNzMPHvuupUr3vtrDNQHWWi1uOxFg2x858Wgfa5ZsPynv/467W4bRzukWcK6DRtwHIdet0uWG+IopN1sPqV+exJAUkqyPOaTf/t53vT6VyAyQ1Dy+fx37+dj73snnfkZlNZccvFFrJwYINMpouowVPMRCDIj8AOfVWcswyMlSUJMlpD3uoRhj067Ta/bI0oNuYHM5OSmeDAWgZUKKyRI1QfJJXZ94qBEWK4S16pkpkpq4cLVo2iRM90M6UUJK1cuY8XyZdx9Rw5S4jiKXGksKYtGAl59wfn88713EUURIxOT/NHnr2fjmWfQ7XYZqvk8cu/d/PpbrkLKJ9MD+S8BiuMeX/3K3zGVuZRLPvc8doS79s3xktdfTZx2WLVqJZWBKrt3HUQfPol69ACP7D5KKopgO31oD6o7hy8saa+HTRNsGhF3mkStBnG3Sd5rYHoNCFuIqIlI2pC0EFG7+Ok1sd0F8vY8aWuGuDFNOD9Fc36WVqtNq90lzXK01vSijDSNGMpneXTbFloLDXppyM49x1Fbd6H3HmH3rmPoUokzV68mzXq85q3vpmlcpmYX2DhZ46yhgG9cey1R3D0dm57WgvI8JwgGuPUHN7L5znuJL7yI+/dNM1zWVDa9nLM23o3nWBqdFjc9ZnAb08StBrcc65G7AUncI0wty9adQ2d+mnIQEPguLOQFkUwz7OlsUsS4U9YsMQhji/ICgbESaxLINTZLyU0GCHquj0ETJjnaK2NtE6Uc1qxbQ6O5wOzcHIFnueVkj9XXbWagNsD3phWNvDj2pgsu5dzXXsWRI8c4vD/iNWe9hnse2MKN3/oGpeCpOvhTgrSSkjCL+YfPf5ZF689Dez4b161kanqW7QN1OjPHsLpFXK3zhWOStK1p+RVMltLtxex8bCd2zRkMVEsIrRgcHODoielCepACIQWSn2UQYaHPgrBCFDVY8Vf/OwZsApnCJBFJFKH8nIPTC5w5WSfLDbVajZ8cmqbTK1QDT3vEQZ3PTfl4bY0kI+l1aIU9qsNV9u4/TGwVzV7E7Xvn+dKnP02WJ/iqTJ79KwDleY7vVbn9lpuZe/fVxHFMHPaQEnrdBo7jkeYG1/FwKzWsAnoLdDtdXv3a19OYm6U2WKfk+1ih8Rynz7YNts91TvEdSxF/xGnAilxfQCOwQmARICTWgrU5Js/JckMvyYjihFYItUqJ1WvX0e2EXHrRuXzrn75J2S8RVGs41SpJr0fcbmGlYubEEW7+3EcBhfYC/uBbn2Pf9i34XvUp4DwtQIXZFzd03x23ICho/+JVqwi8oEi75Qqe56OVIlMKITVKOfzJH3+AbqfHP3/ve0yMDRMnCcP1GtUgIHvCyYUoQBCnPttTkKjTFTz970h+xlWsBWMht+A6LkY6pFnI+ORSXnn5ZSxfspj1q5dy000/JDMgtMbRLsozZH6JPMmxnsWYlCN7d5OlKQCeX3pGYe1ZFcVyeQDfLzE0PkGpXEYKhev4lBwPR1jIU0yWAgK/VMHmKWPj4+TSoV4fwuY5nuMyNjFxWrY4DYYQqH5poaRCSlWk+L51CSFOc5RCAShqtiLjSSrVCr2kj5py2btnP2tWLcfkllqtBlIW15alOIDn+mjXxVqBUpqh8XFcLyAoV58NgmcHyOQZFvADnyTskucZxmRoDF6eYuOIPE0KWxCCqfkWjdiy9+gMM/NNpFS0ux2WLZukWq2hhcDVDlo7aKVQTwBHSYUSEqX6PEhqpFT9+kwXUqvjIKSmXCmxZLROL87xPJdOY4ajhw/QCjOSPMeKwn3TNCHPUpQErSTCGozJSaMepcBFSIH5V5oLz1qLWWNwSwHa1WRRFxwXbICrwJGQ5AasAWsxeca+YzPM5RXqQ8OUB+okWU4zisjSOU4cOcyJqRlQAs/zqFarlMtlXK+oq6wtXKmQQCiit5BEcUqv26TT6RGlGdYbIO51WTjvDGpBGSVA+z7VJWeyrxEz6OSkxmD6oV8rhetoEqVBgDE5pCGlShW/FNBrd5FKPqHmeI4ACSHITU5tdIygOkBoCqHK1Q5KFa4hjek/XUWaWA7sP8RE7vLQlu2MVktsXLWcNMqwSc7yyUlWLl1KEoY0mk1aYcj87Cy1WoVFk0vIrSliTJ9VW2M4dugQ7V4HTynGfY9gqIZTqeMGMDvbwBn3GSx7LDSb3LN5C6sueBlDbk6W5f1w4OBpjZIKISRKOziuj3VdvIEh6iKg29yFUKoP588BkLUWqTSjS89A5Al5kqAAIRWpsShrkUrh+QGmXIE8obswT6s6S9Ru44iMSsVnrjvP2RvPZno25UDm0/aqKGtZ3l1gyDYReYyWinbYI00zjBVIx6dcLjM8PErZU3RlwIIuk6Kp5DmVSgmpXZIsQ0qfLMtpNWZZaLRw3AQpFCXfIXA9tJRkp9QC5aBdH6kd3HKdxWOLmT54gDx95vbQ0wMkBCbLCAYGKA8MsHDsEBgDEnJjSXODYy1IhdIapR0QCrKUknZwtWRiqIoQgiMHj3D88Z18465dPPKm9/HmS1cxYTLuOL5Actv9XFlJSW1O2AsJk4RMeDiqhIug4mvubGhm17+E9StGyA3cOh/T+NFtvPHEPBdfdjGDmaFe9gg8F9dxmJo9SZ7muL7bb0zSpwii78MZZAYR9xhaMsnA8AgzR4/iuO5zq+ah363IMypDwygJSWeePImL4lEEuFohlMZa2ZctDJ0wAmBsqIqnBDbPsFhanR5OlrF+6VJ27d+P2TDJ0vEqMvTZfNdmSuoA68/ZRLPRIIoSYlXCSSS9dpvpxx7k/qjO6nMu5YLFdXZ3Ymb3TrNupMaLzltB2OsBg4S9CC/wqVZKJNMpUdhBOB55X56VQiAVCJtjkhhjYlKZozmDwbFxTh46iCM8nq7b+ZRiFThN4Cr1IbQEkceQdJBOpZ8RNFI5YCBNc7phRKvbJYxDvKTD0NAgtXodEEjH49DUFKVShavNNI//8Cc8Vq7DgUO8stpFmRonjx4lS2J6UULHkxgZMhc1sanmgqrB3P4dvr5zGY7JeHMSs3TtShqtDuPDAxiT45crDA8No9OIXmOOTreD9quFzgS4jsZRCikAm5EmEXnqkSQpQW3gdAft1P0/UTc6DZDWmm6ngyGnXKohpcTxfPIsQwpZaDVSI4TucxOBoM9RjCGzlri9wEQ9QGpNtVLDVRohJXGaMzV7hMHKLOeWPUxT0ch6LJQd0iglDiOMtYRGM1edIB5ZTHkWBsoh0ndYaZss6u5Ha5dZ6bFv7x5qiyYZHa4jrCUXkqjboubpfs2mkEqSC0ve51T9yFHcRyF6EyUpyvFRSiOEpNttIpCUy1WMyU81RYumf7szy8ZNF1EZGWfzrT8iMznK9Qv6LYs6yQqFERIjJI6QKAlKCrRWDFTrhEnK4MgoJ/bvZvtD93H2ulWFEC8lQkqmWzFz3QQli55+lkRYU1TlXuDTSRzE2CKWrj+Lxok6zUciZDTHvoblZDcGqYilRtcG8MIBojjGSs2JR7exZ+u9DA79MZ1uD79UwXVcHCGRCIwVGGv716KKhysl1hgc3yczGWm3wcte+QbibpsH778d3xtAa43udBs42uMDH/oT/vhP/5jP/XgX1dXnsu27fwdSIpWD0D6oGCsl5lT1LQUKcLTGcz0WjY6y/+hJDk3P8+oLX8zMlnvp/cpV6L5k6joaSAveZECQ42gNSlJyFaOjo4Sxh55cxKtWLWHfQJmHZk7CiU7RnCQBoXA0ODLHJhFZkhAnCY2dW9h41ouYOjHFY9t3MDQ0gsTiSFX08QWIviCntEZrD+0EKKUhyxgdH+eN7/ldXvqmt7Jh2Qj/+PnP8MVP/QWd7hz6VVe8gf/xiY9z6QWbMECzucDohou48sxzOLz9bsKZozieRxo5hXki+lKlQKli8kIrje86xFnGX376M3zk/b/HKv9yWt0OjqMpBQFRGCIF5HlRLqAkQoMrLYMVn6HaAAOJx9hInfXDZcrScmKoTt5wKLkCT2mkVijtol1N4Gq0ECRxzKVXv4sL8Pnb//Nper0U3wtIkxilHZSUCJuf7ttKKXFcF9fzsXlGfWSU3/7MtdTGFtNYWKC2epwP/c8P86or38wX/uIT6KBcIfUHOJZBuxmxZNEoE8KBLOHkI/cSZhkCW6THfi2ELYikRD5BIvWoBhX2PbqVa2+4gf/yK68j7aVF889xCYIAJSDv688IMLmh7AiGa1WCSoVKHlDxHXwpGPQ9xgKHqOzje0XLR0qJdjx0uUy5WqXk+4RRRBQm3HLLtzlwYC9nrHsx3dYs2jho5eBIjcozIgxYsCYjzxKwOcJY8izn+FybA/P7KSnLsleup6Kht3SUwXod+f0bb+BXLn4xn/nzv6Kbw8jYOFO7t/HFD/0Gxx5/BM91MHGIzSJEniNFDqIoDfrlOK6UlGWOqxTjk0vIs5ybb7mJrY8+wmCtSqUc4Lsu5VKJwA/wA5/AD/Bclyg1lKoDVIfH8SsDKF20fVxXEziasu9TDQIqQUClVKJUrlIZGKBaq1EuV9j3+OPcdestTM/OMTa5jLKrqPk+WiuMybC2mPOQgAJsFmOSLibu4mnFwtRxvve//4CZxx6kVKmAdvj8F77MyzZt5Lqv/F90pTxEmqb85Uc/yD0/voXhxcu4+ZtfI05Dzh1bcjpjQdHQE0IV2ctarDEIY6iSsiTwESNj5FlGp9djeN257Ny9k8tf9UrOftFavn/TbczPzSMdF2sMNs+J45iBwQFWnHk2M13D3L6dZJ0u80snWDo2TtkPSIRAaa9I09pBlyoE1UH8oIRWkp3btjBcHyZodRhVPucsX8TssZydrQZZ5hUVvej33IRF92cDlC04khWSE4cPMfP5j9M+sIO3XP9X3PzDG3F0hUp5BJ3nOUopKuUR7vnpbUBGKajjWYiiCKGGCn5wWnpQpwUsk+dEUQ/CEG/laqrLVtE2koUje3hw105qFYckM9TGx1ixYjkLzRZaFNMgcZ6Spikj9Tphu8Hs0ZOsqDn0TIcdm+8lPPMcRBYR5hbXCpRQaMfFKZXxSlVcL6DX6eGJlMcefZxQQH1iKaNnrCO2ku6efUidFNW66ud4KVFSYKRASIVUmiQKC3XB9fnpD76FBSrl4WKOIM8KHmStJc8zyqVKIVSZYtIi7nULRc+CPeVWp9hm/3+iKGS2F+P0Mupzc+TaQQyMgDJc8frXkWQ5Sa/HxKJRnMdcsIYkSYreuVYcOHyImeNHGZ9YxIb1mzCOz559h9ly3100mwvgeGRIMqlxtYv2SnhBGUvOwvws6zddTLMTsmf7dmpL13Ks0eVgo8tcGDLklzHWYJBYUTQmLQKDIbOAdkjDsADRWkqlGgiepEs/iUmfYpBCFDJn2G5i8xxj89O+DLYvtBdTGUIqeklKJzcsm1jE7NHDREJRWryEFEMURbRbXSbGhiiXS7Tbrf7/FkpltxfRSkOMmiXesQ38AY6nDicbXbQV+K6PVA5Suwg3QAcVtOOgtQTfRwZlMr9CYiWRdPCWLGX6ke2kaQpSnrYcw6marC+naAfHKxN2WpyaTTLmqdrQ0wpmpwYJwlaTNE0KKzrVjRA/a/DRV/38co0zL3gpa190Dqs2no8KShybnscv1Thj6WLm5xqUgoAli8YLPiIVSgm0Uvh+CeV5TDca7Nt/kL17H2dmdh4ZVJClGsoro7wSyishgwqOX+rPKbr41QGESOj1elRHJ9lw/ktYu2YlF7zi5eigUjDmfkjoy5IYa8mEQrklsIUKINUThd3nABB9KSPqdWkvLPxs6qsvkyql+lYm+gQMpLSEUUwYRZjcILyA7//0QXpRwnCtTNQNWbl8MX7g42qJqzSOW2hJjpTkRtCJEsJeF5mnuI6DXyoRBB6up1Gej+uVcF0XrRWu5xAEmm07HiHKcpR2irImiskzg9QKpMD2SWIfIqxQ5EIRZTkzMzN0FxpI9cwTIM8umGUZcyeOUgkKCVOcGpWz9nRBi5BE7QUeufM2TGbZueV+CEMGK0tpxhnXfeuH/NffuJowjBms1xgdHuJ4FKKVAhx81ycPgmICxAJSID2JFB3SVBDnKZSrfe2pkDSMBWlSttz9U+bmm3hBifDoCR5+YDNKSLbddQd5HIKsY/oNAIEtWklCYo0tVMpWizROnnXY6lkFMyEkrfk5gvF6f1uAwPYnxKyxYCDPMypDY1z62jcxuWQ5vU6bgzt3kFmD55eYmZ3muhu+zzve9gYGvTITE+PMTk3RSlMOHDpMHkd0uj2SLCtcVumiTguGqay9ABUusHSRQ6mucBwX1Xft+zc/xPTxE7jlAUS7ixsErF27inNWr8BefjmHD+zFZDnG2iK2GFMMaglRVPVJj8bMQhGnnmWS8Vk1aSklURSTZhbXDQqfpghHxhiMNWRZRmVwmCXLz6BarTIyPsH+Rx8Ga8mMoV6rsn33AXr/+B0+8vu/ychQHcf38DyXszZswGQZ89PTtJot4iQp+mfKQU2sYem55+PEDeLWXD8wKyrVKt/9/g+Yml9gSckntPSBlYyOjlL2PSaXLMOtDZCHvf4DPdWOLGKK5zgYFO1u2J9Ce2YMnhUgpRRZltELU8pjQyBUMfCUZ2T9skNrTXPmBFvvv5vFK1ay9c6fYHodTDbUtzjL6MgIX772BjasXMJVr7uCcqVKY24ek2W45QrL1w0j+hdprMVIjfGrpMkccZ4QVCq4rsfwyBib77ufr19/Pa+9+i1kJiUTkGU53YV57rn1FqqBx5atW+nOTuOWKwiTo4r0dco1cIOARrOLzQ1aO+R59osB1Ou2EcDsyYRKNaBWKQSqU13SU8CLOOL2b16L0C5aS+pDo1hycsCvlKn4HuefuZYvXvcNVq1YxtKJMQ4eOEAcRbQ7XazSCO2CdJDKIVcONrKgI7Tj4PseYxMTHDt2jBu/fSNnnbWOxRPjyLBDd6GFEgJtcx67/y52b32QJOwgsgzj+ghjsLkFk4MFpRW9OOb4kaOkaQKxIPDLPx9Ap6bnz77o5cXQQRQiRE6WZ/2U2Q/QWKzJSaIeaRwV6btUwZECzyk03uGJSdIo4tWvegXHZxv89oc/yV//2R9Rr1Y50jlJlhnirEOWW6yRGKmwjosKyniVAbxSwOSSpUjH4VOf/Bjrz7+IDWeuQ2rF0OA4UwsdSr6HozU26tJrTGGyDOkGgMUYQWZFwVJEoQv5QYU1Gzbh+wGu57Fj833kef60wv1T0rzSiihu86Z/9wY+dd0NbHjn7/OK3/4zrnj/NYwuXUmeZ1hRBOyiz15MkmZZRtoPtK7j4jsOUsCiyUVkVvDQww9z7rnncPT4DB+65q8YHBujVCqR5RnWGDA5ghxFhswTSGNM0mN4ZIRKtco1f/R7HD60nwteciF7dzyItZYlixchZTGqJ5UqOq9phM3igi9bixGSXEjyflb2a8O87v2f4P2fvZZf/bO/5prr/onLXnMFUdxGPc3+tKcAZHKDVi6/8/u/z2Wrh1g2XKZeq7Bq2SQLs7OcYp2FMqcQUqHdMro0gFsaQDneaRWx5HtMTkyQWYj37yBamGfTpk3c/+A2/vJL1xHUhxgdGaUcBFQrJcrVMqVKiVIpIPB9JpcupVQp8+lr/gePPvwQZ194Ka40nNi1GYtg0aJFuIHXvw6N8qt4A+P4Q5M45UGk0gUXkqoY0BKWMIw50eixbec+sjhitOryzt96P672yJ9mX9qTAFJK0QsXuOotb+WlLzmPXpLzmos2snTpYrbe/G0euvc2Op0uSut+57Igi9r18LwSruuDKPaKpVnG8GCder1OlCbMpTk7dz7K2tWrGBoc4JFHH+VLN3yLWAoWrVzN5OozWbrmLBafsY7JlWuZXLOW3OT8/ec+y85Hd1CpVDlr43kcfHwHca9LHCeMjAxRq5RJ07RQXhwXFdTQQQ0dlIqWVJ9Fa63p9mIe3nwXU1vvYK6bceGqMdbXBRdcejGvfONVhGHzKVb0lFrM98q89dd/nZ3zIfOtiPGROidn57nlG9fhOGUO7NnD0OgYIxM1kizsF3cpWRYBAmMUaZLQbXdYsXgRWkq6nQ7zueaxPXu48PI3Mja+iOPHjzA3fZI7b/o2amQF7blZjD+A4yiszVFDS3AXTnL82Ak0OYOL1zA6McE9P7yLXmmchXaHclDijKWL2Lb1YWwWk8c9bG5ASKR2IehnWuXQiWL279uH45R44KYb+ejVb+Ol65fS7UWMa8mvvuc3uO2m7z5ld+NTANLa4/fe91/w/ACtJKVy8YTmpk7iao80TXls21Ze+upxtHYwuSGNuiTdNgiJ7wc0mwssWb6CTevX0Wy3igZAUOXA8RmWzJxkw0suZuq7x0nShCjO6M3Nc3jvHiJdASw+MZNnOQwRE4ctpNJsuvTVTM3OcezELCIoE2XFfNDF527gh/98C+2FBUzYIYljhKRo+5TL/VEbyyPbHyYKY1zXozU3w5f/9He49s8cWp0O0lp6YYhWHnn+LEOcxcaUjNmpqYKiW3t6DNgPAowteEOz0WDL3Xey8eJLkaLoowM4WhFGEcOex3t//V2UyyWmFk4SxhlTocHJLM19u1jy4pcxODLG1LFDhGmOHPCoDFTRslIMiBuNVJJWs0fSbTG4fA2jS1dwbNcOOmlKakI63Q6dXsTQwAD/+d1v4b899ABJlhftHlMEfiEKOXjLA/cwOzOD63oYY3Achx07HvnZGDBP3vD3rEFaCIHjuni+jxcElEplglLpdK1ircF1faaOHWX7A3f3OwUOjuMShjETE4v582s+xplnrWFmvkEvzWg0WyA9BgYHGWhMUUsj3PoQ0uaMVzQai+oLcDbPiqrbWM4IUjwynFIVHJ/BmYOsGaziuAHtZpskz1lodzj/xedyzSc+QqkyQGoljl9BawdPOzy6dTNH9u/Ddb0n3IOlVCpRLpUJgoAgCHBd97ml+VMHsMZg+7uH/6VfWmtwPY+pI0fYvX1LMcwdpaxffzZ/87nPcuZZa5meniGTihPHj3PgwEG8gSFk0uOOg0c5NjvD2PgiHCkZK2niKCHLUpLmHHlrnjRJyZOIcTdBCkFtfAm9bps7HttFkuWMTizhwKEj7Np3EBVUmG80ufzyV/ClL32eJUtXEEYpjuOyd+cOju7fV3Qw/kU9YZ5wb6eI79OtX3jPqrUWx3XpNJsc2L2TCy9+GV+5/u+ZXDJJY36e2WaTLdsf4eav/h/q0VEWDXj0FuaYS3KmTh5jcnIxRgfsODRLHId0co1TKiMqA2TSIY+6bDvWoIvDig1n05k+RrMX0ukuMFECL57n2k9/knu3P043s8w1mmzceA4/+N43ufSSl7F/z06a83PPOJTwXNfz2tR7ajLfZIYH7/0p3/vud8iSmP1HT3DoxCyb772Lh+++ncCF0c4BhjzF2rXrqAYuEyODlIfGODrfIu120F4JoYpSQzoeYbPB/pMNymOLWbZ8Bb4QbDzvQhY5BtGcYmmQsf227/PFL3yJA40es80uvTjl7rvvYesD95FECepZdJ5/E4CAftDzOHrkKL/1n/8DH/7ox9l5eIp9x07y2EObiYwiHVzO4dk2U415po4fZfeufRhjGFu8jBjF3NRxyBKENWAyFIb27DHC3DC8ch2OgD1b7mX+xCHm52ZottpMZSViqTi87W4eeHgPe6bafPJ/fYo3vf617N69C9cNfq4XEjzTekE21CVpzPDEEi543VWkKzbSLk+y+XvfYf/2h5hYPElrepqZ6RnSbous3aHV6tBqNamMjFAZWkwcdsi6C7hegJKKLM8oDy0CKaiPLybpdTi8ZydJ2MOEbZxeTmVkEdXRSWaPH+Sm675I652/ydCmy/gPH/gYP/769UyfPI6jn/+uw+f3YgEpieOQM9et439+6WsMbHo1g2PjjI8Oc3z/PtpRRnV4kte94d/x4T//Gz70F19hxfoX0+22acwv4JSruOUa9bWbMF6VxAgiqyAYZOycl+LVh/E8H5KIbi9kdMlKPvOV67n91pv5xIc/xOq1G1hodZk5+DjNTo9OJjnvTb/GJ7/2XdasXUcUh0/ZWvDzrue/LdwAQvLeN17I+XuOc+fuk4Rxgl+pYlHs2LaDvY/vZf0553DexZdw4WVvYmZugTyOybOQsqcoDw2zYFKiTgejFEEaohwHnUWIuEWrMcfIyvW84R2/Stzt8OE//Ri3/uQOZufmMbnAr9ZpRxnDcY8zJ8qMDS0pZNRfcBPdCwYQFASr0+nQaXe5cM0k5bFJ5rop39QaMDiuS9gLueent3PPT39MtTqCdDSbf3obQaWKa1Os4xHOT1GZXIsTlJh//AGahx4nbrc4+OBd7LorpzHX4HMf+RCNxgkAHF0Ms4dZgtaK33rzJVy2aoheZtl6dIFet4sU8lnE1H8DgE699SUOeyRWcTCF7fffwz/838+y/b478f1KMYAlJeVSMbOYxjE2jjnabIOwSKnIHt3N0Mgor3jPB1izegVf+OB/ZNttt+B5PmmSPmm4vFIeodB5is6n65XY/8gWvviR96N/93e55OILGRyokj2DvvPzruedxYQQpFnGLbfewQf/4/t4zxtfw/dv/DpZ9lRiluc5oj+l4bgF+1baAZNz7pW/ii0P4ZYHeNN7/wApQEqNFxTbH7TjILUmz4tNeE8Mvmlq+No/fI3LLrmct73913j07tuJo6gA6P+HffNSyqLfnnYI/DpKPbfX40gpCcMOL77kVVz23v9Ot9dj+eJxRkaH+fr//gg33/hVSuX6vzoNDz97b1AvXMDV5Rfs9TjPOwZBYR1SaSruULHF8ud4yZIQApGG/OFVL8FVksPtjERqvtprn+6iPJd16pyV8hDGmBcEHHhBX9Flf+6XshljCEpVHrjvdj7/2b+lFrjUB0t897prufVHNxKUas/Jep64TrnfCwEOvEAu9rwuQAiMNSgJd2x+kNCp8OaLzqXd6aJfgFLh+a4XxMWezyoUP02n2+Bjf/pRytUac/NTVCrD5Nkz96v+rdb/A2sbrnbnbLHXAAAAAElFTkSuQmCC" alt="Corronyx Agent"></button>
 <div class="ai-widget-panel" id="aiWidgetPanel">
@@ -4053,5 +4073,125 @@ async function sendAiWidgetMsg(){
 }
 </script>
 
+
+<script>
+/* ===== Кнопка «Назад» телефона и браузера (21.09.2026, визуальный агент) =====
+   Раньше сайт не использовал историю браузера: системная «Назад» (на телефоне и в браузере на компьютере) сразу
+   уводила с сайта, хотя человек только что перешёл на другой экран, шаг или открыл окно. Теперь каждое такое действие
+   добавляет запись в историю, а «Назад» возвращает на предыдущий экран/шаг или закрывает открытое окно.
+   На самом первом экране «Назад» по-прежнему покидает сайт (так и должно быть — сайт не «запирает» человека).
+   Самостоятельный блок: не меняет существующие функции, а оборачивает их при запуске. Для удаления — убрать этот <script>. */
+(function(){
+  if(window.__bn) return;
+  var CFG={
+    overlays:'.modal-overlay',
+    getView:function(){
+      var a=document.getElementById('app'); if(!a||getComputedStyle(a).display==='none') return 'login';
+      var ids=['screenMain','screenTierPick','screenForm','screenNotif'];
+      for(var i=0;i<ids.length;i++){ var e=document.getElementById(ids[i]); if(e&&!e.classList.contains('hidden')) return ids[i]; }
+      return 'screenMain';
+    },
+    setView:function(v){
+      if(!v||v==='login') return; var a=document.getElementById('app'); if(!a||getComputedStyle(a).display==='none') return;
+      if(v==='screenMain') AP.showScreen('main'); else if(v==='screenNotif') AP.showScreen('notif'); else AP.showScreen('tierPick');
+    },
+    wrap:[[function(){ return AP; },'showScreen']]
+  };
+  var BN=window.__bn={ignore:0,restoring:false,depth:0,rooted:false,ovEntry:false,timer:null,wasOpen:false,n:0,cur:0,raf:0};
+  function visible(el){
+    if(!el) return false; var cs=getComputedStyle(el);
+    if(cs.display==='none'||cs.visibility==='hidden'||el.classList.contains('hidden')) return false;
+    var r=el.getBoundingClientRect(); return r.width>0&&r.height>0;
+  }
+  function openOverlays(){
+    var out=[]; if(CFG.overlays){ var q=document.querySelectorAll(CFG.overlays); for(var i=0;i<q.length;i++) if(visible(q[i])) out.push(q[i]); }
+    return out;
+  }
+  function extraOpen(){ return !!(CFG.extra&&CFG.extra.isOpen&&CFG.extra.isOpen()); }
+  function isOpen(){ return openOverlays().length>0||extraOpen(); }
+  function closeTop(){
+    var list=openOverlays(), ov=list[list.length-1];
+    if(ov){
+      var btns=ov.querySelectorAll('[onclick*="lose"],.close,.modal-close,[aria-label="Close"],[aria-label="Закрыть"]'), c=null;
+      for(var i=btns.length-1;i>=0;i--){ if(visible(btns[i])){ c=btns[i]; break; } }
+      try{ if(c) c.click(); else ov.dispatchEvent(new MouseEvent('click',{bubbles:true})); }catch(e){}
+      if(visible(ov)){ ov.classList.remove('open'); ov.classList.add('hidden'); if(getComputedStyle(ov).display!=='none') ov.style.display='none'; }
+    } else if(extraOpen()&&CFG.extra.close){ try{ CFG.extra.close(); }catch(e){} }
+  }
+  function curView(){ try{ return CFG.getView?CFG.getView():null; }catch(e){ return null; } }
+  function ensureRoot(before){
+    if(BN.rooted) return; BN.rooted=true;
+    try{ history.replaceState({bn:1,n:0,root:1,v:before!==undefined?before:curView()},''); }catch(e){}
+  }
+  function absorbOv(state){
+    /* окно закрылось одновременно с переходом (например, пункт бокового меню): запись окна превращаем в запись экрана, а не добавляем ещё одну */
+    if(!BN.ovEntry) return false;
+    BN.ovEntry=false; if(BN.timer){ clearTimeout(BN.timer); BN.timer=null; }
+    try{ history.replaceState(state,''); }catch(e){} return true;
+  }
+  function pushView(v,url){ ensureRoot(); if(absorbOv({bn:1,n:BN.n,v:v})) return; try{ if(url) history.pushState({bn:1,n:++BN.n,v:v},'',url); else history.pushState({bn:1,n:++BN.n,v:v},''); BN.cur=BN.n; }catch(e){} }
+  /* --- окна: открылось → запись в истории; закрылось кнопкой на экране → тихо убираем запись --- */
+  function check(){
+    var open=isOpen();
+    if(open&&!BN.wasOpen){
+      if(BN.timer){ clearTimeout(BN.timer); BN.timer=null; }
+      else { ensureRoot(); try{ history.pushState({bn:1,ov:1,n:++BN.n,v:curView()},''); BN.cur=BN.n; BN.ovEntry=true; }catch(e){} }
+    } else if(!open&&BN.wasOpen&&BN.ovEntry){
+      BN.timer=setTimeout(function(){ BN.timer=null; if(BN.ovEntry&&!BN.wasOpen){ BN.ovEntry=false; BN.ignore++; history.back(); } },0);
+    }
+    BN.wasOpen=open;
+  }
+  function schedule(){ if(BN.raf) return; BN.raf=requestAnimationFrame(function(){ BN.raf=0; check(); }); }
+  try{
+    new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
+  }catch(e){}
+  /* --- экраны и шаги --- */
+  function wrap(obj,name){
+    if(!obj||typeof obj[name]!=='function') return; var orig=obj[name];
+    obj[name]=function(){
+      var top=(BN.depth===0), before=top?curView():null, prevSt=top?JSON.stringify(history.state):null, prevUrl=top?location.href:null, prevObj=top?history.state:null; BN.depth++;
+      try{ return orig.apply(this,arguments); }
+      finally{
+        BN.depth--;
+        if(top&&!BN.restoring){
+          var after=curView(), afterUrl=location.href, touched=(JSON.stringify(history.state)!==prevSt)||(afterUrl!==prevUrl);
+          if(after!==before){
+            /* приложение могло переписать запись текущего экрана (адрес #раздел) — возвращаем её как была, новую добавляем отдельно */
+            if(touched){ try{ history.replaceState(prevObj,'',prevUrl); }catch(e){} }
+            ensureRoot(before); pushView(after,afterUrl!==prevUrl?afterUrl:undefined);
+          } else if(touched&&prevObj&&prevObj.bn){ try{ history.replaceState(prevObj,'',afterUrl); }catch(e){} }
+        }
+      }
+    };
+  }
+  if(CFG.wrap) CFG.wrap.forEach(function(w){ wrap(w[0](),w[1]); });
+  /* клиентский сайт: собственный стек экранов CX._history связываем с историей браузера */
+  if(CFG.index){
+    var CXo=CFG.index(), _push=CXo.pushHistory, _back=CXo.goBack;
+    CXo.pushHistory=function(){ if(BN.pushLock) return; BN.pushLock=true; Promise.resolve().then(function(){ BN.pushLock=false; }); var r=_push.apply(this,arguments); if(!BN.restoring){ ensureRoot('root'); if(!absorbOv({bn:1,n:BN.n,cx:1})){ try{ history.pushState({bn:1,n:++BN.n,cx:1},''); BN.cur=BN.n; }catch(e){} } } return r; };
+    CXo.goBack=function(){ if(!BN.restoring&&history.state&&history.state.cx&&!isOpen()){ history.back(); } else return _back.apply(this,arguments); };
+    BN.cxBack=function(){ BN.restoring=true; try{ _back.call(CXo); } finally{ BN.restoring=false; } };
+    /* шаги мастера бронирования (класс → отель → номер → форма) раньше не писали снимок в стек */
+    ['selectClass','selectHotel','selectUnit','selectRoom'].forEach(function(n){
+      var o=CXo[n]; if(typeof o!=='function') return;
+      CXo[n]=function(){ if(!BN.restoring) this.pushHistory(); return o.apply(this,arguments); };
+    });
+    var _jump=CXo.jumpStep;
+    CXo.jumpStep=function(step){ if(!BN.restoring&&history.state&&history.state.cx&&!isOpen()){ history.back(); return; } return _jump.apply(this,arguments); };
+  }
+  window.addEventListener('popstate',function(e){
+    if(BN.ignore>0){ BN.ignore--; return; }
+    var st=e.state, forward=!!(st&&st.n!=null&&st.n>BN.cur);
+    if(st&&st.n!=null) BN.cur=st.n;
+    if(isOpen()){ BN.ovEntry=false; closeTop(); return; }       /* сначала закрываем открытое окно */
+    if(!st||!st.bn) return;                                       /* запись не наша — браузер сам решит (уход с сайта) */
+    if(st.ov){ if(!forward) history.back(); return; }             /* устаревшая запись окна — пропускаем */
+    if(forward) return;
+    if(CFG.index){ if(BN.cxBack) BN.cxBack(); return; }
+    if(CFG.setView&&st.v){ BN.restoring=true; try{ CFG.setView(st.v); } finally{ BN.restoring=false; } try{ if(JSON.stringify(history.state)!==JSON.stringify(st)) history.replaceState(st,'',location.href); }catch(e){} }
+  });
+})();
+
+</script>
 </body>
 </html>

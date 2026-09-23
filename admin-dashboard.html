@@ -10,6 +10,12 @@
      Chrome не предлагать свой перевод, раз перевод уже обрабатывается
      собственным переключателем сайта. -->
 <meta name="google" content="notranslate">
+<!-- Логотип-монограмма CX (21.09.2026, визуальный агент): вкладка браузера, значок при добавлении на
+     главный экран телефона, закладки. Раньше сайт не имел значка вовсе (браузер показывал пустой лист).
+     Тот же файл svg встроен во все 5 файлов проекта — правка цвета/формы делается в одном месте
+     (см. /home/claude/logo/cx.svg в пакете передачи) и копируется. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTdDODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTU0RCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNTEzMEEiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWYiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZm9udC13ZWlnaHQ9IjcwMCIKICAgICAgICBmb250LXNpemU9IjM0IiBsZXR0ZXItc3BhY2luZz0iLTMiIGZpbGw9InVybCgjZykiPkNYPC90ZXh0Pgo8L3N2Zz4K">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTdDODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTU0RCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNTEzMEEiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWYiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZm9udC13ZWlnaHQ9IjcwMCIKICAgICAgICBmb250LXNpemU9IjM0IiBsZXR0ZXItc3BhY2luZz0iLTMiIGZpbGw9InVybCgjZykiPkNYPC90ZXh0Pgo8L3N2Zz4K">
 <title>Corronyx — Админ-панель</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
@@ -960,6 +966,51 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
   .modal .close{padding:8px; top:10px; right:14px;}
   .unit-del{display:inline-flex; align-items:center; justify-content:center; min-width:40px; min-height:40px;}
 }
+
+/* ===== Письмо справа налево (арабский, иврит, персидский, урду…) — 21.09.2026, визуальный агент =====
+   Перевод на такие языки включает Google Translate: он ставит на <html> класс translated-rtl (а при смене языка на
+   другой — translated-ltr). Раньше вёрстка при этом оставалась «левой»: текст выровнен неправильно, панели, кнопки «Назад»,
+   ИИ-агент, «глаз» пароля, боковое меню, значки «закрыть» — всё стояло на левой стороне. Ниже — зеркальные правила:
+   основное направление direction:rtl (ряды flex разворачиваются сами), а всё, что было жёстко привязано к левой/правой
+   стороне (left/right, margin/padding/border-left/right, text-align, скругления), сгенерировано зеркально из существующих
+   правил. Поля e-mail/телефон/адрес сайта/пароль и календарные сетки остаются слева направо (так их читают и на арабском).
+   Работает только когда включён RTL-язык (или задан dir="rtl") — для остальных языков вид не меняется. Только CSS. */
+html.translated-rtl, html[dir="rtl"]{direction:rtl}
+html.translated-rtl input[type=email], html.translated-rtl input[type=tel], html.translated-rtl input[type=url], html.translated-rtl input[type=password], html.translated-rtl input[type=number], html.translated-rtl input[type=date], html.translated-rtl input[type=datetime-local], html.translated-rtl input[type=time],
+html[dir="rtl"] input[type=email], html[dir="rtl"] input[type=tel], html[dir="rtl"] input[type=url], html[dir="rtl"] input[type=password], html[dir="rtl"] input[type=number], html[dir="rtl"] input[type=date], html[dir="rtl"] input[type=datetime-local], html[dir="rtl"] input[type=time]{direction:ltr; text-align:right}
+html.translated-rtl .pass-wrap input, html[dir="rtl"] .pass-wrap input{padding-right:0; padding-left:44px}
+html.translated-rtl .pass-wrap .eye, html[dir="rtl"] .pass-wrap .eye{right:auto; left:12px}
+html.translated-rtl .sidebar, html[dir="rtl"] .sidebar{border-right:none; border-left:1px solid rgba(26,28,32,.06)}
+html.translated-rtl .nav-item, html[dir="rtl"] .nav-item{border-left:none; border-right:3px solid transparent}
+html.translated-rtl th, html[dir="rtl"] th{text-align:right}
+html.translated-rtl .sw-pay-close, html[dir="rtl"] .sw-pay-close{right:auto; left:14px}
+html.translated-rtl .sw-pay-address-row code, html[dir="rtl"] .sw-pay-address-row code{text-align:right}
+html.translated-rtl .ac-card, html[dir="rtl"] .ac-card{border-left:none; border-right:3px solid transparent}
+html.translated-rtl .ai-btn, html[dir="rtl"] .ai-btn{right:auto; left:24px}
+html.translated-rtl .ai-panel, html[dir="rtl"] .ai-panel{right:auto; left:24px}
+html.translated-rtl .ai-input button, html[dir="rtl"] .ai-input button{margin-left:0; margin-right:8px}
+html.translated-rtl .toast-wrap, html[dir="rtl"] .toast-wrap{right:auto; left:24px}
+html.translated-rtl .mobile-hamburger-btn, html[dir="rtl"] .mobile-hamburger-btn{margin-right:0; margin-left:8px}
+html.translated-rtl .lang-dropdown, html[dir="rtl"] .lang-dropdown{right:auto; left:0}
+@media (max-width:700px){
+html.translated-rtl .ai-panel, html[dir="rtl"] .ai-panel{right:auto; left:16px}
+html.translated-rtl .ai-panel, html[dir="rtl"] .ai-panel{right:auto; left:16px}
+}
+@media(max-width:900px){
+html.translated-rtl .sidebar, html[dir="rtl"] .sidebar{left:auto; right:0; transform:translateX(100%)}
+html.translated-rtl .nav-item, html[dir="rtl"] .nav-item{border-left:none; border-right:3px solid transparent}
+}
+@media (max-width:640px){
+html.translated-rtl .pass-eye, html[dir="rtl"] .pass-eye{right:auto; left:1px}
+html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; left:14px}
+}
+@media (max-height:480px) and (max-width:932px){
+html.translated-rtl .pass-eye, html[dir="rtl"] .pass-eye{right:auto; left:1px}
+html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; left:14px}
+}
+@media(max-width:900px){
+html.translated-rtl .sidebar.mobile-open, html[dir="rtl"] .sidebar.mobile-open{transform:translateX(0)}
+}
 </style>
 </head>
 <body>
@@ -1573,15 +1624,28 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
         Кому вы разрешили пользоваться золотой/бриллиантовой рамкой бесплатно — с ограничением
         по количеству одновременно активных рамок и/или по дате. Управление полностью
         ручное: система сама гасит рамку по истечении даты, но лимит и дату меняете только вы.
+        Данные хранятся на сервере (не в этом браузере) — видны сразу отовсюду.
       </p>
+      <div style="background:var(--bg2); border:1px solid rgba(184,149,77,.3); border-radius:12px; padding:16px; max-width:640px; margin-bottom:24px;">
+        <div style="font-weight:600; margin-bottom:8px;">📅 Бонус за приведённый отель — дата отсечения</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">
+          После этой даты новые начисления 3% рефереру за отель прекращаются — сразу для всех
+          (и старых, и новых). Оставьте поле пустым, чтобы снять ограничение полностью.
+          Продлить можно в любой момент, просто подвинув дату вперёд.
+        </div>
+        <div style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
+          <div><div style="font-size:11px; color:var(--muted);">Дата отсечения</div><input type="date" id="refCutoffDate" style="width:170px;"></div>
+          <button class="btn btn-primary btn-sm" onclick="ADM.saveReferralCutoffDate()">Сохранить</button>
+          <span id="refCutoffStatus" style="font-size:12px; color:var(--muted);"></span>
+        </div>
+      </div>
       <div class="tabs-login" id="ffTabsRow" style="max-width:640px; margin-bottom:20px;">
         <button class="tab-login active" onclick="ADM.switchFreeFrameTab('afisha_gold')" data-ff-tab="afisha_gold">Афиша · Золото</button>
         <button class="tab-login" onclick="ADM.switchFreeFrameTab('afisha_diamond')" data-ff-tab="afisha_diamond">Афиша · Бриллиант</button>
         <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_gold')" data-ff-tab="partner_gold">Партнёры · Золото</button>
         <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_diamond')" data-ff-tab="partner_diamond">Партнёры · Бриллиант</button>
       </div>
-      <div id="ffGrantNewBlock" style="margin-bottom:20px;"></div>
-      <div id="ffListBlock"></div>
+      <div id="ffBody"></div>
     </div>
 
     <!-- SECRET -->
@@ -2100,6 +2164,74 @@ function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&
 // («Joe's», «L'Hôtel», «Rock'n'Roll», «Дем'ян») обрывал строку и кнопка (оплата/буст) переставала работать. escJs() дополнительно
 // экранирует обратную косую и апостроф (и убирает переводы строк).
 function escJs(s){ return esc(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '); }
+
+// ДОБАВЛЕНО 23.09.2026: admin-dashboard.html целиком на localStorage, к
+// серверу вообще не подключён (в отличие от index.html/hotel-portal.html/
+// partner-portal.html/afisha-portal.html). По решению владельца — не
+// переделываем всю админку целиком, а точечно подключаем ТОЛЬКО то, что
+// физически не может жить в localStorage (бесплатные гранты бустов/рамок и
+// дата отсечения бонуса за отель — это данные, которые реально считает и
+// хранит сервер). Токен хранится ОТДЕЛЬНО от обычного пароля-входа в
+// админку (ADMIN_PASSWORD) — это JWT реального сервер-аккаунта с ролью
+// admin, нужен только для вызовов CxApi ниже.
+const CX_API_BASE = window.CX_API_BASE || 'https://api.corronyx.ru';
+const CxApi = {
+  token(){ return LS.get('cx_admin_server_jwt') || ''; },
+  async call(method, path, body){
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    const tok = this.token();
+    if (tok) opts.headers['Authorization'] = 'Bearer ' + tok;
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    let res, data;
+    try { res = await fetch(CX_API_BASE + path, opts); }
+    catch (networkErr) { const e = new Error('network'); e.isNetwork = true; throw e; }
+    try { data = await res.json(); } catch(e) { data = {}; }
+    if (!res.ok) { const e = new Error(data.error || 'request_failed'); e.status = res.status; e.payload = data; throw e; }
+    return data;
+  },
+  get(path){ return this.call('GET', path); },
+  post(path, body){ return this.call('POST', path, body); },
+  put(path, body){ return this.call('PUT', path, body); },
+  del(path){ return this.call('DELETE', path); }
+};
+async function cxAdminLogin(email, password){
+  const res = await CxApi.call('POST', '/api/login', { email, password });
+  LS.set('cx_admin_server_jwt', res.token);
+  return res;
+}
+function cxAdminConnected(){ return !!CxApi.token(); }
+// Общий блок "подключение к серверу" — рисуется вместо содержимого секции,
+// пока нет валидного токена. authed callback вызывается один раз после
+// успешного входа (обычно — сразу перерисовать реальный контент секции).
+function cxRenderServerLoginGate(containerEl, onConnected){
+  containerEl.innerHTML = `
+    <div style="background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:12px; padding:20px; max-width:420px;">
+      <div style="font-size:13px; color:var(--muted); margin-bottom:12px;">Эта секция берёт данные с сервера Corronyx, а не из localStorage. Войдите вашим серверным аккаунтом (роль admin), чтобы продолжить.</div>
+      <div class="form-row"><label>Email</label><input type="email" id="cxAdmLoginEmail"></div>
+      <div class="form-row"><label>Пароль</label><input type="password" id="cxAdmLoginPass"></div>
+      <div class="login-err hidden" id="cxAdmLoginErr"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="cxAdmLoginBtn">Войти</button>
+    </div>`;
+  document.getElementById('cxAdmLoginBtn').onclick = async () => {
+    const email = document.getElementById('cxAdmLoginEmail').value.trim().toLowerCase();
+    const pass = document.getElementById('cxAdmLoginPass').value;
+    const errEl = document.getElementById('cxAdmLoginErr');
+    errEl.classList.add('hidden');
+    try {
+      const res = await cxAdminLogin(email, pass);
+      if (res.role !== 'admin') {
+        LS.remove('cx_admin_server_jwt');
+        errEl.textContent = 'У этого аккаунта на сервере нет роли admin.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      onConnected();
+    } catch (e) {
+      errEl.textContent = e.isNetwork ? 'Сервер недоступен. Проверьте соединение.' : 'Неверный email или пароль.';
+      errEl.classList.remove('hidden');
+    }
+  };
+}
 
 // ============================================================
 // SW_BADGE_SHAPE — фирменная ротация формы подложки под иконки.
@@ -5120,14 +5252,14 @@ const ADM = {
        пометкой "истёк", чтобы была видна история (см. рендер статуса ниже).
      - Золото и бриллиант — полностью независимые гранты у одного аккаунта.
   */
-  getFreeFrameGrant(account, tier){
-    return (account.freeFrame && account.freeFrame[tier]) || null;
-  },
-  isFreeFrameGrantUsable(grant){
-    if(!grant) return false;
-    if(grant.unlimited) return true;
-    return !!(grant.limit>0 && grant.expiresAt && new Date(grant.expiresAt) > new Date());
-  },
+  /* ---- Бесплатные бусты/рамки — ПЕРЕПИСАНО 23.09.2026 на серверный API
+     (таблица boost_grants). Раньше грант хранился в localStorage на самом
+     account.freeFrame — теперь единственный источник правды сервер, чтобы
+     partner-portal.html/afisha-portal.html видели то же самое, что здесь
+     выдал админ. Решение владельца 23.09.2026: срок может быть бессрочным
+     (expires_at=null), количество — ВСЕГДА конкретное число (в отличие от
+     старой галочки "unlimited", которая снимала оба ограничения разом —
+     эта галочка убрана). */
   _ffTab: 'afisha_gold',
   switchFreeFrameTab(tab){
     this._ffTab = tab;
@@ -5136,107 +5268,135 @@ const ADM = {
   },
   _ffConfig(){
     const [cat, tier] = this._ffTab.split('_');
-    if(cat==='afisha'){
-      return { cat, tier, accKey:'cx_afisha_accounts', label: tier==='diamond'?'Афиша · Бриллиант':'Афиша · Золото' };
-    }
-    return { cat:'partner', tier, accKey:'cx_partner_accounts', label: tier==='diamond'?'Партнёры · Бриллиант':'Партнёры · Золото' };
+    const entityType = cat==='afisha' ? 'afisha' : 'partner';
+    return { entityType, tier, label: (cat==='afisha'?'Афиша':'Партнёры')+' · '+(tier==='diamond'?'Бриллиант':'Золото') };
   },
   renderFreeFramesSection(){
-    const { cat, tier, accKey } = this._ffConfig();
-    const accounts = LS.getJSON(accKey, []);
-    const withGrant = accounts.filter(a => a.freeFrame && a.freeFrame[tier] && (a.freeFrame[tier].grantedAt || a.freeFrame[tier].limit>0 || a.freeFrame[tier].unlimited));
-
-    // Блок выдачи нового гранта — простой поиск по названию/email среди тех,
-    // у кого ещё нет гранта этого яруса.
-    const candidates = accounts.filter(a => !withGrant.includes(a));
-    document.getElementById('ffGrantNewBlock').innerHTML = `
-      <div style="background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:12px; padding:16px; max-width:640px;">
-        <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">Выдать новый бесплатный грант (${tier==='diamond'?'бриллиант':'золото'}, ${cat==='afisha'?'афиша':'партнёры'}):</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
-          <select id="ffNewAccountSelect" style="flex:1; min-width:220px;">
-            <option value="">— выбрать аккаунт —</option>
-            ${candidates.map(a=>`<option value="${esc(a.id)}">${esc(a.name||a.email||a.id)}</option>`).join('')}
-          </select>
-          <div><div style="font-size:11px; color:var(--muted);">Счётчик</div><input type="number" min="0" id="ffNewLimit" style="width:80px;" value="3"></div>
-          <div><div style="font-size:11px; color:var(--muted);">До даты</div><input type="date" id="ffNewDate" style="width:150px;"></div>
-          <button class="btn btn-primary btn-sm" onclick="ADM.grantNewFreeFrame()">Выдать</button>
-        </div>
-      </div>`;
-
-    const sorted = [...withGrant].sort((a,b)=>{
-      const ga=a.freeFrame[tier], gb=b.freeFrame[tier];
-      if(!!ga.pinned !== !!gb.pinned) return ga.pinned ? -1 : 1;
-      return new Date(gb.grantedAt||0) - new Date(ga.grantedAt||0);
-    });
-
-    if(!sorted.length){
-      document.getElementById('ffListBlock').innerHTML = `<p style="color:var(--muted); font-size:13px;">Пока никому не выдавался бесплатный ${tier==='diamond'?'бриллиантовый':'золотой'} грант в этой категории.</p>`;
+    const body = document.getElementById('ffBody');
+    if(!cxAdminConnected()){
+      document.getElementById('refCutoffStatus').textContent = 'Войдите ниже, чтобы увидеть/изменить дату.';
+      cxRenderServerLoginGate(body, () => { this.renderFreeFramesSection(); this._loadReferralCutoffDate(); });
       return;
     }
+    this._ffRenderReal();
+    this._loadReferralCutoffDate();
+  },
+  async _loadReferralCutoffDate(){
+    const statusEl = document.getElementById('refCutoffStatus');
+    try {
+      const res = await CxApi.get('/api/admin/settings/hotel_referral_bonus_cutoff_date');
+      document.getElementById('refCutoffDate').value = res.value ? res.value.slice(0,10) : '';
+      statusEl.textContent = res.value ? '' : 'Сейчас без ограничения — начисляется всегда.';
+    } catch(e) { statusEl.textContent = 'Не удалось загрузить текущее значение.'; }
+  },
+  async saveReferralCutoffDate(){
+    if(!cxAdminConnected()){ toast('Сначала войдите в блоке ниже'); return; }
+    const val = document.getElementById('refCutoffDate').value;
+    try {
+      await CxApi.post('/api/admin/settings/hotel_referral_bonus_cutoff_date', { value: val || '' });
+      document.getElementById('refCutoffStatus').textContent = val ? 'Сохранено.' : 'Сохранено — ограничение снято.';
+      toast('Дата сохранена');
+    } catch(e) { toast('Не удалось сохранить дату', 'error'); }
+  },
+  async _ffRenderReal(){
+    const { entityType, tier, label } = this._ffConfig();
+    const body = document.getElementById('ffBody');
+    body.innerHTML = '<p style="color:var(--muted); font-size:13px;">Загрузка…</p>';
+    let grants, accounts;
+    try {
+      grants = await CxApi.get('/api/admin/boost-grants?entity_type='+entityType);
+      accounts = entityType==='partner'
+        ? await CxApi.get('/api/admin/partners')
+        : await CxApi.get('/api/admin/afisha/events');
+    } catch(e) {
+      if(e.status===401 || e.status===403){ LS.remove('cx_admin_server_jwt'); this.renderFreeFramesSection(); return; }
+      body.innerHTML = '<p style="color:var(--err);">Не удалось загрузить данные с сервера. Попробуйте ещё раз.</p>';
+      return;
+    }
+    // Один owner_user_id может встречаться несколько раз (несколько карточек/
+    // событий у одного владельца) — схлопываем в один вариант в выпадающем списке.
+    const ownersMap = new Map();
+    accounts.forEach(a => { if(a.owner_user_id && !ownersMap.has(a.owner_user_id)) ownersMap.set(a.owner_user_id, a.owner_email || ('user#'+a.owner_user_id)); });
+    const owners = [...ownersMap.entries()]; // [ [owner_user_id, email], ... ]
+    const grantsThisTier = grants.filter(g => g.tier===tier && !g.revoked_at);
+    const grantedOwnerIds = new Set(grantsThisTier.map(g=>g.owner_user_id));
+    const candidates = owners.filter(([id]) => !grantedOwnerIds.has(id));
 
-    document.getElementById('ffListBlock').innerHTML = `
+    let html = `
+      <div style="background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:12px; padding:16px; max-width:640px; margin-bottom:20px;">
+        <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">Выдать новый бесплатный грант (${label}):</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+          <select id="ffNewOwnerSelect" style="flex:1; min-width:220px;">
+            <option value="">— выбрать владельца по email —</option>
+            ${candidates.map(([id,email])=>`<option value="${id}">${esc(email)}</option>`).join('')}
+          </select>
+          <div><div style="font-size:11px; color:var(--muted);">Количество (слоты)</div><input type="number" min="1" id="ffNewLimit" style="width:100px;" value="1"></div>
+          <div><div style="font-size:11px; color:var(--muted);">До даты (пусто = бессрочно)</div><input type="date" id="ffNewDate" style="width:170px;"></div>
+          <button class="btn btn-primary btn-sm" onclick="ADM.grantNewFreeFrame()">Выдать</button>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:8px;">Не нашли нужный email в списке? Значит у аккаунта пока нет ни одной карточки/события на сервере — сначала он должен создать хотя бы одну.</div>
+      </div>`;
+
+    if(!grantsThisTier.length){
+      html += `<p style="color:var(--muted); font-size:13px;">Пока никому не выдавался бесплатный грант этого яруса.</p>`;
+    } else {
+      const rows = grantsThisTier.map(g => {
+        const owner = ownersMap.get(g.owner_user_id) || ('user#'+g.owner_user_id);
+        const active = !g.expires_at || new Date(g.expires_at) > new Date();
+        const status = active ? '<span style="color:var(--ok);">активен</span>' : '<span style="color:var(--muted);">истёк</span>';
+        return `
+        <tr style="border-bottom:1px solid rgba(26,28,32,.04);">
+          <td style="padding:8px 6px;">${esc(owner)}</td>
+          <td><input type="number" min="1" style="width:80px;" value="${g.limit_count}"
+            onchange="ADM.updateFreeFrameGrant(${g.id},'limit_count',this.value)"></td>
+          <td><input type="date" style="width:160px;" value="${g.expires_at?g.expires_at.slice(0,10):''}"
+            onchange="ADM.updateFreeFrameGrant(${g.id},'expires_at',this.value)"></td>
+          <td>${g.expires_at?'':'<span style="color:var(--ok);">♾️ бессрочно</span>'}</td>
+          <td>${status}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="ADM.revokeFreeFrameGrant(${g.id})">Убрать</button></td>
+        </tr>`;
+      }).join('');
+      html += `
       <table class="doc-table" style="width:100%; border-collapse:collapse; font-size:13px;">
         <tr style="text-align:left; color:var(--muted); border-bottom:1px solid rgba(26,28,32,.08);">
-          <th style="padding:8px 6px;">Аккаунт</th><th>Счётчик</th><th>До даты</th><th>Безлимит</th><th>Закреп.</th><th>Статус</th><th></th>
+          <th style="padding:8px 6px;">Владелец</th><th>Количество</th><th>До даты</th><th>Срок</th><th>Статус</th><th></th>
         </tr>
-        ${sorted.map(a=>{
-          const g = a.freeFrame[tier];
-          const usable = this.isFreeFrameGrantUsable(g);
-          const status = g.unlimited
-            ? '<span style="color:var(--ok);">♾️ безлимит</span>'
-            : (usable ? '<span style="color:var(--ok);">активен</span>' : '<span style="color:var(--muted);">истёк</span>');
-          return `
-          <tr style="border-bottom:1px solid rgba(26,28,32,.04);">
-            <td style="padding:8px 6px;">${esc(a.name||a.email||a.id)}</td>
-            <td><input type="number" min="0" style="width:64px;" value="${esc(g.limit||0)}" ${g.unlimited?'disabled':''}
-              onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','limit',this.value)"></td>
-            <td><input type="date" style="width:150px;" value="${g.expiresAt?g.expiresAt.slice(0,10):''}" ${g.unlimited?'disabled':''}
-              onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','expiresAt',this.value)"></td>
-            <td style="text-align:center;"><input type="checkbox" ${g.unlimited?'checked':''} onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','unlimited',this.checked)"></td>
-            <td style="text-align:center;"><input type="checkbox" ${g.pinned?'checked':''} onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','pinned',this.checked)"></td>
-            <td>${status}</td>
-            <td><button class="btn btn-ghost btn-sm" onclick="ADM.revokeFreeFrameGrant('${esc(a.id)}')">Убрать</button></td>
-          </tr>`;
-        }).join('')}
+        ${rows}
       </table>`;
+    }
+    body.innerHTML = html;
   },
-  grantNewFreeFrame(){
-    const { tier, accKey } = this._ffConfig();
-    const id = document.getElementById('ffNewAccountSelect').value;
-    if(!id){ toast('Выберите аккаунт'); return; }
+  async grantNewFreeFrame(){
+    const { entityType, tier } = this._ffConfig();
+    const ownerId = +document.getElementById('ffNewOwnerSelect').value || 0;
+    if(!ownerId){ toast('Выберите владельца'); return; }
     const limit = +document.getElementById('ffNewLimit').value || 0;
+    if(limit < 1){ toast('Количество должно быть 1 или больше'); return; }
     const dateVal = document.getElementById('ffNewDate').value;
-    const accounts = LS.getJSON(accKey, []);
-    const acc = accounts.find(a=>a.id===id);
-    if(!acc) return;
-    acc.freeFrame = acc.freeFrame || {};
-    acc.freeFrame[tier] = { limit, expiresAt: dateVal?new Date(dateVal+'T23:59:59').toISOString():null, unlimited:false, pinned:false, grantedAt:new Date().toISOString() };
-    LS.setJSON(accKey, accounts);
-    toast('Грант выдан');
-    this.renderFreeFramesSection();
+    try {
+      await CxApi.post('/api/admin/boost-grants', {
+        entity_type: entityType, owner_user_id: ownerId, tier, limit_count: limit,
+        expires_at: dateVal ? new Date(dateVal+'T23:59:59').toISOString() : null
+      });
+      toast('Грант выдан');
+      this.renderFreeFramesSection();
+    } catch(e) { toast('Не удалось выдать грант: ' + (e.payload?.error || 'ошибка сервера'), 'error'); }
   },
-  updateFreeFrameGrant(accId, field, value){
-    const { tier, accKey } = this._ffConfig();
-    const accounts = LS.getJSON(accKey, []);
-    const acc = accounts.find(a=>a.id===accId);
-    if(!acc || !acc.freeFrame || !acc.freeFrame[tier]) return;
-    const g = acc.freeFrame[tier];
-    if(field==='limit') g.limit = +value||0;
-    else if(field==='expiresAt') g.expiresAt = value ? new Date(value+'T23:59:59').toISOString() : null;
-    else if(field==='unlimited') g.unlimited = !!value;
-    else if(field==='pinned') g.pinned = !!value;
-    LS.setJSON(accKey, accounts);
-    this.renderFreeFramesSection();
+  async updateFreeFrameGrant(grantId, field, value){
+    const body = {};
+    if(field==='limit_count') body.limit_count = +value || 0;
+    else if(field==='expires_at') body.expires_at = value ? new Date(value+'T23:59:59').toISOString() : null;
+    try {
+      await CxApi.put('/api/admin/boost-grants/'+grantId, body);
+      this.renderFreeFramesSection();
+    } catch(e) { toast('Не удалось изменить грант: ' + (e.payload?.error || 'ошибка сервера'), 'error'); }
   },
-  revokeFreeFrameGrant(accId){
-    if(!confirm('Убрать бесплатный грант? Уже включённые бесплатные рамки этого аккаунта погаснут при следующем его входе.')) return;
-    const { tier, accKey } = this._ffConfig();
-    const accounts = LS.getJSON(accKey, []);
-    const acc = accounts.find(a=>a.id===accId);
-    if(!acc || !acc.freeFrame) return;
-    delete acc.freeFrame[tier];
-    LS.setJSON(accKey, accounts);
-    this.renderFreeFramesSection();
+  async revokeFreeFrameGrant(grantId){
+    if(!confirm('Убрать бесплатный грант? Уже включённые бесплатные бусты/рамки этого владельца погаснут при следующем автообновлении (в течение суток) либо сразу при следующем действии владельца.')) return;
+    try {
+      await CxApi.del('/api/admin/boost-grants/'+grantId);
+      this.renderFreeFramesSection();
+    } catch(e) { toast('Не удалось убрать грант: ' + (e.payload?.error || 'ошибка сервера'), 'error'); }
   },
 
   renderAfishaSection(){
@@ -6774,6 +6934,125 @@ window.addEventListener('storage', e=>{
 window.addEventListener('DOMContentLoaded', init);
 </script>
 
+
+<script>
+/* ===== Кнопка «Назад» телефона и браузера (21.09.2026, визуальный агент) =====
+   Раньше сайт не использовал историю браузера: системная «Назад» (на телефоне и в браузере на компьютере) сразу
+   уводила с сайта, хотя человек только что перешёл на другой экран, шаг или открыл окно. Теперь каждое такое действие
+   добавляет запись в историю, а «Назад» возвращает на предыдущий экран/шаг или закрывает открытое окно.
+   На самом первом экране «Назад» по-прежнему покидает сайт (так и должно быть — сайт не «запирает» человека).
+   Самостоятельный блок: не меняет существующие функции, а оборачивает их при запуске. Для удаления — убрать этот <script>. */
+(function(){
+  if(window.__bn) return;
+  var CFG={
+    overlays:'.modal-overlay,#manualPayModal,#notifyModal',
+    extra:{ isOpen:function(){ return !!document.querySelector('.sidebar.mobile-open'); }, close:function(){ ADM.toggleMobileSidebar(false); } },
+    getView:function(){ var a=document.getElementById('app'); if(!a||getComputedStyle(a).display==='none') return 'login'; var s=document.querySelectorAll('[id^="sec-"]'); for(var i=0;i<s.length;i++){ if(s[i].offsetParent!==null) return s[i].id; } return null; },
+    setView:function(v){ if(!v||v==='login') return; var a=document.getElementById('app'); if(!a||getComputedStyle(a).display==='none') return; ADM.nav(String(v).replace(/^sec-/,'')); },
+    wrap:[[function(){ return ADM; },'nav']]
+  };
+  var BN=window.__bn={ignore:0,restoring:false,depth:0,rooted:false,ovEntry:false,timer:null,wasOpen:false,n:0,cur:0,raf:0};
+  function visible(el){
+    if(!el) return false; var cs=getComputedStyle(el);
+    if(cs.display==='none'||cs.visibility==='hidden'||el.classList.contains('hidden')) return false;
+    var r=el.getBoundingClientRect(); return r.width>0&&r.height>0;
+  }
+  function openOverlays(){
+    var out=[]; if(CFG.overlays){ var q=document.querySelectorAll(CFG.overlays); for(var i=0;i<q.length;i++) if(visible(q[i])) out.push(q[i]); }
+    return out;
+  }
+  function extraOpen(){ return !!(CFG.extra&&CFG.extra.isOpen&&CFG.extra.isOpen()); }
+  function isOpen(){ return openOverlays().length>0||extraOpen(); }
+  function closeTop(){
+    var list=openOverlays(), ov=list[list.length-1];
+    if(ov){
+      var btns=ov.querySelectorAll('[onclick*="lose"],.close,.modal-close,[aria-label="Close"],[aria-label="Закрыть"]'), c=null;
+      for(var i=btns.length-1;i>=0;i--){ if(visible(btns[i])){ c=btns[i]; break; } }
+      try{ if(c) c.click(); else ov.dispatchEvent(new MouseEvent('click',{bubbles:true})); }catch(e){}
+      if(visible(ov)){ ov.classList.remove('open'); ov.classList.add('hidden'); if(getComputedStyle(ov).display!=='none') ov.style.display='none'; }
+    } else if(extraOpen()&&CFG.extra.close){ try{ CFG.extra.close(); }catch(e){} }
+  }
+  function curView(){ try{ return CFG.getView?CFG.getView():null; }catch(e){ return null; } }
+  function ensureRoot(before){
+    if(BN.rooted) return; BN.rooted=true;
+    try{ history.replaceState({bn:1,n:0,root:1,v:before!==undefined?before:curView()},''); }catch(e){}
+  }
+  function absorbOv(state){
+    /* окно закрылось одновременно с переходом (например, пункт бокового меню): запись окна превращаем в запись экрана, а не добавляем ещё одну */
+    if(!BN.ovEntry) return false;
+    BN.ovEntry=false; if(BN.timer){ clearTimeout(BN.timer); BN.timer=null; }
+    try{ history.replaceState(state,''); }catch(e){} return true;
+  }
+  function pushView(v,url){ ensureRoot(); if(absorbOv({bn:1,n:BN.n,v:v})) return; try{ if(url) history.pushState({bn:1,n:++BN.n,v:v},'',url); else history.pushState({bn:1,n:++BN.n,v:v},''); BN.cur=BN.n; }catch(e){} }
+  /* --- окна: открылось → запись в истории; закрылось кнопкой на экране → тихо убираем запись --- */
+  function check(){
+    var open=isOpen();
+    if(open&&!BN.wasOpen){
+      if(BN.timer){ clearTimeout(BN.timer); BN.timer=null; }
+      else { ensureRoot(); try{ history.pushState({bn:1,ov:1,n:++BN.n,v:curView()},''); BN.cur=BN.n; BN.ovEntry=true; }catch(e){} }
+    } else if(!open&&BN.wasOpen&&BN.ovEntry){
+      BN.timer=setTimeout(function(){ BN.timer=null; if(BN.ovEntry&&!BN.wasOpen){ BN.ovEntry=false; BN.ignore++; history.back(); } },0);
+    }
+    BN.wasOpen=open;
+  }
+  function schedule(){ if(BN.raf) return; BN.raf=requestAnimationFrame(function(){ BN.raf=0; check(); }); }
+  try{
+    new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
+  }catch(e){}
+  /* --- экраны и шаги --- */
+  function wrap(obj,name){
+    if(!obj||typeof obj[name]!=='function') return; var orig=obj[name];
+    obj[name]=function(){
+      var top=(BN.depth===0), before=top?curView():null, prevSt=top?JSON.stringify(history.state):null, prevUrl=top?location.href:null, prevObj=top?history.state:null; BN.depth++;
+      try{ return orig.apply(this,arguments); }
+      finally{
+        BN.depth--;
+        if(top&&!BN.restoring){
+          var after=curView(), afterUrl=location.href, touched=(JSON.stringify(history.state)!==prevSt)||(afterUrl!==prevUrl);
+          if(after!==before){
+            /* приложение могло переписать запись текущего экрана (адрес #раздел) — возвращаем её как была, новую добавляем отдельно */
+            if(touched){ try{ history.replaceState(prevObj,'',prevUrl); }catch(e){} }
+            ensureRoot(before); pushView(after,afterUrl!==prevUrl?afterUrl:undefined);
+          } else if(touched&&prevObj&&prevObj.bn){ try{ history.replaceState(prevObj,'',afterUrl); }catch(e){} }
+        }
+      }
+    };
+  }
+  if(CFG.wrap) CFG.wrap.forEach(function(w){ wrap(w[0](),w[1]); });
+  /* клиентский сайт: собственный стек экранов CX._history связываем с историей браузера */
+  if(CFG.index){
+    var CXo=CFG.index(), _push=CXo.pushHistory, _back=CXo.goBack;
+    CXo.pushHistory=function(){ if(BN.pushLock) return; BN.pushLock=true; Promise.resolve().then(function(){ BN.pushLock=false; }); var r=_push.apply(this,arguments); if(!BN.restoring){ ensureRoot('root'); if(!absorbOv({bn:1,n:BN.n,cx:1})){ try{ history.pushState({bn:1,n:++BN.n,cx:1},''); BN.cur=BN.n; }catch(e){} } } return r; };
+    CXo.goBack=function(){ if(!BN.restoring&&history.state&&history.state.cx&&!isOpen()){ history.back(); } else return _back.apply(this,arguments); };
+    BN.cxBack=function(){ BN.restoring=true; try{ _back.call(CXo); } finally{ BN.restoring=false; } };
+    /* шаги мастера бронирования (класс → отель → номер → форма) раньше не писали снимок в стек */
+    ['selectClass','selectHotel','selectUnit','selectRoom'].forEach(function(n){
+      var o=CXo[n]; if(typeof o!=='function') return;
+      CXo[n]=function(){ if(!BN.restoring) this.pushHistory(); return o.apply(this,arguments); };
+    });
+    var _jump=CXo.jumpStep;
+    CXo.jumpStep=function(step){ if(!BN.restoring&&history.state&&history.state.cx&&!isOpen()){ history.back(); return; } return _jump.apply(this,arguments); };
+  }
+  window.addEventListener('popstate',function(e){
+    if(BN.ignore>0){ BN.ignore--; return; }
+    var st=e.state, forward=!!(st&&st.n!=null&&st.n>BN.cur);
+    if(st&&st.n!=null) BN.cur=st.n;
+    if(isOpen()){ BN.ovEntry=false; closeTop(); return; }       /* сначала закрываем открытое окно */
+    if(!st||!st.bn) return;                                       /* запись не наша — браузер сам решит (уход с сайта) */
+    if(st.ov){ if(!forward) history.back(); return; }             /* устаревшая запись окна — пропускаем */
+    if(forward) return;
+    if(CFG.index){ if(BN.cxBack) BN.cxBack(); return; }
+    if(CFG.setView&&st.v){ BN.restoring=true; try{ CFG.setView(st.v); } finally{ BN.restoring=false; } try{ if(JSON.stringify(history.state)!==JSON.stringify(st)) history.replaceState(st,'',location.href); }catch(e){} }
+  });
+})();
+
+</script>
+<!-- ИСПРАВЛЕНО 22.09.2026: закрывающий тег для #app (строка 1069) в
+     статической разметке отсутствовал вообще — браузер молча "доигрывал"
+     его сам перед закрытием body по правилам HTML5, так что визуально это,
+     скорее всего, ничего не ломало, но это неаккуратная разметка, нашёл
+     при проверке баланса тегов, закрываю явно. -->
+</div>
 </body>
 </html>
 

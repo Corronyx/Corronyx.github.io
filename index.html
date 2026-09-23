@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google" content="notranslate">
+<!-- Логотип-монограмма CX (21.09.2026, визуальный агент): вкладка браузера, значок при добавлении на
+     главный экран телефона, закладки. Раньше сайт не имел значка вовсе (браузер показывал пустой лист).
+     Тот же файл svg встроен во все 5 файлов проекта — правка цвета/формы делается в одном месте
+     (см. /home/claude/logo/cx.svg в пакете передачи) и копируется. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTdDODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTU0RCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNTEzMEEiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWYiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZm9udC13ZWlnaHQ9IjcwMCIKICAgICAgICBmb250LXNpemU9IjM0IiBsZXR0ZXItc3BhY2luZz0iLTMiIGZpbGw9InVybCgjZykiPkNYPC90ZXh0Pgo8L3N2Zz4K">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTdDODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTU0RCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNTEzMEEiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWYiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZm9udC13ZWlnaHQ9IjcwMCIKICAgICAgICBmb250LXNpemU9IjM0IiBsZXR0ZXItc3BhY2luZz0iLTMiIGZpbGw9InVybCgjZykiPkNYPC90ZXh0Pgo8L3N2Zz4K">
 <title>Corronyx — Бронирование отелей по всему миру</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
@@ -872,6 +878,67 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
 @media (max-width:640px){
   .form-grid{padding-left:0; padding-right:0;}
   .form-box{padding:22px 18px;}
+}
+
+/* ===== Письмо справа налево (арабский, иврит, персидский, урду…) — 21.09.2026, визуальный агент =====
+   Перевод на такие языки включает Google Translate: он ставит на <html> класс translated-rtl (а при смене языка на
+   другой — translated-ltr). Раньше вёрстка при этом оставалась «левой»: текст выровнен неправильно, панели, кнопки «Назад»,
+   ИИ-агент, «глаз» пароля, боковое меню, значки «закрыть» — всё стояло на левой стороне. Ниже — зеркальные правила:
+   основное направление direction:rtl (ряды flex разворачиваются сами), а всё, что было жёстко привязано к левой/правой
+   стороне (left/right, margin/padding/border-left/right, text-align, скругления), сгенерировано зеркально из существующих
+   правил. Поля e-mail/телефон/адрес сайта/пароль и календарные сетки остаются слева направо (так их читают и на арабском).
+   Работает только когда включён RTL-язык (или задан dir="rtl") — для остальных языков вид не меняется. Только CSS. */
+html.translated-rtl, html[dir="rtl"]{direction:rtl}
+html.translated-rtl input[type=email], html.translated-rtl input[type=tel], html.translated-rtl input[type=url], html.translated-rtl input[type=password], html.translated-rtl input[type=number], html.translated-rtl input[type=date], html.translated-rtl input[type=datetime-local], html.translated-rtl input[type=time],
+html[dir="rtl"] input[type=email], html[dir="rtl"] input[type=tel], html[dir="rtl"] input[type=url], html[dir="rtl"] input[type=password], html[dir="rtl"] input[type=number], html[dir="rtl"] input[type=date], html[dir="rtl"] input[type=datetime-local], html[dir="rtl"] input[type=time]{direction:ltr; text-align:right}
+html.translated-rtl .lang-dropdown, html[dir="rtl"] .lang-dropdown{right:auto; left:0}
+html.translated-rtl .stats-bar .stat-item, html[dir="rtl"] .stats-bar .stat-item{border-right:none; border-left:1px solid var(--line)}
+html.translated-rtl .stats-bar .stat-item:last-child, html[dir="rtl"] .stats-bar .stat-item:last-child{border-right:none; border-left:none}
+html.translated-rtl .search-box, html[dir="rtl"] .search-box{border-radius:18px 0 18px 18px}
+html.translated-rtl .search-field label, html[dir="rtl"] .search-field label{text-align:right}
+html.translated-rtl .ticker .tk-flag, html[dir="rtl"] .ticker .tk-flag{margin-right:0; margin-left:2px}
+html.translated-rtl .pass-wrap input, html[dir="rtl"] .pass-wrap input{padding-right:0; padding-left:44px}
+html.translated-rtl .pass-eye, html[dir="rtl"] .pass-eye{right:auto; left:12px}
+html.translated-rtl .back-btn-floating, html[dir="rtl"] .back-btn-floating{left:auto; right:24px}
+html.translated-rtl .room-card .rc-price, html[dir="rtl"] .room-card .rc-price{text-align:left}
+html.translated-rtl .room-class-header .rch-body, html[dir="rtl"] .room-class-header .rch-body{padding:14px 0 14px 18px}
+html.translated-rtl .gallery-close, html[dir="rtl"] .gallery-close{right:auto; left:0}
+html.translated-rtl .gallery-prev, html[dir="rtl"] .gallery-prev{left:auto; right:-8px}
+html.translated-rtl .gallery-next, html[dir="rtl"] .gallery-next{right:auto; left:-8px}
+html.translated-rtl .gallery-counter, html[dir="rtl"] .gallery-counter{left:auto; right:50%; transform:translateX(50%)}
+html.translated-rtl .concierge-btn, html[dir="rtl"] .concierge-btn{right:auto; left:24px}
+html.translated-rtl .concierge-panel, html[dir="rtl"] .concierge-panel{right:auto; left:24px}
+html.translated-rtl .msg .quick-btn, html[dir="rtl"] .msg .quick-btn{margin:6px 0 0 4px}
+html.translated-rtl .concierge-input button, html[dir="rtl"] .concierge-input button{margin-left:0; margin-right:8px}
+html.translated-rtl .toast-wrap, html[dir="rtl"] .toast-wrap{right:auto; left:24px}
+html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; left:22px}
+html.translated-rtl footer::before, html[dir="rtl"] footer::before{left:auto; right:50%; transform:translateX(50%)}
+@media (max-width:640px){
+html.translated-rtl .stats-bar .stat-item, html[dir="rtl"] .stats-bar .stat-item{border-right:none; border-left:none}
+html.translated-rtl .back-btn-floating, html[dir="rtl"] .back-btn-floating{left:auto; right:auto; margin:12px 16px 0 0}
+html.translated-rtl .pass-eye, html[dir="rtl"] .pass-eye{right:auto; left:1px}
+html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; left:14px}
+}
+@media(max-width:640px){
+html.translated-rtl .back-btn-floating, html[dir="rtl"] .back-btn-floating{left:auto; right:16px}
+}
+@media(max-width:700px){
+html.translated-rtl .room-card .rc-price, html[dir="rtl"] .room-card .rc-price{text-align:right}
+}
+@media(max-width:600px){
+html.translated-rtl .gallery-prev, html[dir="rtl"] .gallery-prev{left:auto; right:4px}
+html.translated-rtl .gallery-next, html[dir="rtl"] .gallery-next{right:auto; left:4px}
+}
+@media (max-width:700px){
+html.translated-rtl .concierge-panel, html[dir="rtl"] .concierge-panel{right:auto; left:16px}
+html.translated-rtl .concierge-panel, html[dir="rtl"] .concierge-panel{right:auto; left:16px}
+}
+@media (max-width:900px){
+html.translated-rtl .lang-switch, html[dir="rtl"] .lang-switch{margin-left:0; margin-right:auto}
+}
+@media (max-height:480px) and (max-width:932px){
+html.translated-rtl .pass-eye, html[dir="rtl"] .pass-eye{right:auto; left:1px}
+html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; left:14px}
 }
 </style>
 </head>
@@ -3375,12 +3442,12 @@ const CX = {
   startSearch(){
     const country = this._searchCountry, city = this._searchCity;
     if(!country){
-      toast(t('err_pick_country'));
+      toast(t('err_pick_country'), true);
       const f=document.getElementById('searchCountry'); if(f) f.focus();
       return;
     }
     if(!city){
-      toast(t('err_pick_city'));
+      toast(t('err_pick_city'), true);
       const f=document.getElementById('searchCity'); if(f) f.focus();
       return;
     }
@@ -3538,7 +3605,7 @@ const CX = {
   async submitBooking(){
     const session = LS.getJSON('cx_user_session', null);
     if(!session){
-      toast(LANG==='ru' ? 'Для бронирования нужно войти в аккаунт' : 'Please log in to complete your booking');
+      toast(LANG==='ru' ? 'Для бронирования нужно войти в аккаунт' : 'Please log in to complete your booking', true);
       LS.set('cx_post_login_action', 'submitBooking');
       renderModal('login');
       return;
@@ -7412,5 +7479,115 @@ function positionConciergeBtn(bannerVisible){
     <span class="mbn-icon" id="mbnProfileIcon">👤</span><span data-t="mbn_profile">Профиль</span>
   </button>
 </nav>
+
+<script>
+/* ===== Кнопка «Назад» телефона и браузера (21.09.2026, визуальный агент) =====
+   Раньше сайт не использовал историю браузера: системная «Назад» (на телефоне и в браузере на компьютере) сразу
+   уводила с сайта, хотя человек только что перешёл на другой экран, шаг или открыл окно. Теперь каждое такое действие
+   добавляет запись в историю, а «Назад» возвращает на предыдущий экран/шаг или закрывает открытое окно.
+   На самом первом экране «Назад» по-прежнему покидает сайт (так и должно быть — сайт не «запирает» человека).
+   Самостоятельный блок: не меняет существующие функции, а оборачивает их при запуске. Для удаления — убрать этот <script>. */
+(function(){
+  if(window.__bn) return;
+  var CFG={
+    overlays:'#modalOverlay,#galleryOverlay',
+    index:function(){ return CX; }
+  };
+  var BN=window.__bn={ignore:0,restoring:false,depth:0,rooted:false,ovEntry:false,timer:null,wasOpen:false,n:0,cur:0,raf:0};
+  function visible(el){
+    if(!el) return false; var cs=getComputedStyle(el);
+    if(cs.display==='none'||cs.visibility==='hidden'||el.classList.contains('hidden')) return false;
+    var r=el.getBoundingClientRect(); return r.width>0&&r.height>0;
+  }
+  function openOverlays(){
+    var out=[]; if(CFG.overlays){ var q=document.querySelectorAll(CFG.overlays); for(var i=0;i<q.length;i++) if(visible(q[i])) out.push(q[i]); }
+    return out;
+  }
+  function extraOpen(){ return !!(CFG.extra&&CFG.extra.isOpen&&CFG.extra.isOpen()); }
+  function isOpen(){ return openOverlays().length>0||extraOpen(); }
+  function closeTop(){
+    var list=openOverlays(), ov=list[list.length-1];
+    if(ov){
+      var btns=ov.querySelectorAll('[onclick*="lose"],.close,.modal-close,[aria-label="Close"],[aria-label="Закрыть"]'), c=null;
+      for(var i=btns.length-1;i>=0;i--){ if(visible(btns[i])){ c=btns[i]; break; } }
+      try{ if(c) c.click(); else ov.dispatchEvent(new MouseEvent('click',{bubbles:true})); }catch(e){}
+      if(visible(ov)){ ov.classList.remove('open'); ov.classList.add('hidden'); if(getComputedStyle(ov).display!=='none') ov.style.display='none'; }
+    } else if(extraOpen()&&CFG.extra.close){ try{ CFG.extra.close(); }catch(e){} }
+  }
+  function curView(){ try{ return CFG.getView?CFG.getView():null; }catch(e){ return null; } }
+  function ensureRoot(before){
+    if(BN.rooted) return; BN.rooted=true;
+    try{ history.replaceState({bn:1,n:0,root:1,v:before!==undefined?before:curView()},''); }catch(e){}
+  }
+  function absorbOv(state){
+    /* окно закрылось одновременно с переходом (например, пункт бокового меню): запись окна превращаем в запись экрана, а не добавляем ещё одну */
+    if(!BN.ovEntry) return false;
+    BN.ovEntry=false; if(BN.timer){ clearTimeout(BN.timer); BN.timer=null; }
+    try{ history.replaceState(state,''); }catch(e){} return true;
+  }
+  function pushView(v,url){ ensureRoot(); if(absorbOv({bn:1,n:BN.n,v:v})) return; try{ if(url) history.pushState({bn:1,n:++BN.n,v:v},'',url); else history.pushState({bn:1,n:++BN.n,v:v},''); BN.cur=BN.n; }catch(e){} }
+  /* --- окна: открылось → запись в истории; закрылось кнопкой на экране → тихо убираем запись --- */
+  function check(){
+    var open=isOpen();
+    if(open&&!BN.wasOpen){
+      if(BN.timer){ clearTimeout(BN.timer); BN.timer=null; }
+      else { ensureRoot(); try{ history.pushState({bn:1,ov:1,n:++BN.n,v:curView()},''); BN.cur=BN.n; BN.ovEntry=true; }catch(e){} }
+    } else if(!open&&BN.wasOpen&&BN.ovEntry){
+      BN.timer=setTimeout(function(){ BN.timer=null; if(BN.ovEntry&&!BN.wasOpen){ BN.ovEntry=false; BN.ignore++; history.back(); } },0);
+    }
+    BN.wasOpen=open;
+  }
+  function schedule(){ if(BN.raf) return; BN.raf=requestAnimationFrame(function(){ BN.raf=0; check(); }); }
+  try{
+    new MutationObserver(schedule).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});
+  }catch(e){}
+  /* --- экраны и шаги --- */
+  function wrap(obj,name){
+    if(!obj||typeof obj[name]!=='function') return; var orig=obj[name];
+    obj[name]=function(){
+      var top=(BN.depth===0), before=top?curView():null, prevSt=top?JSON.stringify(history.state):null, prevUrl=top?location.href:null, prevObj=top?history.state:null; BN.depth++;
+      try{ return orig.apply(this,arguments); }
+      finally{
+        BN.depth--;
+        if(top&&!BN.restoring){
+          var after=curView(), afterUrl=location.href, touched=(JSON.stringify(history.state)!==prevSt)||(afterUrl!==prevUrl);
+          if(after!==before){
+            /* приложение могло переписать запись текущего экрана (адрес #раздел) — возвращаем её как была, новую добавляем отдельно */
+            if(touched){ try{ history.replaceState(prevObj,'',prevUrl); }catch(e){} }
+            ensureRoot(before); pushView(after,afterUrl!==prevUrl?afterUrl:undefined);
+          } else if(touched&&prevObj&&prevObj.bn){ try{ history.replaceState(prevObj,'',afterUrl); }catch(e){} }
+        }
+      }
+    };
+  }
+  if(CFG.wrap) CFG.wrap.forEach(function(w){ wrap(w[0](),w[1]); });
+  /* клиентский сайт: собственный стек экранов CX._history связываем с историей браузера */
+  if(CFG.index){
+    var CXo=CFG.index(), _push=CXo.pushHistory, _back=CXo.goBack;
+    CXo.pushHistory=function(){ if(BN.pushLock) return; BN.pushLock=true; Promise.resolve().then(function(){ BN.pushLock=false; }); var r=_push.apply(this,arguments); if(!BN.restoring){ ensureRoot('root'); if(!absorbOv({bn:1,n:BN.n,cx:1})){ try{ history.pushState({bn:1,n:++BN.n,cx:1},''); BN.cur=BN.n; }catch(e){} } } return r; };
+    CXo.goBack=function(){ if(!BN.restoring&&history.state&&history.state.cx&&!isOpen()){ history.back(); } else return _back.apply(this,arguments); };
+    BN.cxBack=function(){ BN.restoring=true; try{ _back.call(CXo); } finally{ BN.restoring=false; } };
+    /* шаги мастера бронирования (класс → отель → номер → форма) раньше не писали снимок в стек */
+    ['selectClass','selectHotel','selectUnit','selectRoom'].forEach(function(n){
+      var o=CXo[n]; if(typeof o!=='function') return;
+      CXo[n]=function(){ if(!BN.restoring) this.pushHistory(); return o.apply(this,arguments); };
+    });
+    var _jump=CXo.jumpStep;
+    CXo.jumpStep=function(step){ if(!BN.restoring&&history.state&&history.state.cx&&!isOpen()){ history.back(); return; } return _jump.apply(this,arguments); };
+  }
+  window.addEventListener('popstate',function(e){
+    if(BN.ignore>0){ BN.ignore--; return; }
+    var st=e.state, forward=!!(st&&st.n!=null&&st.n>BN.cur);
+    if(st&&st.n!=null) BN.cur=st.n;
+    if(isOpen()){ BN.ovEntry=false; closeTop(); return; }       /* сначала закрываем открытое окно */
+    if(!st||!st.bn) return;                                       /* запись не наша — браузер сам решит (уход с сайта) */
+    if(st.ov){ if(!forward) history.back(); return; }             /* устаревшая запись окна — пропускаем */
+    if(forward) return;
+    if(CFG.index){ if(BN.cxBack) BN.cxBack(); return; }
+    if(CFG.setView&&st.v){ BN.restoring=true; try{ CFG.setView(st.v); } finally{ BN.restoring=false; } try{ if(JSON.stringify(history.state)!==JSON.stringify(st)) history.replaceState(st,'',location.href); }catch(e){} }
+  });
+})();
+
+</script>
 </body>
 </html>
