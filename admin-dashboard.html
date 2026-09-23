@@ -1624,15 +1624,28 @@ html.translated-rtl .sidebar.mobile-open, html[dir="rtl"] .sidebar.mobile-open{t
         Кому вы разрешили пользоваться золотой/бриллиантовой рамкой бесплатно — с ограничением
         по количеству одновременно активных рамок и/или по дате. Управление полностью
         ручное: система сама гасит рамку по истечении даты, но лимит и дату меняете только вы.
+        Данные хранятся на сервере (не в этом браузере) — видны сразу отовсюду.
       </p>
+      <div style="background:var(--bg2); border:1px solid rgba(184,149,77,.3); border-radius:12px; padding:16px; max-width:640px; margin-bottom:24px;">
+        <div style="font-weight:600; margin-bottom:8px;">📅 Бонус за приведённый отель — дата отсечения</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">
+          После этой даты новые начисления 3% рефереру за отель прекращаются — сразу для всех
+          (и старых, и новых). Оставьте поле пустым, чтобы снять ограничение полностью.
+          Продлить можно в любой момент, просто подвинув дату вперёд.
+        </div>
+        <div style="display:flex; gap:10px; align-items:end; flex-wrap:wrap;">
+          <div><div style="font-size:11px; color:var(--muted);">Дата отсечения</div><input type="date" id="refCutoffDate" style="width:170px;"></div>
+          <button class="btn btn-primary btn-sm" onclick="ADM.saveReferralCutoffDate()">Сохранить</button>
+          <span id="refCutoffStatus" style="font-size:12px; color:var(--muted);"></span>
+        </div>
+      </div>
       <div class="tabs-login" id="ffTabsRow" style="max-width:640px; margin-bottom:20px;">
         <button class="tab-login active" onclick="ADM.switchFreeFrameTab('afisha_gold')" data-ff-tab="afisha_gold">Афиша · Золото</button>
         <button class="tab-login" onclick="ADM.switchFreeFrameTab('afisha_diamond')" data-ff-tab="afisha_diamond">Афиша · Бриллиант</button>
         <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_gold')" data-ff-tab="partner_gold">Партнёры · Золото</button>
         <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_diamond')" data-ff-tab="partner_diamond">Партнёры · Бриллиант</button>
       </div>
-      <div id="ffGrantNewBlock" style="margin-bottom:20px;"></div>
-      <div id="ffListBlock"></div>
+      <div id="ffBody"></div>
     </div>
 
     <!-- SECRET -->
@@ -2151,6 +2164,74 @@ function esc(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&
 // («Joe's», «L'Hôtel», «Rock'n'Roll», «Дем'ян») обрывал строку и кнопка (оплата/буст) переставала работать. escJs() дополнительно
 // экранирует обратную косую и апостроф (и убирает переводы строк).
 function escJs(s){ return esc(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '); }
+
+// ДОБАВЛЕНО 23.09.2026: admin-dashboard.html целиком на localStorage, к
+// серверу вообще не подключён (в отличие от index.html/hotel-portal.html/
+// partner-portal.html/afisha-portal.html). По решению владельца — не
+// переделываем всю админку целиком, а точечно подключаем ТОЛЬКО то, что
+// физически не может жить в localStorage (бесплатные гранты бустов/рамок и
+// дата отсечения бонуса за отель — это данные, которые реально считает и
+// хранит сервер). Токен хранится ОТДЕЛЬНО от обычного пароля-входа в
+// админку (ADMIN_PASSWORD) — это JWT реального сервер-аккаунта с ролью
+// admin, нужен только для вызовов CxApi ниже.
+const CX_API_BASE = window.CX_API_BASE || 'https://api.corronyx.ru';
+const CxApi = {
+  token(){ return LS.get('cx_admin_server_jwt') || ''; },
+  async call(method, path, body){
+    const opts = { method, headers: {'Content-Type':'application/json'} };
+    const tok = this.token();
+    if (tok) opts.headers['Authorization'] = 'Bearer ' + tok;
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    let res, data;
+    try { res = await fetch(CX_API_BASE + path, opts); }
+    catch (networkErr) { const e = new Error('network'); e.isNetwork = true; throw e; }
+    try { data = await res.json(); } catch(e) { data = {}; }
+    if (!res.ok) { const e = new Error(data.error || 'request_failed'); e.status = res.status; e.payload = data; throw e; }
+    return data;
+  },
+  get(path){ return this.call('GET', path); },
+  post(path, body){ return this.call('POST', path, body); },
+  put(path, body){ return this.call('PUT', path, body); },
+  del(path){ return this.call('DELETE', path); }
+};
+async function cxAdminLogin(email, password){
+  const res = await CxApi.call('POST', '/api/login', { email, password });
+  LS.set('cx_admin_server_jwt', res.token);
+  return res;
+}
+function cxAdminConnected(){ return !!CxApi.token(); }
+// Общий блок "подключение к серверу" — рисуется вместо содержимого секции,
+// пока нет валидного токена. authed callback вызывается один раз после
+// успешного входа (обычно — сразу перерисовать реальный контент секции).
+function cxRenderServerLoginGate(containerEl, onConnected){
+  containerEl.innerHTML = `
+    <div style="background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:12px; padding:20px; max-width:420px;">
+      <div style="font-size:13px; color:var(--muted); margin-bottom:12px;">Эта секция берёт данные с сервера Corronyx, а не из localStorage. Войдите вашим серверным аккаунтом (роль admin), чтобы продолжить.</div>
+      <div class="form-row"><label>Email</label><input type="email" id="cxAdmLoginEmail"></div>
+      <div class="form-row"><label>Пароль</label><input type="password" id="cxAdmLoginPass"></div>
+      <div class="login-err hidden" id="cxAdmLoginErr"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="cxAdmLoginBtn">Войти</button>
+    </div>`;
+  document.getElementById('cxAdmLoginBtn').onclick = async () => {
+    const email = document.getElementById('cxAdmLoginEmail').value.trim().toLowerCase();
+    const pass = document.getElementById('cxAdmLoginPass').value;
+    const errEl = document.getElementById('cxAdmLoginErr');
+    errEl.classList.add('hidden');
+    try {
+      const res = await cxAdminLogin(email, pass);
+      if (res.role !== 'admin') {
+        LS.remove('cx_admin_server_jwt');
+        errEl.textContent = 'У этого аккаунта на сервере нет роли admin.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      onConnected();
+    } catch (e) {
+      errEl.textContent = e.isNetwork ? 'Сервер недоступен. Проверьте соединение.' : 'Неверный email или пароль.';
+      errEl.classList.remove('hidden');
+    }
+  };
+}
 
 // ============================================================
 // SW_BADGE_SHAPE — фирменная ротация формы подложки под иконки.
@@ -5171,14 +5252,14 @@ const ADM = {
        пометкой "истёк", чтобы была видна история (см. рендер статуса ниже).
      - Золото и бриллиант — полностью независимые гранты у одного аккаунта.
   */
-  getFreeFrameGrant(account, tier){
-    return (account.freeFrame && account.freeFrame[tier]) || null;
-  },
-  isFreeFrameGrantUsable(grant){
-    if(!grant) return false;
-    if(grant.unlimited) return true;
-    return !!(grant.limit>0 && grant.expiresAt && new Date(grant.expiresAt) > new Date());
-  },
+  /* ---- Бесплатные бусты/рамки — ПЕРЕПИСАНО 23.09.2026 на серверный API
+     (таблица boost_grants). Раньше грант хранился в localStorage на самом
+     account.freeFrame — теперь единственный источник правды сервер, чтобы
+     partner-portal.html/afisha-portal.html видели то же самое, что здесь
+     выдал админ. Решение владельца 23.09.2026: срок может быть бессрочным
+     (expires_at=null), количество — ВСЕГДА конкретное число (в отличие от
+     старой галочки "unlimited", которая снимала оба ограничения разом —
+     эта галочка убрана). */
   _ffTab: 'afisha_gold',
   switchFreeFrameTab(tab){
     this._ffTab = tab;
@@ -5187,107 +5268,135 @@ const ADM = {
   },
   _ffConfig(){
     const [cat, tier] = this._ffTab.split('_');
-    if(cat==='afisha'){
-      return { cat, tier, accKey:'cx_afisha_accounts', label: tier==='diamond'?'Афиша · Бриллиант':'Афиша · Золото' };
-    }
-    return { cat:'partner', tier, accKey:'cx_partner_accounts', label: tier==='diamond'?'Партнёры · Бриллиант':'Партнёры · Золото' };
+    const entityType = cat==='afisha' ? 'afisha' : 'partner';
+    return { entityType, tier, label: (cat==='afisha'?'Афиша':'Партнёры')+' · '+(tier==='diamond'?'Бриллиант':'Золото') };
   },
   renderFreeFramesSection(){
-    const { cat, tier, accKey } = this._ffConfig();
-    const accounts = LS.getJSON(accKey, []);
-    const withGrant = accounts.filter(a => a.freeFrame && a.freeFrame[tier] && (a.freeFrame[tier].grantedAt || a.freeFrame[tier].limit>0 || a.freeFrame[tier].unlimited));
-
-    // Блок выдачи нового гранта — простой поиск по названию/email среди тех,
-    // у кого ещё нет гранта этого яруса.
-    const candidates = accounts.filter(a => !withGrant.includes(a));
-    document.getElementById('ffGrantNewBlock').innerHTML = `
-      <div style="background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:12px; padding:16px; max-width:640px;">
-        <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">Выдать новый бесплатный грант (${tier==='diamond'?'бриллиант':'золото'}, ${cat==='afisha'?'афиша':'партнёры'}):</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
-          <select id="ffNewAccountSelect" style="flex:1; min-width:220px;">
-            <option value="">— выбрать аккаунт —</option>
-            ${candidates.map(a=>`<option value="${esc(a.id)}">${esc(a.name||a.email||a.id)}</option>`).join('')}
-          </select>
-          <div><div style="font-size:11px; color:var(--muted);">Счётчик</div><input type="number" min="0" id="ffNewLimit" style="width:80px;" value="3"></div>
-          <div><div style="font-size:11px; color:var(--muted);">До даты</div><input type="date" id="ffNewDate" style="width:150px;"></div>
-          <button class="btn btn-primary btn-sm" onclick="ADM.grantNewFreeFrame()">Выдать</button>
-        </div>
-      </div>`;
-
-    const sorted = [...withGrant].sort((a,b)=>{
-      const ga=a.freeFrame[tier], gb=b.freeFrame[tier];
-      if(!!ga.pinned !== !!gb.pinned) return ga.pinned ? -1 : 1;
-      return new Date(gb.grantedAt||0) - new Date(ga.grantedAt||0);
-    });
-
-    if(!sorted.length){
-      document.getElementById('ffListBlock').innerHTML = `<p style="color:var(--muted); font-size:13px;">Пока никому не выдавался бесплатный ${tier==='diamond'?'бриллиантовый':'золотой'} грант в этой категории.</p>`;
+    const body = document.getElementById('ffBody');
+    if(!cxAdminConnected()){
+      document.getElementById('refCutoffStatus').textContent = 'Войдите ниже, чтобы увидеть/изменить дату.';
+      cxRenderServerLoginGate(body, () => { this.renderFreeFramesSection(); this._loadReferralCutoffDate(); });
       return;
     }
+    this._ffRenderReal();
+    this._loadReferralCutoffDate();
+  },
+  async _loadReferralCutoffDate(){
+    const statusEl = document.getElementById('refCutoffStatus');
+    try {
+      const res = await CxApi.get('/api/admin/settings/hotel_referral_bonus_cutoff_date');
+      document.getElementById('refCutoffDate').value = res.value ? res.value.slice(0,10) : '';
+      statusEl.textContent = res.value ? '' : 'Сейчас без ограничения — начисляется всегда.';
+    } catch(e) { statusEl.textContent = 'Не удалось загрузить текущее значение.'; }
+  },
+  async saveReferralCutoffDate(){
+    if(!cxAdminConnected()){ toast('Сначала войдите в блоке ниже'); return; }
+    const val = document.getElementById('refCutoffDate').value;
+    try {
+      await CxApi.post('/api/admin/settings/hotel_referral_bonus_cutoff_date', { value: val || '' });
+      document.getElementById('refCutoffStatus').textContent = val ? 'Сохранено.' : 'Сохранено — ограничение снято.';
+      toast('Дата сохранена');
+    } catch(e) { toast('Не удалось сохранить дату', 'error'); }
+  },
+  async _ffRenderReal(){
+    const { entityType, tier, label } = this._ffConfig();
+    const body = document.getElementById('ffBody');
+    body.innerHTML = '<p style="color:var(--muted); font-size:13px;">Загрузка…</p>';
+    let grants, accounts;
+    try {
+      grants = await CxApi.get('/api/admin/boost-grants?entity_type='+entityType);
+      accounts = entityType==='partner'
+        ? await CxApi.get('/api/admin/partners')
+        : await CxApi.get('/api/admin/afisha/events');
+    } catch(e) {
+      if(e.status===401 || e.status===403){ LS.remove('cx_admin_server_jwt'); this.renderFreeFramesSection(); return; }
+      body.innerHTML = '<p style="color:var(--err);">Не удалось загрузить данные с сервера. Попробуйте ещё раз.</p>';
+      return;
+    }
+    // Один owner_user_id может встречаться несколько раз (несколько карточек/
+    // событий у одного владельца) — схлопываем в один вариант в выпадающем списке.
+    const ownersMap = new Map();
+    accounts.forEach(a => { if(a.owner_user_id && !ownersMap.has(a.owner_user_id)) ownersMap.set(a.owner_user_id, a.owner_email || ('user#'+a.owner_user_id)); });
+    const owners = [...ownersMap.entries()]; // [ [owner_user_id, email], ... ]
+    const grantsThisTier = grants.filter(g => g.tier===tier && !g.revoked_at);
+    const grantedOwnerIds = new Set(grantsThisTier.map(g=>g.owner_user_id));
+    const candidates = owners.filter(([id]) => !grantedOwnerIds.has(id));
 
-    document.getElementById('ffListBlock').innerHTML = `
+    let html = `
+      <div style="background:var(--bg2); border:1px solid rgba(26,28,32,.08); border-radius:12px; padding:16px; max-width:640px; margin-bottom:20px;">
+        <div style="font-size:13px; color:var(--muted); margin-bottom:10px;">Выдать новый бесплатный грант (${label}):</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+          <select id="ffNewOwnerSelect" style="flex:1; min-width:220px;">
+            <option value="">— выбрать владельца по email —</option>
+            ${candidates.map(([id,email])=>`<option value="${id}">${esc(email)}</option>`).join('')}
+          </select>
+          <div><div style="font-size:11px; color:var(--muted);">Количество (слоты)</div><input type="number" min="1" id="ffNewLimit" style="width:100px;" value="1"></div>
+          <div><div style="font-size:11px; color:var(--muted);">До даты (пусто = бессрочно)</div><input type="date" id="ffNewDate" style="width:170px;"></div>
+          <button class="btn btn-primary btn-sm" onclick="ADM.grantNewFreeFrame()">Выдать</button>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:8px;">Не нашли нужный email в списке? Значит у аккаунта пока нет ни одной карточки/события на сервере — сначала он должен создать хотя бы одну.</div>
+      </div>`;
+
+    if(!grantsThisTier.length){
+      html += `<p style="color:var(--muted); font-size:13px;">Пока никому не выдавался бесплатный грант этого яруса.</p>`;
+    } else {
+      const rows = grantsThisTier.map(g => {
+        const owner = ownersMap.get(g.owner_user_id) || ('user#'+g.owner_user_id);
+        const active = !g.expires_at || new Date(g.expires_at) > new Date();
+        const status = active ? '<span style="color:var(--ok);">активен</span>' : '<span style="color:var(--muted);">истёк</span>';
+        return `
+        <tr style="border-bottom:1px solid rgba(26,28,32,.04);">
+          <td style="padding:8px 6px;">${esc(owner)}</td>
+          <td><input type="number" min="1" style="width:80px;" value="${g.limit_count}"
+            onchange="ADM.updateFreeFrameGrant(${g.id},'limit_count',this.value)"></td>
+          <td><input type="date" style="width:160px;" value="${g.expires_at?g.expires_at.slice(0,10):''}"
+            onchange="ADM.updateFreeFrameGrant(${g.id},'expires_at',this.value)"></td>
+          <td>${g.expires_at?'':'<span style="color:var(--ok);">♾️ бессрочно</span>'}</td>
+          <td>${status}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="ADM.revokeFreeFrameGrant(${g.id})">Убрать</button></td>
+        </tr>`;
+      }).join('');
+      html += `
       <table class="doc-table" style="width:100%; border-collapse:collapse; font-size:13px;">
         <tr style="text-align:left; color:var(--muted); border-bottom:1px solid rgba(26,28,32,.08);">
-          <th style="padding:8px 6px;">Аккаунт</th><th>Счётчик</th><th>До даты</th><th>Безлимит</th><th>Закреп.</th><th>Статус</th><th></th>
+          <th style="padding:8px 6px;">Владелец</th><th>Количество</th><th>До даты</th><th>Срок</th><th>Статус</th><th></th>
         </tr>
-        ${sorted.map(a=>{
-          const g = a.freeFrame[tier];
-          const usable = this.isFreeFrameGrantUsable(g);
-          const status = g.unlimited
-            ? '<span style="color:var(--ok);">♾️ безлимит</span>'
-            : (usable ? '<span style="color:var(--ok);">активен</span>' : '<span style="color:var(--muted);">истёк</span>');
-          return `
-          <tr style="border-bottom:1px solid rgba(26,28,32,.04);">
-            <td style="padding:8px 6px;">${esc(a.name||a.email||a.id)}</td>
-            <td><input type="number" min="0" style="width:64px;" value="${esc(g.limit||0)}" ${g.unlimited?'disabled':''}
-              onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','limit',this.value)"></td>
-            <td><input type="date" style="width:150px;" value="${g.expiresAt?g.expiresAt.slice(0,10):''}" ${g.unlimited?'disabled':''}
-              onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','expiresAt',this.value)"></td>
-            <td style="text-align:center;"><input type="checkbox" ${g.unlimited?'checked':''} onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','unlimited',this.checked)"></td>
-            <td style="text-align:center;"><input type="checkbox" ${g.pinned?'checked':''} onchange="ADM.updateFreeFrameGrant('${esc(a.id)}','pinned',this.checked)"></td>
-            <td>${status}</td>
-            <td><button class="btn btn-ghost btn-sm" onclick="ADM.revokeFreeFrameGrant('${esc(a.id)}')">Убрать</button></td>
-          </tr>`;
-        }).join('')}
+        ${rows}
       </table>`;
+    }
+    body.innerHTML = html;
   },
-  grantNewFreeFrame(){
-    const { tier, accKey } = this._ffConfig();
-    const id = document.getElementById('ffNewAccountSelect').value;
-    if(!id){ toast('Выберите аккаунт'); return; }
+  async grantNewFreeFrame(){
+    const { entityType, tier } = this._ffConfig();
+    const ownerId = +document.getElementById('ffNewOwnerSelect').value || 0;
+    if(!ownerId){ toast('Выберите владельца'); return; }
     const limit = +document.getElementById('ffNewLimit').value || 0;
+    if(limit < 1){ toast('Количество должно быть 1 или больше'); return; }
     const dateVal = document.getElementById('ffNewDate').value;
-    const accounts = LS.getJSON(accKey, []);
-    const acc = accounts.find(a=>a.id===id);
-    if(!acc) return;
-    acc.freeFrame = acc.freeFrame || {};
-    acc.freeFrame[tier] = { limit, expiresAt: dateVal?new Date(dateVal+'T23:59:59').toISOString():null, unlimited:false, pinned:false, grantedAt:new Date().toISOString() };
-    LS.setJSON(accKey, accounts);
-    toast('Грант выдан');
-    this.renderFreeFramesSection();
+    try {
+      await CxApi.post('/api/admin/boost-grants', {
+        entity_type: entityType, owner_user_id: ownerId, tier, limit_count: limit,
+        expires_at: dateVal ? new Date(dateVal+'T23:59:59').toISOString() : null
+      });
+      toast('Грант выдан');
+      this.renderFreeFramesSection();
+    } catch(e) { toast('Не удалось выдать грант: ' + (e.payload?.error || 'ошибка сервера'), 'error'); }
   },
-  updateFreeFrameGrant(accId, field, value){
-    const { tier, accKey } = this._ffConfig();
-    const accounts = LS.getJSON(accKey, []);
-    const acc = accounts.find(a=>a.id===accId);
-    if(!acc || !acc.freeFrame || !acc.freeFrame[tier]) return;
-    const g = acc.freeFrame[tier];
-    if(field==='limit') g.limit = +value||0;
-    else if(field==='expiresAt') g.expiresAt = value ? new Date(value+'T23:59:59').toISOString() : null;
-    else if(field==='unlimited') g.unlimited = !!value;
-    else if(field==='pinned') g.pinned = !!value;
-    LS.setJSON(accKey, accounts);
-    this.renderFreeFramesSection();
+  async updateFreeFrameGrant(grantId, field, value){
+    const body = {};
+    if(field==='limit_count') body.limit_count = +value || 0;
+    else if(field==='expires_at') body.expires_at = value ? new Date(value+'T23:59:59').toISOString() : null;
+    try {
+      await CxApi.put('/api/admin/boost-grants/'+grantId, body);
+      this.renderFreeFramesSection();
+    } catch(e) { toast('Не удалось изменить грант: ' + (e.payload?.error || 'ошибка сервера'), 'error'); }
   },
-  revokeFreeFrameGrant(accId){
-    if(!confirm('Убрать бесплатный грант? Уже включённые бесплатные рамки этого аккаунта погаснут при следующем его входе.')) return;
-    const { tier, accKey } = this._ffConfig();
-    const accounts = LS.getJSON(accKey, []);
-    const acc = accounts.find(a=>a.id===accId);
-    if(!acc || !acc.freeFrame) return;
-    delete acc.freeFrame[tier];
-    LS.setJSON(accKey, accounts);
-    this.renderFreeFramesSection();
+  async revokeFreeFrameGrant(grantId){
+    if(!confirm('Убрать бесплатный грант? Уже включённые бесплатные бусты/рамки этого владельца погаснут при следующем автообновлении (в течение суток) либо сразу при следующем действии владельца.')) return;
+    try {
+      await CxApi.del('/api/admin/boost-grants/'+grantId);
+      this.renderFreeFramesSection();
+    } catch(e) { toast('Не удалось убрать грант: ' + (e.payload?.error || 'ошибка сервера'), 'error'); }
   },
 
   renderAfishaSection(){

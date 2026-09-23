@@ -1318,6 +1318,7 @@ function cxBuildAccountFromServer(email, listings){
       work24: !!l.work_24, workFrom: l.work_from || '', workTo: l.work_to || '',
       monthlyFee: l.monthly_fee || 0, monthlyFeeCurrency: l.monthly_fee_currency || 'RUB',
       subgroups: l.subgroups || [], status: l.status, boostLevel: l.boost_level || 'none',
+      boostExpiresAt: l.boost_expires_at || null, boostSource: l.boost_source || null,
       joinedAt: l.created_at
     };
     (byStoreKey[cfg.storeKey] = byStoreKey[cfg.storeKey] || []).push(mapped);
@@ -1610,14 +1611,9 @@ function addPartnerReferralCredit(refCode, sourceId, amount){
   LS.setJSON('cx_referral_ledger', ledger);
   logReferralHistory(refCode, 'earn', amount, 'Оплата размещения карточки партнёром');
 }
-// Бесплатный ярус (05-06.09.2026) — грант выдаёт только админ (admin-dashboard.html
-// → «Бесплатные рамки»), хранится на аккаунте как account.freeFrame[tier]. Зеркало
-// ADM.isFreeFrameGrantUsable — синхронизировать при изменениях там.
-function isFreeFrameGrantUsable(grant){
-  if(!grant) return false;
-  if(grant.unlimited) return true;
-  return !!(grant.limit>0 && grant.expiresAt && new Date(grant.expiresAt) > new Date());
-}
+// ПЕРЕПИСАНО 23.09.2026: бесплатный ярус теперь целиком на сервере
+// (boost_grants + PP.freeBoostGrants) — см. renderPlacements/toggleFreeFrame.
+// Старая isFreeFrameGrantUsable(grant) на localStorage.account.freeFrame удалена.
 function getBoostFeeFor(type, countryCode, subgroups, tier){
   const gKey = PARTNER_TYPES[type]?.gKey || '';
   const isRu = countryCode === 'RU';
@@ -1817,6 +1813,11 @@ const PP = {
     }
     LS.set('cx_partner_session', email);
     this.account = cxBuildAccountFromServer(email, listings);
+    // ДОБАВЛЕНО 23.09.2026: бесплатные бусты теперь выдаёт админ через сервер
+    // (не localStorage) — подтягиваем свои активные гранты сразу после входа,
+    // см. PP.freeBoostGrants / freeFrameHtml в renderPlacements.
+    try { this.freeBoostGrants = await CxApi.get('/api/partners/me/free-boost-grants'); }
+    catch (e) { this.freeBoostGrants = []; console.error('free-boost-grants fetch failed', e); }
     this.showApp();
   },
 
@@ -1972,7 +1973,6 @@ const PP = {
 
   /* ---- Placements list ---- */
   renderPlacements(){
-    this.checkFreeFrameExpiry();
     this.renderDocsKpBlock();
     this.renderPaymentDue();
     const list=document.getElementById('placementsList');
@@ -2041,26 +2041,28 @@ const PP = {
             ? `<button class="btn btn-ghost btn-sm" onclick="PP.openBoostModal('${esc(card.id)}','${esc(card.type)}','diamond')">💎 ${LANG==='ru'?'Бриллиантовый буст-приоритет':'Diamond priority boost'}</button>`
             : `<span class="pc-fee-badge pc-fee-unset" title="${LANG==='ru'?'Администратор ещё не задал цену бриллиантового буста-приоритета':'Admin has not set a diamond priority boost price yet'}">💎 ${LANG==='ru'?'Скоро будет доступно':'Coming soon'}</span>`)
         : '';
-      // Бесплатный ярус (05-06.09.2026) — грант выдаёт только админ, здесь только
-      // применение в пределах разрешённого счётчика. См. PP.toggleFreeFrame.
+      // Бесплатный ярус — ПЕРЕПИСАНО 23.09.2026: раньше грант хранился в
+      // localStorage (acc.freeFrame), теперь единственный источник правды —
+      // сервер (таблица boost_grants + partners.boost_level/boost_source).
+      // Владелец решил (23.09.2026): срок гранта может быть бессрочным,
+      // количество — всегда конкретное число, отдельно от старого правила
+      // "unlimited снимает оба ограничения".
       let freeFrameHtml='';
       if(card.status==='active'){
-        const acc=LS.getJSON('cx_partner_accounts',[]).find(a=>a.id===this.account.id);
-        ['gold','diamond'].forEach(tier=>{
-          const grant=acc?.freeFrame?.[tier];
-          if(!isFreeFrameGrantUsable(grant)) return;
-          const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-          const isOn=!!card[field];
-          const activeCount=this.getMyCards().filter(i=>i[field]).length;
+        (this.freeBoostGrants||[]).filter(g=>g.tier==='gold'||g.tier==='diamond').forEach(grant=>{
+          const tier=grant.tier;
+          const isOn = card.boostSource==='admin_grant' && card.boostLevel===tier;
           const label=tier==='diamond'?'💎 бриллиантовый':'🚀 золотой';
           const labelEn=tier==='diamond'?'💎 diamond':'🚀 gold';
-          const limitStr=grant.unlimited?(LANG==='ru'?'без ограничений':'unlimited'):`${activeCount}/${grant.limit}`;
+          const limitStr=grant.expires_at
+            ? `${grant.used}/${grant.limit_count}`
+            : (LANG==='ru'?`${grant.used}/${grant.limit_count} (бессрочно)`:`${grant.used}/${grant.limit_count} (no end date)`);
           const otherPaidActive=(tier==='diamond'?isDiamondBoosted:isBoosted) && !isOn;
           freeFrameHtml+=`<div style="font-size:12px; color:${isOn?'var(--ok)':'var(--muted)'}; background:rgba(26,28,32,.03); border:1px solid rgba(26,28,32,.08); border-radius:8px; padding:6px 10px; margin-top:6px;">
             🎁 ${LANG==='ru'?`Бесплатный ${label} буст (выдан администратором)`:`Free ${labelEn} boost (granted by admin)`} — ${limitStr}
             ${otherPaidActive
               ? `<span style="opacity:.7;"> — ${LANG==='ru'?'уже активен платный буст':'a paid boost is already active'}</span>`
-              : `<button class="btn btn-ghost btn-sm" style="margin-left:6px;" onclick="PP.toggleFreeFrame('${esc(card.id)}','${esc(card.type)}','${tier}')">${isOn?(LANG==='ru'?'Выключить':'Turn off'):(LANG==='ru'?'Включить':'Turn on')}</button>`}
+              : `<button class="btn btn-ghost btn-sm" style="margin-left:6px;" onclick="PP.toggleFreeFrame('${esc(card.id)}','${tier}')">${isOn?(LANG==='ru'?'Выключить':'Turn off'):(LANG==='ru'?'Включить':'Turn on')}</button>`}
           </div>`;
         });
       }
@@ -2195,74 +2197,28 @@ const PP = {
   // Отдельная, разовая оплата за конкретную карточку — не путать с
   // ежемесячной платой за размещение. Та же проверяемая схема (USDT/скриншот),
   // но результат — не period-оплата, а boostedUntil на самой карточке.
-  /* ---- Бесплатный ярус (05-06.09.2026), см. комментарий у isFreeFrameGrantUsable ---- */
-  toggleFreeFrame(cardId, cardType, tier){
-    const acc=LS.getJSON('cx_partner_accounts',[]).find(a=>a.id===this.account.id);
-    const grant=acc?.freeFrame?.[tier];
-    if(!isFreeFrameGrantUsable(grant)){
-      this.showToast(LANG==='ru'?'Бесплатный доступ для этого яруса сейчас недоступен.':'Free access for this tier is not available right now.');
+  /* ---- Бесплатный ярус — ПЕРЕПИСАНО 23.09.2026 на серверный API, см. комментарий
+     у freeFrameHtml выше. Срок гранта теперь гасится на сервере (sweepExpiredFreeBoosts,
+     раз в сутки) — клиент больше не симулирует истечение сам, только показывает
+     актуальное состояние после каждого обновления списка с сервера. ---- */
+  async toggleFreeFrame(cardId, tier){
+    const card=this.getMyCards().find(i=>i.id===cardId);
+    if(!card || !card.serverId) return;
+    const isOn = card.boostSource==='admin_grant' && card.boostLevel===tier;
+    try {
+      await CxApi.post('/api/partners/'+card.serverId+'/free-boost', { tier, on: !isOn });
+    } catch(e) {
+      if(e.status===403) this.showToast(LANG==='ru'?'Бесплатный доступ для этого яруса сейчас недоступен.':'Free access for this tier is not available right now.');
+      else if(e.status===409) this.showToast(LANG==='ru'?'Достигнут лимит бесплатных бустов для этого тарифа.':'Free boost limit reached for this tier.');
+      else this.showToast(LANG==='ru'?'Не удалось изменить буст. Попробуйте ещё раз.':'Could not change the boost. Please try again.');
       return;
     }
-    const cat=PARTNER_TYPES[cardType];
-    if(!cat) return;
-    const items=LS.getJSON(cat.storeKey,[]);
-    const card=items.find(i=>i.id===cardId);
-    if(!card) return;
-    const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-    const untilField=tier==='diamond'?'diamondBoostedUntil':'boostedUntil';
-    const startField=tier==='diamond'?'diamondBoostStartedAt':'boostStartedAt';
-    const activeCheck = i => tier==='diamond'
-      ? !!(i.diamondBoostedUntil && new Date(i.diamondBoostedUntil)>new Date())
-      : !!(i.boostedUntil && new Date(i.boostedUntil)>new Date());
-    if(card[field]){
-      card[field]=false; delete card[untilField]; delete card[startField];
-    } else {
-      if(activeCheck(card)){
-        this.showToast(LANG==='ru'?'У этой карточки уже активен платный буст.':'This listing already has a paid boost active.');
-        return;
-      }
-      const activeCount=this.getMyCards().filter(i=>i[field]).length;
-      if(!grant.unlimited && activeCount>=grant.limit){
-        this.showToast(LANG==='ru'?`Достигнут лимит бесплатных бустов (${grant.limit}).`:`Free boost limit reached (${grant.limit}).`);
-        return;
-      }
-      card[field]=true;
-      card[untilField]=grant.unlimited ? '2099-12-31T00:00:00.000Z' : grant.expiresAt;
-      card[startField]=new Date().toISOString();
-    }
-    LS.setJSON(cat.storeKey, items);
+    // Перечитываем реальное состояние с сервера — не подделываем локально.
+    const email = LS.get('cx_partner_session');
+    const listings = await CxApi.get('/api/partners/me');
+    this.account = cxBuildAccountFromServer(email, listings);
+    try { this.freeBoostGrants = await CxApi.get('/api/partners/me/free-boost-grants'); } catch(e) {}
     this.renderPlacements();
-  },
-  checkFreeFrameExpiry(){
-    if(!this.account) return;
-    const accounts=LS.getJSON('cx_partner_accounts',[]);
-    const acc=accounts.find(a=>a.id===this.account.id);
-    if(!acc || !acc.freeFrame) return;
-    ['gold','diamond'].forEach(tier=>{
-      const grant=acc.freeFrame[tier];
-      if(!grant || grant.unlimited || !grant.expiresAt) return;
-      if(new Date(grant.expiresAt) > new Date()) return;
-      const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-      const untilField=tier==='diamond'?'diamondBoostedUntil':'boostedUntil';
-      const startField=tier==='diamond'?'diamondBoostStartedAt':'boostStartedAt';
-      let changed=false;
-      Object.keys(PARTNER_TYPES).forEach(type=>{
-        const cat=PARTNER_TYPES[type];
-        const items=LS.getJSON(cat.storeKey,[]);
-        let localChanged=false;
-        items.forEach(i=>{
-          if(i.partnerId===this.account.id && i[field]){ i[field]=false; delete i[untilField]; delete i[startField]; changed=true; localChanged=true; }
-        });
-        if(localChanged) LS.setJSON(cat.storeKey, items);
-      });
-      if(changed){
-        const label=tier==='diamond'?(LANG==='ru'?'бриллиантового':'diamond'):(LANG==='ru'?'золотого':'gold');
-        this._notifyPartnerSelf(LANG==='ru'
-          ? `Период бесплатного пользования ${label} буста закончился. Хотите продолжить — можно приобрести буст самостоятельно.`
-          : `Your free ${label} boost period has ended. You can purchase the boost yourself to continue.`);
-        this.showToast(LANG==='ru'?`Бесплатный период ${label} буста закончился`:`Free ${label} boost period ended`);
-      }
-    });
   },
   openBoostModal(cardId, type, tier){
     tier = tier||'gold';
@@ -3659,6 +3615,8 @@ async function init(){
     try {
       const listings = await CxApi.get('/api/partners/me');
       PP.account = cxBuildAccountFromServer(email, listings);
+      try { PP.freeBoostGrants = await CxApi.get('/api/partners/me/free-boost-grants'); }
+      catch (e) { PP.freeBoostGrants = []; }
       PP.showApp();
       return;
     } catch (e) {

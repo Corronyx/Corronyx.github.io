@@ -1260,7 +1260,9 @@ function cxMapServerEventToLocal(e, accountId){
     free: !!e.free, price: e.price || '', desc: e.description || '',
     organizerName: e.organizer_name || '', phone: e.phone || '', contact: e.contact || '',
     poster: e.poster || '', posterVideoUrl: e.poster_video_url || '',
-    lat: e.lat, lng: e.lng, status: e.status, paid: !!e.paid, refCode: e.referred_by_code || null
+    lat: e.lat, lng: e.lng, status: e.status, paid: !!e.paid, refCode: e.referred_by_code || null,
+    frameTier: e.frame_tier || 'none', frameExpiresAtServer: e.frame_expires_at || null,
+    frameSource: e.frame_source || null
   };
 }
 async function cxRefreshEventsCache(accountId){
@@ -1272,6 +1274,13 @@ async function cxRefreshEventsCache(accountId){
   } catch (e) {
     console.error('Не удалось обновить афиши с сервера', e);
   }
+}
+// ДОБАВЛЕНО 23.09.2026: бесплатные рамки теперь выдаёт админ через сервер
+// (не localStorage account.freeFrame) — см. то же в partner-portal.html.
+let AP_freeFrameGrants = [];
+async function cxRefreshFreeFrameGrants(){
+  try { AP_freeFrameGrants = await CxApi.get('/api/afisha/me/free-frame-grants'); }
+  catch (e) { AP_freeFrameGrants = []; }
 }
 
 /* ---------- Оплата баллами реферала — перенесено из partner-portal.html (12.09.2026) ----------
@@ -1566,14 +1575,9 @@ function isDiamondFrameActive(card){
   if(acc && acc.unlimitedDiamondFrameForAll) return true;
   return !!(card.diamondFrameExpiresAt && new Date(card.diamondFrameExpiresAt) > new Date());
 }
-// Бесплатный ярус (05-06.09.2026) — грант выдаёт только админ (admin-dashboard.html
-// → «Бесплатные рамки»), хранится на аккаунте как account.freeFrame[tier]. Зеркало
-// ADM.isFreeFrameGrantUsable — синхронизировать при изменениях там.
-function isFreeFrameGrantUsable(grant){
-  if(!grant) return false;
-  if(grant.unlimited) return true;
-  return !!(grant.limit>0 && grant.expiresAt && new Date(grant.expiresAt) > new Date());
-}
+// ПЕРЕПИСАНО 23.09.2026: бесплатный ярус теперь целиком на сервере
+// (boost_grants + AP_freeFrameGrants) — см. renderEvents/toggleFreeFrame.
+// Старая isFreeFrameGrantUsable(grant) на localStorage.account.freeFrame удалена.
 function isPermanentlyClosed(card){
   if(isAfishaUnlimited(card)) return false;
   if(!card.expiresAt) return false;
@@ -1788,6 +1792,7 @@ const AP = {
     LS.set(SESSION_KEY, email);
     this.account = { id: 'srv_'+email, email, name: me.name || email };
     await cxRefreshEventsCache(this.account.id);
+    await cxRefreshFreeFrameGrants();
     this.showApp();
   },
 
@@ -1962,7 +1967,6 @@ const AP = {
 
   /* ---- Events list ---- */
   renderEvents(){
-    this.checkFreeFrameExpiry();
     this.renderDocsKpBlock();
     this.renderPaymentDue();
     const list=document.getElementById('eventsList');
@@ -2065,21 +2069,20 @@ const AP = {
           }
         });
       }
-      // Бесплатный ярус (05-06.09.2026): показываем переключатель, только если
-      // у аккаунта вообще есть пригодный грант этого яруса — иначе блок скрыт
-      // полностью (не захламляем карточку для тех, кому бонус не выдавали).
+      // Бесплатный ярус — ПЕРЕПИСАНО 23.09.2026 на серверный источник правды
+      // (AP_freeFrameGrants + card.frameTier/frameSource), см. то же в
+      // partner-portal.html. Срок гранта может быть бессрочным, количество —
+      // всегда конкретное число (решение владельца 23.09.2026).
       let freeFrameHtml='';
       if(dispStatus!=='pending'){
-        const acc=LS.getJSON(ACC_KEY,[]).find(a=>a.id===this.account.id);
-        ['gold','diamond'].forEach(tier=>{
-          const grant=acc?.freeFrame?.[tier];
-          if(!isFreeFrameGrantUsable(grant)) return;
-          const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-          const isOn=!!card[field];
-          const activeCount=this.getMyEvents().filter(i=>i[field]).length;
+        AP_freeFrameGrants.filter(g=>g.tier==='gold'||g.tier==='diamond').forEach(grant=>{
+          const tier=grant.tier;
+          const isOn = card.frameSource==='admin_grant' && card.frameTier===tier;
           const label=tier==='diamond'?'💎 бриллиантовую':'🖼️ золотую';
           const labelEn=tier==='diamond'?'💎 diamond':'🖼️ gold';
-          const limitStr=grant.unlimited?(LANG==='ru'?'без ограничений':'unlimited'):`${activeCount}/${grant.limit}`;
+          const limitStr=grant.expires_at
+            ? `${grant.used}/${grant.limit_count}`
+            : (LANG==='ru'?`${grant.used}/${grant.limit_count} (бессрочно)`:`${grant.used}/${grant.limit_count} (no end date)`);
           const otherPaidActive=(tier==='diamond'?isDiamondFrameActive(card):isFrameActive(card)) && !isOn;
           freeFrameHtml+=`<div style="font-size:12px; color:${isOn?'var(--ok)':'var(--muted)'}; background:rgba(26,28,32,.03); border:1px solid rgba(26,28,32,.08); border-radius:8px; padding:8px 10px; margin-top:8px;">
             🎁 ${LANG==='ru'?`Бесплатная ${label} рамка (доступно администратором)`:`Free ${labelEn} frame (granted by admin)`} — ${limitStr}
@@ -3148,75 +3151,26 @@ const AP = {
     const usdAmt=+LS.get(prefix+'_price_usd')||0;
     return {days, ru:ruAmt, usd:usdAmt};
   },
-  /* ---- Бесплатный ярус рамки (05-06.09.2026) — грант выдаёт только админ
-     (см. admin-dashboard.html → «Бесплатные рамки»), здесь только применение
-     на своих афишах в пределах разрешённого счётчика. Использует ТЕ ЖЕ поля
-     (frameExpiresAt/framePurchasedAt, diamondFrameExpiresAt/...), что и
-     платная рамка — isFrameActive/isDiamondFrameActive в index.html не
-     нужно ничего знать про "бесплатно это или платно". Отдельные булевы
-     freeGoldFrame/freeDiamondFrame — только чтобы отличать "это выключил бы
-     я" от чужого платного статуса при авто-истечении гранта. */
-  toggleFreeFrame(cardId, tier){
-    const acc=LS.getJSON(ACC_KEY,[]).find(a=>a.id===this.account.id);
-    const grant=acc?.freeFrame?.[tier];
-    if(!grant || !isFreeFrameGrantUsable(grant)){
-      this.showToast(LANG==='ru'?'Бесплатный доступ для этого яруса сейчас недоступен.':'Free access for this tier is not available right now.');
+  /* ---- Бесплатный ярус рамки — ПЕРЕПИСАНО 23.09.2026 на серверный API
+     (AP_freeFrameGrants + /api/afisha/:id/free-frame). Срок гранта гасится
+     на сервере (sweepExpiredFreeBoosts, раз в сутки) — клиент больше не
+     симулирует истечение сам, только показывает актуальное состояние после
+     каждого обновления списка с сервера (cxRefreshEventsCache). ---- */
+  async toggleFreeFrame(cardId, tier){
+    const card=this.getMyEvents().find(i=>i.id===cardId);
+    if(!card || !card.serverId) return;
+    const isOn = card.frameSource==='admin_grant' && card.frameTier===tier;
+    try {
+      await CxApi.post('/api/afisha/'+card.serverId+'/free-frame', { tier, on: !isOn });
+    } catch(e) {
+      if(e.status===403) this.showToast(LANG==='ru'?'Бесплатный доступ для этого яруса сейчас недоступен.':'Free access for this tier is not available right now.');
+      else if(e.status===409) this.showToast(LANG==='ru'?'Достигнут лимит бесплатных рамок для этого тарифа.':'Free frame limit reached for this tier.');
+      else this.showToast(LANG==='ru'?'Не удалось изменить рамку. Попробуйте ещё раз.':'Could not change the frame. Please try again.');
       return;
     }
-    const items=LS.getJSON(STORE_KEY,[]);
-    const card=items.find(i=>i.id===cardId);
-    if(!card) return;
-    const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-    const expField=tier==='diamond'?'diamondFrameExpiresAt':'frameExpiresAt';
-    const purField=tier==='diamond'?'diamondFramePurchasedAt':'framePurchasedAt';
-    const activeCheck=tier==='diamond'?isDiamondFrameActive:isFrameActive;
-    if(card[field]){
-      card[field]=false; delete card[expField]; delete card[purField];
-    } else {
-      if(activeCheck(card)){
-        this.showToast(LANG==='ru'?'У этой афиши уже активна платная рамка.':'This listing already has a paid frame active.');
-        return;
-      }
-      const activeCount=items.filter(i=>i.ownerId===this.account.id && i[field]).length;
-      if(!grant.unlimited && activeCount>=grant.limit){
-        this.showToast(LANG==='ru'?`Достигнут лимит бесплатных рамок (${grant.limit}).`:`Free frame limit reached (${grant.limit}).`);
-        return;
-      }
-      card[field]=true;
-      card[expField]=grant.unlimited ? '2099-12-31T00:00:00.000Z' : grant.expiresAt;
-      card[purField]=new Date().toISOString();
-    }
-    LS.setJSON(STORE_KEY, items);
+    await cxRefreshEventsCache(this.account.id);
+    await cxRefreshFreeFrameGrants();
     this.renderEvents();
-  },
-  checkFreeFrameExpiry(){
-    if(!this.account) return;
-    const accounts=LS.getJSON(ACC_KEY,[]);
-    const acc=accounts.find(a=>a.id===this.account.id);
-    if(!acc || !acc.freeFrame) return;
-    ['gold','diamond'].forEach(tier=>{
-      const grant=acc.freeFrame[tier];
-      if(!grant || grant.unlimited || !grant.expiresAt) return;
-      if(new Date(grant.expiresAt) > new Date()) return;
-      const field=tier==='diamond'?'freeDiamondFrame':'freeGoldFrame';
-      const expField=tier==='diamond'?'diamondFrameExpiresAt':'frameExpiresAt';
-      const purField=tier==='diamond'?'diamondFramePurchasedAt':'framePurchasedAt';
-      const items=LS.getJSON(STORE_KEY,[]);
-      let changed=false;
-      items.forEach(i=>{
-        if(i.ownerId===this.account.id && i[field]){ i[field]=false; delete i[expField]; delete i[purField]; changed=true; }
-      });
-      if(changed){
-        LS.setJSON(STORE_KEY, items);
-        const notes=LS.getJSON('cx_afisha_notif_'+this.account.id, []);
-        const label=tier==='diamond'?(LANG==='ru'?'бриллиантовой':'diamond'):(LANG==='ru'?'золотой':'gold');
-        notes.unshift({id:'N'+Date.now(), text:(LANG==='ru'
-          ?`Период бесплатного пользования ${label} рамкой закончился. Хотите продолжить — можно приобрести рамку самостоятельно.`
-          :`Your free ${label} frame period has ended. You can purchase the frame yourself to continue.`), read:false, createdAt:new Date().toISOString()});
-        LS.setJSON('cx_afisha_notif_'+this.account.id, notes);
-        this.showToast(LANG==='ru'?`Бесплатный период ${label} рамки закончился`:`Free ${label} frame period ended`);
-      }
-    });
   },
 
   requestFrame(id, tier='gold'){
@@ -3781,6 +3735,7 @@ async function init(){
       const me = await CxApi.get('/api/auth/me');
       const account = { id: 'srv_'+email, email, name: me.name || email };
       await cxRefreshEventsCache(account.id);
+      await cxRefreshFreeFrameGrants();
       AP.account = account;
       AP.showApp();
       return;
