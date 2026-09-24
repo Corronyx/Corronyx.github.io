@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://corronyx.github.io/sitemap.xml
