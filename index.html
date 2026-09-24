@@ -7477,7 +7477,12 @@ function positionConciergeBtn(bannerVisible){
   const existing = LS.getJSON('cx_cookie_consent', null);
   if(!existing){
     document.getElementById('cookieBanner').style.display='block';
-    requestAnimationFrame(()=>positionConciergeBtn(true));
+    // 24.09.2026: та же защита, что в остальных 3 файлах (там был реальный
+    // баг — кнопка ниже скрипта в HTML, positionConciergeBtn её не находил).
+    // Здесь кнопка и так выше по коду, но событие надёжнее порядка строк.
+    const reposition = () => positionConciergeBtn(true);
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', reposition); }
+    else { reposition(); }
     window.addEventListener('resize', ()=>{ if(document.getElementById('cookieBanner').style.display!=='none') positionConciergeBtn(true); });
   }
 })();

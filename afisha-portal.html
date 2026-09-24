@@ -3830,7 +3830,19 @@ function cookieChoice(choice){
 }
 (function initCookieBanner(){
   const existing = LS.getJSON('cx_cookie_consent', null);
-  if(!existing){ document.getElementById('cookieBanner').style.display='block'; requestAnimationFrame(()=>requestAnimationFrame(()=>positionAiBtn(true))); }
+  if(!existing){
+    document.getElementById('cookieBanner').style.display='block';
+    // ИСПРАВЛЕНО 24.09.2026: кнопка #aiWidgetBtn описана в HTML НИЖЕ этого
+    // скрипта — на момент выполнения её ещё нет в DOM, positionAiBtn(true)
+    // молча ничего не находил (if(!btn) return), кнопка оставалась на
+    // bottom:24px и её перекрывал баннер (найдено на скриншотах владельца).
+    // requestAnimationFrame не спасал — дело не в тайминге, а в порядке
+    // разбора HTML. Ждём DOMContentLoaded — гарантированно весь HTML уже
+    // разобран, кнопка точно существует.
+    const reposition = () => positionAiBtn(true);
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', reposition); }
+    else { reposition(); }
+  }
 })();
 </script>
 

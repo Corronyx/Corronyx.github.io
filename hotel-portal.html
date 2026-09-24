@@ -7568,7 +7568,12 @@ function positionAiBtn(bannerVisible){
   const existing = LS.getJSON('cx_cookie_consent', null);
   if(!existing){
     document.getElementById('cookieBanner').style.display='block';
-    requestAnimationFrame(()=>positionAiBtn(true));
+    // ИСПРАВЛЕНО 24.09.2026: см. тот же комментарий в afisha-portal.html —
+    // кнопка #aiWidgetBtn описана в HTML ниже этого скрипта, requestAnimationFrame
+    // не помогал, т.к. дело в порядке разбора HTML, а не в тайминге кадра.
+    const reposition = () => positionAiBtn(true);
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', reposition); }
+    else { reposition(); }
     window.addEventListener('resize', ()=>{ if(document.getElementById('cookieBanner').style.display!=='none') positionAiBtn(true); });
   }
 })();
