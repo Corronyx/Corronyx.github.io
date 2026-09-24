@@ -14,9 +14,11 @@
      главный экран телефона, закладки. Раньше сайт не имел значка вовсе (браузер показывал пустой лист).
      Тот же файл svg встроен во все 5 файлов проекта — правка цвета/формы делается в одном месте
      (см. /home/claude/logo/cx.svg в пакете передачи) и копируется. -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTdDODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTU0RCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNTEzMEEiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWYiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZm9udC13ZWlnaHQ9IjcwMCIKICAgICAgICBmb250LXNpemU9IjM0IiBsZXR0ZXItc3BhY2luZz0iLTMiIGZpbGw9InVybCgjZykiPkNYPC90ZXh0Pgo8L3N2Zz4K">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRTdDODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTU0RCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMxNTEzMEEiLz4KICA8dGV4dCB4PSIzMiIgeT0iNDMiIHRleHQtYW5jaG9yPSJtaWRkbGUiCiAgICAgICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdQbGF5ZmFpciBEaXNwbGF5Jywgc2VyaWYiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZm9udC13ZWlnaHQ9IjcwMCIKICAgICAgICBmb250LXNpemU9IjM0IiBsZXR0ZXItc3BhY2luZz0iLTMiIGZpbGw9InVybCgjZykiPkNYPC90ZXh0Pgo8L3N2Zz4K">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <title>Corronyx — Админ-панель</title>
+<meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=Playfair+Display:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=DM+Sans:wght@400;500;700&family=Cormorant+Garamond:ital,wght@1,600;1,700&family=Spectral:ital,wght@1,600;1,700&family=Bad+Script&display=swap" rel="stylesheet">
 <!-- П.9 (28.08.2026): нужна для реальной тестовой отправки письма из "Секретная
@@ -5767,16 +5769,58 @@ const ADM = {
     }).join('');
   },
 
+  // ---- Тарифы партнёров — ПЕРЕПИСАНО 23.09.2026 на серверный API ----
+  // Раньше цены хранились в localStorage (cx_global_{gKey}_price и т.п.) и на
+  // сервер вообще не попадали — партнёрский портал брал реальную цену через
+  // /api/pricing (computeFee), которая читает НАСТОЯЩИЕ ключи вида
+  // fee_{type}, boost_gold_{type}, boost_diamond_{type} (и с суффиксом _usd)
+  // из platform_settings. Ключ строится от cat.KEY (совпадает с типом
+  // партнёра на сервере — 'restaurant','realtor' и т.п.), а НЕ от cat.gKey
+  // (короткого 'rs'/'rt' — это был чисто локальный алиас для localStorage,
+  // на сервере такого не существует). Решение владельца 23.09.2026: цены
+  // будут меняться часто (тестирование спроса, акции) — механизм должен
+  // одинаково работать что при первой цене, что при сотом изменении, без
+  // ограничений на частоту.
+  _pricingKey(catKey, kind, currency, subKey){
+    const prefix = kind==='fee' ? 'fee' : (kind==='boost' ? 'boost_gold' : 'boost_diamond');
+    const base = subKey ? `${prefix}_${catKey}_${subKey}` : `${prefix}_${catKey}`;
+    return currency==='usd' ? `${base}_usd` : base;
+  },
+  async _cxSavePricingKey(key, value){
+    try {
+      await CxApi.post('/api/admin/settings/'+key, { value: value===''||value==null ? '' : String(value) });
+    } catch(e) { toast('Не удалось сохранить цену на сервере', 'error'); }
+  },
   renderPartnerGlobalPriceBlock(){
     const cat=this.getPartnerCat(this._activePartnerCat);
     const block=document.getElementById('partnerGlobalPriceBlock');
     if(!cat || !block) return;
+    if(!cxAdminConnected()){
+      cxRenderServerLoginGate(block, () => { this.renderPartnerGlobalPriceBlock(); this.renderPartnerSubgroupPriceBlock(); });
+      return;
+    }
+    this._pgpRenderReal(cat, block);
+  },
+  async _pgpRenderReal(cat, block){
     const priceRu=LS.get('cx_global_'+cat.gKey+'_price')||'';
     const priceUsd=LS.get('cx_global_'+cat.gKey+'_price_usd')||'';
     const boostRu=LS.get('cx_global_'+cat.gKey+'_boost_price')||'';
     const boostUsd=LS.get('cx_global_'+cat.gKey+'_boost_price_usd')||'';
     const diamondRu=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price')||'';
     const diamondUsd=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price_usd')||'';
+    let settings;
+    try { settings = await CxApi.get('/api/admin/settings'); }
+    catch(e) {
+      if(e.status===401||e.status===403){ LS.remove('cx_admin_server_jwt'); this.renderPartnerGlobalPriceBlock(); return; }
+      block.innerHTML = '<p style="color:var(--err);">Не удалось загрузить цены с сервера.</p>';
+      return;
+    }
+    const priceRu=settings[this._pricingKey(cat.key,'fee','ru')]||'';
+    const priceUsd=settings[this._pricingKey(cat.key,'fee','usd')]||'';
+    const boostRu=settings[this._pricingKey(cat.key,'boost','ru')]||'';
+    const boostUsd=settings[this._pricingKey(cat.key,'boost','usd')]||'';
+    const diamondRu=settings[this._pricingKey(cat.key,'diamond','ru')]||'';
+    const diamondUsd=settings[this._pricingKey(cat.key,'diamond','usd')]||'';
     block.innerHTML=`
       <div style="flex-basis:100%; display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;">
         <div style="font-weight:600; font-size:14px; display:flex; align-items:center; gap:8px;">${swBadge(cat.icon,24)} ${esc(LANG==='ru'?cat.ru:cat.en)}</div>
@@ -5785,24 +5829,24 @@ const ADM = {
       <div>
         <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">${LANG==='ru'?'Ежемесячная плата — Россия (₽)':'Monthly fee — Russia (₽)'}</div>
         <input type="number" min="0" id="pgpRu" style="width:150px;" value="${esc(priceRu)}" placeholder="напр. 3000"
-          data-usd-target="pgpUsd" oninput="onRubPriceInput(this); ADM.saveActiveCategoryPrice('ru', this.value)">
+          data-usd-target="pgpUsd" oninput="onRubPriceInput(this)" onchange="ADM.saveActiveCategoryPrice('ru', this.value)">
       </div>
       <div>
         <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">${LANG==='ru'?'Ежемесячная плата — зарубежные ($)':'Monthly fee — international ($)'}</div>
         <input type="number" min="0" id="pgpUsd" style="width:150px;" value="${esc(priceUsd)}" placeholder="напр. 40"
-          oninput="onUsdPriceInput(this); ADM.saveActiveCategoryPrice('usd', this.value)">
+          oninput="onUsdPriceInput(this)" onchange="ADM.saveActiveCategoryPrice('usd', this.value)">
       </div>
-      <div style="display:flex; align-items:flex-end;"><span style="font-size:12px; color:var(--muted);">${LANG==='ru'?'Подставляется в партнёрский портал. Доллар — по курсу, можно поправить.':'Auto-applied in the partner portal. USD is suggested by rate — editable.'}</span></div>
+      <div style="display:flex; align-items:flex-end;"><span style="font-size:12px; color:var(--muted);">${LANG==='ru'?'Подставляется в партнёрский портал напрямую с сервера. Доллар — по курсу, можно поправить.':'Applied in the partner portal straight from the server. USD is suggested by rate — editable.'}</span></div>
       <div style="flex-basis:100%; height:0;"></div>
       <div>
         <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">🚀 ${LANG==='ru'?'Продвижение в топ на 30 дней — Россия (₽)':'Boost to top for 30 days — Russia (₽)'}</div>
         <input type="number" min="0" id="pgpBoostRu" style="width:150px;" value="${esc(boostRu)}" placeholder="напр. 1500"
-          data-usd-target="pgpBoostUsd" oninput="onRubPriceInput(this); ADM.saveActiveCategoryBoostPrice('ru', this.value)">
+          data-usd-target="pgpBoostUsd" oninput="onRubPriceInput(this)" onchange="ADM.saveActiveCategoryBoostPrice('ru', this.value)">
       </div>
       <div>
         <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">🚀 ${LANG==='ru'?'Продвижение в топ — зарубежные ($)':'Boost to top — international ($)'}</div>
         <input type="number" min="0" id="pgpBoostUsd" style="width:150px;" value="${esc(boostUsd)}" placeholder="напр. 20"
-          oninput="onUsdPriceInput(this); ADM.saveActiveCategoryBoostPrice('usd', this.value)">
+          oninput="onUsdPriceInput(this)" onchange="ADM.saveActiveCategoryBoostPrice('usd', this.value)">
       </div>
       <div style="flex-basis:100%; font-size:12px; color:${(boostRu||boostUsd)?'var(--ok)':'var(--warn)'}; margin-top:2px;">
         ${(boostRu||boostUsd)
@@ -5813,12 +5857,12 @@ const ADM = {
       <div>
         <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">💎 ${LANG==='ru'?'Бриллиантовый буст на 30 дней — Россия (₽)':'Diamond boost for 30 days — Russia (₽)'}</div>
         <input type="number" min="0" id="pgpDiamondRu" style="width:150px;" value="${esc(diamondRu)}" placeholder="напр. 3000"
-          data-usd-target="pgpDiamondUsd" oninput="onRubPriceInput(this); ADM.saveActiveCategoryDiamondBoostPrice('ru', this.value)">
+          data-usd-target="pgpDiamondUsd" oninput="onRubPriceInput(this)" onchange="ADM.saveActiveCategoryDiamondBoostPrice('ru', this.value)">
       </div>
       <div>
         <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">💎 ${LANG==='ru'?'Бриллиантовый буст — зарубежные ($)':'Diamond boost — international ($)'}</div>
         <input type="number" min="0" id="pgpDiamondUsd" style="width:150px;" value="${esc(diamondUsd)}" placeholder="напр. 40"
-          oninput="onUsdPriceInput(this); ADM.saveActiveCategoryDiamondBoostPrice('usd', this.value)">
+          oninput="onUsdPriceInput(this)" onchange="ADM.saveActiveCategoryDiamondBoostPrice('usd', this.value)">
       </div>
       <div style="flex-basis:100%; font-size:12px; color:${(diamondRu||diamondUsd)?'var(--ok)':'var(--warn)'}; margin-top:2px;">
         ${(diamondRu||diamondUsd)
@@ -5827,51 +5871,58 @@ const ADM = {
       </div>
     `;
   },
-  saveActiveCategoryPrice(which, value){
+  async saveActiveCategoryPrice(which, value){
     const cat=this.getPartnerCat(this._activePartnerCat);
     if(!cat) return;
-    LS.set('cx_global_'+cat.gKey+(which==='usd'?'_price_usd':'_price'), value);
+    await this._cxSavePricingKey(this._pricingKey(cat.key,'fee',which), value);
     this.renderKP();
   },
-  saveActiveCategoryBoostPrice(which, value){
+  async saveActiveCategoryBoostPrice(which, value){
     const cat=this.getPartnerCat(this._activePartnerCat);
     if(!cat) return;
-    LS.set('cx_global_'+cat.gKey+(which==='usd'?'_boost_price_usd':'_boost_price'), value);
+    await this._cxSavePricingKey(this._pricingKey(cat.key,'boost',which), value);
+    this.renderPartnerGlobalPriceBlock();
   },
-  saveActiveCategoryDiamondBoostPrice(which, value){
+  async saveActiveCategoryDiamondBoostPrice(which, value){
     const cat=this.getPartnerCat(this._activePartnerCat);
     if(!cat) return;
-    LS.set('cx_global_'+cat.gKey+(which==='usd'?'_diamond_boost_price_usd':'_diamond_boost_price'), value);
+    await this._cxSavePricingKey(this._pricingKey(cat.key,'diamond',which), value);
+    this.renderPartnerGlobalPriceBlock();
   },
 
   // ---- Цены по подгруппам (Красота/Медицина/Здоровье и отдых/Юр. услуги) ----
-  // Хранятся теми же ключами, что и цена категории, только с добавлением
-  // ключа подгруппы: cx_global_{gKey}_{subKey}_price(_usd). Это позволило
-  // не менять формат хранения — партнёрский портал читает подгруппу тем же
-  // способом, что и категорию целиком (см. getSubgroupPriceRaw в partner-portal.html).
-  renderPartnerSubgroupPriceBlock(){
+  // Ключ подгруппы на сервере — fee_{type}_{subKey}(_usd) и т.п., см. computeFee
+  // в server.js (учитывает подгруппу поверх цены всей категории).
+  async renderPartnerSubgroupPriceBlock(){
     const cat=this.getPartnerCat(this._activePartnerCat);
     const block=document.getElementById('partnerSubgroupPriceBlock');
     if(!block) return;
     if(!cat){ block.innerHTML=''; return; }
     const subs = cat.subgroups || [];
+    if(!subs.length){
+      block.innerHTML = `<div style="padding:14px 16px; background:rgba(184,149,77,.04); border-radius:12px; border:1px solid rgba(184,149,77,.15); font-size:12px; color:var(--muted);">${LANG==='ru'?'У этой категории пока нет подгрупп.':'This category has no subgroups yet.'}</div>`;
+      return;
+    }
+    if(!cxAdminConnected()) return; // основной блок выше уже покажет форму входа
+    let settings;
+    try { settings = await CxApi.get('/api/admin/settings'); } catch(e) { return; }
     const rows = subs.map(s=>{
-      const priceRu = LS.get('cx_global_'+cat.gKey+'_'+s.key+'_price') || '';
-      const priceUsd = LS.get('cx_global_'+cat.gKey+'_'+s.key+'_price_usd') || '';
-      const boostRu = LS.get('cx_global_'+cat.gKey+'_'+s.key+'_boost_price') || '';
-      const boostUsd = LS.get('cx_global_'+cat.gKey+'_'+s.key+'_boost_price_usd') || '';
+      const priceRu = settings[this._pricingKey(cat.key,'fee','ru',s.key)] || '';
+      const priceUsd = settings[this._pricingKey(cat.key,'fee','usd',s.key)] || '';
+      const boostRu = settings[this._pricingKey(cat.key,'boost','ru',s.key)] || '';
+      const boostUsd = settings[this._pricingKey(cat.key,'boost','usd',s.key)] || '';
       return `
         <div style="display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid rgba(26,28,32,.06); flex-wrap:wrap;">
           <div style="min-width:220px; font-size:13px; display:flex; align-items:center; gap:8px;">${swBadge(s.icon, 26)} ${esc(LANG==='ru'?s.ru:s.en)}</div>
           <input type="number" min="0" id="subPrice_${cat.gKey}_${s.key}_ru" style="width:130px;" value="${esc(priceRu)}" placeholder="₽, напр. 3000"
-            data-usd-target="subPrice_${cat.gKey}_${s.key}_usd" oninput="onRubPriceInput(this); ADM.saveSubgroupPrice('${s.key}','ru', this.value)">
+            data-usd-target="subPrice_${cat.gKey}_${s.key}_usd" oninput="onRubPriceInput(this)" onchange="ADM.saveSubgroupPrice('${s.key}','ru', this.value)">
           <input type="number" min="0" id="subPrice_${cat.gKey}_${s.key}_usd" style="width:130px;" value="${esc(priceUsd)}" placeholder="$, напр. 40"
-            oninput="onUsdPriceInput(this); ADM.saveSubgroupPrice('${s.key}','usd', this.value)">
+            oninput="onUsdPriceInput(this)" onchange="ADM.saveSubgroupPrice('${s.key}','usd', this.value)">
           <span style="color:var(--muted); font-size:12px;">🚀</span>
           <input type="number" min="0" id="subBoost_${cat.gKey}_${s.key}_ru" style="width:110px;" value="${esc(boostRu)}" placeholder="Буст ₽"
-            data-usd-target="subBoost_${cat.gKey}_${s.key}_usd" oninput="onRubPriceInput(this); ADM.saveSubgroupBoostPrice('${s.key}','ru', this.value)">
+            data-usd-target="subBoost_${cat.gKey}_${s.key}_usd" oninput="onRubPriceInput(this)" onchange="ADM.saveSubgroupBoostPrice('${s.key}','ru', this.value)">
           <input type="number" min="0" id="subBoost_${cat.gKey}_${s.key}_usd" style="width:110px;" value="${esc(boostUsd)}" placeholder="Буст $"
-            oninput="onUsdPriceInput(this); ADM.saveSubgroupBoostPrice('${s.key}','usd', this.value)">
+            oninput="onUsdPriceInput(this)" onchange="ADM.saveSubgroupBoostPrice('${s.key}','usd', this.value)">
           <button type="button" class="btn btn-sm btn-err" onclick="ADM.removeSubgroup('${s.key}')" title="${LANG==='ru'?'Удалить подгруппу':'Delete subgroup'}">🗑</button>
         </div>`;
     }).join('');
@@ -5880,18 +5931,17 @@ const ADM = {
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
           <div style="font-weight:600; font-size:14px;">${LANG==='ru'?'Цены по подгруппам':'Prices by subgroup'}</div>
           <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            ${subs.length ? `<button type="button" class="btn btn-ghost btn-sm" onclick="ADM.applyGroupPriceToAllSubgroups()">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="ADM.applyGroupPriceToAllSubgroups()">
               ${LANG==='ru'?'⬇️ Применить цену группы ко всем подгруппам':'⬇️ Apply group price to all subgroups'}
-            </button>` : ''}
+            </button>
             <button type="button" class="btn btn-ghost btn-sm" onclick="ADM.showAddSubgroupModal()">
               ${LANG==='ru'?'+ Добавить подгруппу':'+ Add subgroup'}
             </button>
           </div>
         </div>
-        ${subs.length ? `<div style="font-size:12px; color:var(--muted); margin-bottom:8px;">${LANG==='ru'
+        <div style="font-size:12px; color:var(--muted); margin-bottom:8px;">${LANG==='ru'
           ?'Первая пара полей — ежемесячная плата за размещение. Вторая пара (🚀) — цена подъёма карточки в топ. Если для подгруппы цену не задать — партнёрский портал по умолчанию использует цену всей группы сверху (для обеих пар отдельно).'
-          :'The first pair of fields is the monthly placement fee. The second pair (🚀) is the boost-to-top price. If a subgroup price is left blank, the partner portal falls back to the group price above (separately for each pair).'}</div>`
-          : `<div style="font-size:12px; color:var(--muted);">${LANG==='ru'?'У этой категории пока нет подгрупп.':'This category has no subgroups yet.'}</div>`}
+          :'The first pair of fields is the monthly placement fee. The second pair (🚀) is the boost-to-top price. If a subgroup price is left blank, the partner portal falls back to the group price above (separately for each pair).'}</div>
         ${rows}
       </div>`;
   },
@@ -5941,15 +5991,15 @@ const ADM = {
     this.renderPartnerSubgroupPriceBlock();
     this.renderPartnerCategory();
   },
-  saveSubgroupPrice(subKey, which, value){
+  async saveSubgroupPrice(subKey, which, value){
     const cat=this.getPartnerCat(this._activePartnerCat);
     if(!cat) return;
-    LS.set('cx_global_'+cat.gKey+'_'+subKey+(which==='usd'?'_price_usd':'_price'), value);
+    await this._cxSavePricingKey(this._pricingKey(cat.key,'fee',which,subKey), value);
   },
-  saveSubgroupBoostPrice(subKey, which, value){
+  async saveSubgroupBoostPrice(subKey, which, value){
     const cat=this.getPartnerCat(this._activePartnerCat);
     if(!cat) return;
-    LS.set('cx_global_'+cat.gKey+'_'+subKey+(which==='usd'?'_boost_price_usd':'_boost_price'), value);
+    await this._cxSavePricingKey(this._pricingKey(cat.key,'boost',which,subKey), value);
   },
   // Кнопка-удобство: одним кликом копирует уже заданную цену группы во ВСЕ
   // подгруппы разом (запросил Алексей — "цена на группу, которая будет
@@ -5957,24 +6007,29 @@ const ADM = {
   // подгруппы всё ещё можно поправить точечно, не трогая остальные. С 16.08.2026
   // копирует так же и цену буста (🚀), не только ежемесячную плату — иначе
   // при создании новой подгруппы буст молча оставался бы незаданным.
-  applyGroupPriceToAllSubgroups(){
+  // ПЕРЕПИСАНО 23.09.2026: читает/пишет те же серверные ключи, что и остальной
+  // блок цен (см. _pricingKey выше) — раньше был localStorage.
+  async applyGroupPriceToAllSubgroups(){
     const cat=this.getPartnerCat(this._activePartnerCat);
     if(!cat || !(cat.subgroups||[]).length) return;
-    const priceRu=LS.get('cx_global_'+cat.gKey+'_price')||'';
-    const priceUsd=LS.get('cx_global_'+cat.gKey+'_price_usd')||'';
-    const boostRu=LS.get('cx_global_'+cat.gKey+'_boost_price')||'';
-    const boostUsd=LS.get('cx_global_'+cat.gKey+'_boost_price_usd')||'';
-    const diamondRu=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price')||'';
-    const diamondUsd=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price_usd')||'';
-    cat.subgroups.forEach(s=>{
-      LS.set('cx_global_'+cat.gKey+'_'+s.key+'_price', priceRu);
-      LS.set('cx_global_'+cat.gKey+'_'+s.key+'_price_usd', priceUsd);
-      LS.set('cx_global_'+cat.gKey+'_'+s.key+'_boost_price', boostRu);
-      LS.set('cx_global_'+cat.gKey+'_'+s.key+'_boost_price_usd', boostUsd);
-      LS.set('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price', diamondRu);
-      LS.set('cx_global_'+cat.gKey+'_'+s.key+'_diamond_boost_price_usd', diamondUsd);
-    });
+    let settings;
+    try { settings = await CxApi.get('/api/admin/settings'); } catch(e) { toast('Не удалось прочитать цены с сервера', 'error'); return; }
+    const priceRu=settings[this._pricingKey(cat.key,'fee','ru')]||'';
+    const priceUsd=settings[this._pricingKey(cat.key,'fee','usd')]||'';
+    const boostRu=settings[this._pricingKey(cat.key,'boost','ru')]||'';
+    const boostUsd=settings[this._pricingKey(cat.key,'boost','usd')]||'';
+    const diamondRu=settings[this._pricingKey(cat.key,'diamond','ru')]||'';
+    const diamondUsd=settings[this._pricingKey(cat.key,'diamond','usd')]||'';
+    for(const s of cat.subgroups){
+      await this._cxSavePricingKey(this._pricingKey(cat.key,'fee','ru',s.key), priceRu);
+      await this._cxSavePricingKey(this._pricingKey(cat.key,'fee','usd',s.key), priceUsd);
+      await this._cxSavePricingKey(this._pricingKey(cat.key,'boost','ru',s.key), boostRu);
+      await this._cxSavePricingKey(this._pricingKey(cat.key,'boost','usd',s.key), boostUsd);
+      await this._cxSavePricingKey(this._pricingKey(cat.key,'diamond','ru',s.key), diamondRu);
+      await this._cxSavePricingKey(this._pricingKey(cat.key,'diamond','usd',s.key), diamondUsd);
+    }
     this.renderPartnerSubgroupPriceBlock();
+    toast(LANG==='ru'?'Цена группы применена ко всем подгруппам':'Group price applied to all subgroups');
   },
 
   // Заменяет renderRealtors/renderTravelAgencies/renderExcursions/renderRestaurants —
