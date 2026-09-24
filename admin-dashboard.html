@@ -5802,12 +5802,6 @@ const ADM = {
     this._pgpRenderReal(cat, block);
   },
   async _pgpRenderReal(cat, block){
-    const priceRu=LS.get('cx_global_'+cat.gKey+'_price')||'';
-    const priceUsd=LS.get('cx_global_'+cat.gKey+'_price_usd')||'';
-    const boostRu=LS.get('cx_global_'+cat.gKey+'_boost_price')||'';
-    const boostUsd=LS.get('cx_global_'+cat.gKey+'_boost_price_usd')||'';
-    const diamondRu=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price')||'';
-    const diamondUsd=LS.get('cx_global_'+cat.gKey+'_diamond_boost_price_usd')||'';
     let settings;
     try { settings = await CxApi.get('/api/admin/settings'); }
     catch(e) {
