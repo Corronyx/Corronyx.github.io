@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru" dir="ltr">
-<head>
+<head><script>window.CX_API_BASE="https://corronyx-api-test.onrender.com";</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google" content="notranslate">
@@ -2014,7 +2014,7 @@ function cxPriceBody(v){ return cxHotelCurH(typeof HP!=='undefined' ? HP.hotel :
 function cxBkTotal(b){ return b.total_price!=null ? b.total_price : b.total_price_rub; }
 function cxBkPoints(b){ const p=b.points_applied||0; return (b.currency==='USD' && b.usd_rate>0) ? Math.round(p/b.usd_rate*100)/100 : p; }
 function cxIsEmailDownH(e){ return !!(e && ((e.payload && e.payload.error==='email_unavailable') || (e.status===503 && !(e.payload && e.payload.error && e.payload.error!=='email_unavailable')))); }
-function cxEmailDownMsgH(){ try{ const C=window.CxI18n; if(C){ if(typeof C.errText==='function'){ const s=C.errText({error:'email_unavailable'}); if(s && String(s).indexOf('email_unavailable')<0) return s; } if(typeof C.dict==='function'){ const v=(C.dict(LANG)||{}).email_unavailable; if(typeof v==='string' && v) return v; } } }catch(x){} return t('err_email_unavailable_msg'); }
+function cxEmailDownMsgH(){ try{ const C=window.CxI18n; if(C){ if(typeof C.errText==='function'){ const s=C.errText({error:'email_unavailable'}); if(s && String(s).indexOf('email_unavailable')<0) return s; } if(typeof C.dict==='function'){ const dd=(C.dict(LANG)||{}); const v=dd.err_email_unavailable||dd.email_unavailable; if(typeof v==='string' && v) return v; } } }catch(x){} return t('err_email_unavailable_msg'); }
 function cxReportL(hotel){
   /* Решение владельца 12.10: отель в РФ — русский и ₽; вне РФ — английский и $. Язык отчёта задаёт страна отеля, а не язык интерфейса. */
   const ru = cxHotelCurH(hotel)!=='USD';
@@ -2027,6 +2027,15 @@ function cxReportL(hotel){
       pPeriod:'Period', pHotel:'Hotel', pAddress:'Address', pRecipient:'Commission recipient', pInn:'Tax ID', pKpp:'KPP', pBank:'Bank', pAcc:'Account', pBik:'BIC', pCorr:'Corr. account',
       pCols:['Guest','Room','Check-in','Check-out','Base, $','Points, $','Commission, $'], pCount:'Total bookings', pRevenue:'Hotel revenue for the period', pToPay:'Commission payable to Corronyx', pAuto:'Generated automatically'};
 }
+function cxErrTextH(e){ const code=e && e.payload && e.payload.error; if(!code) return ''; try{ const C=window.CxI18n; if(C){ if(typeof C.errText==='function'){ const s=C.errText(e); if(s && String(s).indexOf(code)<0) return s; } if(typeof C.dict==='function'){ const dd=(C.dict(LANG)||{}); const v=dd['err_'+code]||dd[code]; if(typeof v==='string' && v) return v; } } }catch(x){} return ''; }
+function cxSrvErr(e, fb){ return cxErrTextH(e) || fb; }
+/* R22: сервер не принимает data:-картинки (400 bad_image_url, JSON не больше 100 КБ). Фото грузятся файлом через POST /api/uploads; в images уходит ссылка /uploads/…
+   Локально и на экране ссылка хранится с адресом API (API живёт на другом домене), на сервер уходит относительная. */
+function cxInUrl(u){ return (typeof u==='string' && u.indexOf('/uploads/')===0) ? CX_API_BASE+u : u; }
+function cxOutUrl(u){ if(typeof u!=='string') return u; const b=CX_API_BASE+'/uploads/'; return u.indexOf(b)===0 ? u.slice(CX_API_BASE.length) : u; }
+function cxDataToBlob(d){ const m=/^data:([^;,]+)?(;base64)?,([\s\S]*)$/.exec(d); if(!m) throw new Error('bad_data_url'); const mime=m[1]||'image/jpeg'; const raw=m[2]?atob(m[3]):decodeURIComponent(m[3]); const a=new Uint8Array(raw.length); for(let i=0;i<raw.length;i++) a[i]=raw.charCodeAt(i); return new Blob([a],{type:mime}); }
+async function cxUploadBlob(blob, name){ const f=new File([blob], name||'photo.jpg', {type: blob.type||'image/jpeg'}); const r=await CxApi.uploadFile(f); return cxInUrl(r.url); }
+async function cxEnsureUploaded(v){ return (typeof v==='string' && v.indexOf('data:')===0) ? cxUploadBlob(cxDataToBlob(v), 'photo.jpg') : v; }
 function cxMapServerHotelToLocal(h){
   return {
     id: String(h.id), accType: h.account_type, name: h.name, country: h.country, currency: cxHotelCurH(h),
@@ -2044,13 +2053,13 @@ function cxMapServerHotelToLocal(h){
     // это строка в базе — CxSync ниже использует именно serverId.
     rooms: (h.rooms || []).map(r => ({
       id: String(r.id), serverId: r.id, name: r.name, basePrice: cxRoomPriceH(h,r),
-      area: r.area || 20, beds: r.beds || '', view: r.view || '', img: r.img || '',
+      area: r.area || 20, beds: r.beds || '', view: r.view || '', img: cxInUrl(r.img || ''),
       description: r.description || '',
       roomNumbers: (r.units || []).map(u => ({
         serverId: u.id, num: u.num,
         price: cxUnitPriceH(h,u,r),
         area: u.area || r.area || 20, beds: u.beds || r.beds || '',
-        images: u.images || []
+        images: (u.images || []).map(cxInUrl)
       }))
     }))
   };
@@ -2068,13 +2077,14 @@ function cxDebounced(key, fn, delay){
 async function cxSyncRoomClass(room){
   if (!room.serverId) return; // ещё не создан на сервере — нечего обновлять
   try {
+    if (typeof room.img==='string' && room.img.indexOf('data:')===0) room.img = await cxEnsureUploaded(room.img);
     await CxApi.put('/api/hotels/'+HP.hotel.id+'/rooms/'+room.serverId, {
       name: room.name, ...cxPriceBody(room.basePrice), area: room.area,
-      beds: room.beds, view: room.view, img: room.img, description: room.description
+      beds: room.beds, view: room.view, img: cxOutUrl(room.img), description: room.description
     });
   } catch (e) {
     console.error('Не удалось сохранить класс номера на сервере', e);
-    toast(e.isNetwork ? cxT('h003') : cxT('h004'), 'error');
+    toast(e.isNetwork ? cxT('h003') : cxSrvErr(e, cxT('h004')), 'error');
   }
 }
 // ДОБАВЛЕНО 25.09.2026 (решение владельца): общая галерея фото отеля (не по
@@ -2088,18 +2098,23 @@ async function cxSyncHotelImages(){
   if (!HP.hotel) return;
   const photos = LS.getJSON('cx_photos_'+HP.hotel.id, []);
   try {
-    await CxApi.put('/api/hotels/'+HP.hotel.id, { images: photos.map(p=>p.data) });
+    let changed = false;
+    for (const p of photos) { if (p && typeof p.data==='string' && p.data.indexOf('data:')===0) { p.data = await cxEnsureUploaded(p.data); changed = true; } } // старые фото (data:) -> файлы на сервере
+    if (changed) LS.setJSON('cx_photos_'+HP.hotel.id, photos);
+    await CxApi.put('/api/hotels/'+HP.hotel.id, { images: photos.map(p=>cxOutUrl(p.data)) });
   } catch (e) {
     console.error('Не удалось сохранить фото отеля на сервере', e);
-    toast(e.isNetwork ? cxT('h005') : cxT('h006'), 'error');
+    toast(e.isNetwork ? cxT('h005') : cxSrvErr(e, cxT('h006')), 'error');
   }
 }
+
 async function cxSyncUnit(roomServerId, unit){
   if (!unit.num) return; // сервер не примет физический номер без названия (num)
   try {
+    if (unit.serverId && Array.isArray(unit.images)) { for (let i=0;i<unit.images.length;i++) unit.images[i] = await cxEnsureUploaded(unit.images[i]); }
     if (unit.serverId) {
       await CxApi.put('/api/hotels/'+HP.hotel.id+'/rooms/'+roomServerId+'/units/'+unit.serverId, {
-        num: unit.num, ...cxPriceBody(unit.price), area: unit.area, beds: unit.beds, images: unit.images || []
+        num: unit.num, ...cxPriceBody(unit.price), area: unit.area, beds: unit.beds, images: (unit.images || []).map(cxOutUrl)
       });
     } else {
       const created = await CxApi.post('/api/hotels/'+HP.hotel.id+'/rooms/'+roomServerId+'/units', {
@@ -2112,7 +2127,7 @@ async function cxSyncUnit(roomServerId, unit){
     if (e.payload && e.payload.error === 'num_already_exists') {
       toast(cxT('h007',{p0:unit.num}), 'error');
     } else {
-      toast(e.isNetwork ? cxT('h003') : cxT('h004'), 'error');
+      toast(e.isNetwork ? cxT('h003') : cxSrvErr(e, cxT('h004')), 'error');
     }
   }
 }
@@ -3447,11 +3462,11 @@ Contact: Corronyx@gmail.com
       } else if (e.payload && e.payload.error === 'bad_role') {
         err.textContent = cxT('a005');
       } else if (e.status === 400 && e.payload && e.payload.error) {
-        err.textContent = t('reg_required');
+        err.textContent = e.payload.error==='missing_fields' ? t('reg_required') : cxSrvErr(e, t('reg_required'));
       } else if (e.status === 401 && e.payload && e.payload.error === 'bad_credentials') {
         err.textContent = t('reg_exists'); // email уже занят на сервере — регистрация 200, но повторная почти невозможна; на практике сюда почти не попадём
       } else {
-        err.textContent = t('reg_required');
+        err.textContent = cxSrvErr(e, t('reg_required'));
       }
       console.error('HP.register failed', e);
       return;
@@ -4484,18 +4499,35 @@ Contact: Corronyx@gmail.com
   // сжатия несколько полноразмерных фото с телефона быстро выедают лимит
   // localStorage (~5-10 МБ), из-за чего сохранение молча уходит в
   // временную память страницы (см. LS.set) и пропадает при перезагрузке.
+  async addGalleryPhoto(file, w, h){
+    if (file.size > 10*1024*1024) { HP.showPhotoNotification('fail', '❌ ' + file.name, cxT('file_big')); return false; }  // лимит загрузки на сервер — 10 МБ
+    let url;
+    try { url = await cxUploadBlob(file, file.name); }
+    catch (e) { HP.showPhotoNotification('fail', '❌ ' + file.name, e.isNetwork ? cxT('h005') : cxSrvErr(e, cxT('h006'))); return false; }
+    const ps = LS.getJSON('cx_photos_'+this.hotel.id, []);
+    ps.push({ data: url, name: file.name, w: w, h: h });
+    LS.setJSON('cx_photos_'+this.hotel.id, ps);
+    HP.renderPhotoGallery();
+    await cxSyncHotelImages();
+    HP.checkActivation();
+    return true;
+  },
   compressPhoto(file, maxDim){
+    // R22: фото сжимается и ЗАГРУЖАЕТСЯ файлом (POST /api/uploads); возвращается ссылка на файл, а не data:-строка.
+    const up = (blob)=>cxUploadBlob(blob, (file && file.name) || 'photo.jpg');
     return new Promise((resolve,reject)=>{
+      let canvas=null;
+      try{ canvas=document.createElement('canvas'); if(!canvas.getContext || !canvas.getContext('2d') || !canvas.toBlob) canvas=null; }catch(e){ canvas=null; }
+      if(!canvas){ up(file).then(resolve,reject); return; }   // нет canvas (старый браузер, тестовая среда): грузим файл как есть
       const reader=new FileReader();
       reader.onload=e=>{
         const img=new Image();
         img.onload=()=>{
-          const canvas=document.createElement('canvas');
           let {width:w,height:h}=img;
           if(w>maxDim||h>maxDim){ const r=Math.min(maxDim/w,maxDim/h); w=Math.round(w*r); h=Math.round(h*r); }
           canvas.width=w; canvas.height=h;
           canvas.getContext('2d').drawImage(img,0,0,w,h);
-          resolve(canvas.toDataURL('image/jpeg',0.78));
+          canvas.toBlob(b=>{ if(!b){ reject(new Error('compress_failed')); return; } up(b).then(resolve,reject); },'image/jpeg',0.78);
         };
         img.onerror=reject;
         img.src=e.target.result;
@@ -4548,8 +4580,8 @@ Contact: Corronyx@gmail.com
       // правильное решение на будущее — отдельная загрузка файлов
       // (multipart) с раздачей по ссылке, не через JSON.
       cxSyncUnit(r.serverId, n);
-    }).catch(()=>{
-      toast(LANG==='ru'?'Не удалось обработать файл':'Could not process the file', 'error');
+    }).catch(e=>{
+      toast(cxSrvErr(e, LANG==='ru'?'Не удалось обработать файл':'Could not process the file'), 'error');
     });
   },
   removeUnitImage(id, idx, imgIdx){
@@ -4598,8 +4630,8 @@ Contact: Corronyx@gmail.com
         toast(LANG==='ru'?'⚠️ Не хватило места в хранилище браузера — фото НЕ сохранилось.':'⚠️ Browser storage is full — photo was NOT saved.', 'error');
       }
       cxSyncRoomClass(r);
-    }).catch(()=>{
-      toast(LANG==='ru'?'Не удалось обработать файл':'Could not process the file', 'error');
+    }).catch(e=>{
+      toast(cxSrvErr(e, LANG==='ru'?'Не удалось обработать файл':'Could not process the file'), 'error');
     });
   },
   removeClassImage(id){
@@ -4666,7 +4698,7 @@ Contact: Corronyx@gmail.com
         name: draft.name, ...cxPriceBody(draft.basePrice), area: draft.area, beds: draft.beds
       });
     } catch (e) {
-      toast(e.isNetwork ? cxT('h024') : cxT('h025'), 'error');
+      toast(e.isNetwork ? cxT('h024') : cxSrvErr(e, cxT('h025')), 'error');
       return;
     }
     const rooms=this.getRooms();
@@ -4813,7 +4845,7 @@ Contact: Corronyx@gmail.com
         } else if (e.payload && e.payload.error === 'overlaps_own_other_segment') {
           toast(cxT('h029'), 'error');
         } else {
-          toast(e.isNetwork ? cxT('h030') : cxT('h004'), 'error');
+          toast(e.isNetwork ? cxT('h030') : cxSrvErr(e, cxT('h004')), 'error');
         }
         console.error('assignSegment failed', e);
         return false;
@@ -7751,21 +7783,10 @@ Contact: Corronyx@gmail.com
             );
             return;
           }
-          // Всё ок — добавляем
-          const ps = LS.getJSON('cx_photos_'+self.hotel.id, []);
-          ps.push({ data: dataUrl, name: file.name, w: img.naturalWidth, h: img.naturalHeight });
-          LS.setJSON('cx_photos_'+self.hotel.id, ps);
-          HP.renderPhotoGallery();
-          // ИЗМЕНЕНО 25.09.2026: раньше здесь снимали локальную паузу
-          // reason='no_photo' — теперь фото вообще не идёт через статус/паузу
-          // (см. cxSyncHotelImages выше и checkActivation ниже), поэтому снимать
-          // тут больше нечего — просто отправляем фото на сервер.
-          cxSyncHotelImages();
-          HP.checkActivation();
-          HP.showPhotoNotification('pass',
-            '✅ Фото добавлено!',
-            img.naturalWidth + '×' + img.naturalHeight + ' · ' + Math.round(file.size/1024) + ' КБ'
-          );
+          // Всё ок — загружаем файл на сервер и добавляем ссылку (R22: data: сервер не принимает)
+          HP.addGalleryPhoto(file, img.naturalWidth, img.naturalHeight).then(function(ok){
+            if(ok) HP.showPhotoNotification('pass', '✅ Фото добавлено!', img.naturalWidth + '×' + img.naturalHeight + ' · ' + Math.round(file.size/1024) + ' КБ');
+          });
         };
         img.src = dataUrl;
       };

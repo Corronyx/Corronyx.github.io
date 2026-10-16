@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru" dir="ltr">
-<head>
+<head><script>window.CX_API_BASE="https://corronyx-api-test.onrender.com";</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="google" content="notranslate">
@@ -1135,7 +1135,7 @@ html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; lef
   <section class="section referral-glow">
     <div class="section-head">
       <h2 class="font-cormorant gradient-heading" data-t="ref_title">Делитесь роскошью</h2>
-      <p data-t="ref_sub">Приглашайте отели и туроператоров — получайте 3% с оплаченного ими счёта комиссии Corronyx, бессрочно, а также 9% с подписки приглашённого партнёра и 3% с оплаты размещения афиши. Вознаграждение доступно через 10 дней. Вывод от $30 в эквиваленте и с 18 лет: участникам из РФ как самозанятым (СБП или карта), из других стран — в USDT (сеть TON)</p>
+      <p data-t="ref_sub">Приглашайте отели и туроператоров — получайте 3% с оплаченного ими счёта комиссии Corronyx, бессрочно. Вознаграждение доступно через 10 дней. Вывод от $30 в эквиваленте и с 18 лет: участникам из РФ как самозанятым (СБП или карта), из других стран — в USDT (сеть TON)</p>
     </div>
     <div class="center">
       <button class="btn btn-ghost" data-t="ref_btn" onclick="CX.openModal('referral')">Получить реферальную ссылку →</button>
@@ -2088,8 +2088,8 @@ function getAllHotels(){
 /* R20 (14.10.2026): отель вне РФ ведёт номера и брони в $. Правило совпадает с сервером (hotelCurrency): пустая страна или RU = ₽, иначе $. */
 function cxHotelCur(h){ if(h && h.currency) return h.currency==='USD' ? 'USD' : 'RUB'; return (h && h.country && h.country!=='RU') ? 'USD' : 'RUB'; }
 function cxIsEmailDown(e){ return !!(e && ((e.payload && e.payload.error==='email_unavailable') || (e.status===503 && !(e.payload && e.payload.error && e.payload.error!=='email_unavailable')))); }
-function cxEmailDownMsg(){ try{ const C=window.CxI18n; if(C){ if(typeof C.errText==='function'){ const s=C.errText({error:'email_unavailable'}); if(s && String(s).indexOf('email_unavailable')<0) return s; } if(typeof C.dict==='function'){ const v=(C.dict(LANG)||{}).email_unavailable; if(typeof v==='string' && v) return v; } } }catch(x){} return t('m_email_unavailable'); }
-function cxErrText(e){ const code=e && e.payload && e.payload.error; if(!code) return t('m_unknown_error'); try{ const C=window.CxI18n; if(C){ if(typeof C.errText==='function'){ const s=C.errText(e); if(s && String(s).indexOf(code)<0) return s; } if(typeof C.dict==='function'){ const v=(C.dict(LANG)||{})[code]; if(typeof v==='string' && v) return v; } } }catch(x){} return code; }
+function cxEmailDownMsg(){ try{ const C=window.CxI18n; if(C){ if(typeof C.errText==='function'){ const s=C.errText({error:'email_unavailable'}); if(s && String(s).indexOf('email_unavailable')<0) return s; } if(typeof C.dict==='function'){ const dd=(C.dict(LANG)||{}); const v=dd.err_email_unavailable||dd.email_unavailable; if(typeof v==='string' && v) return v; } } }catch(x){} return t('m_email_unavailable'); }
+function cxErrText(e){ const code=e && e.payload && e.payload.error; if(!code) return t('m_unknown_error'); try{ const C=window.CxI18n; if(C){ if(typeof C.errText==='function'){ const s=C.errText(e); if(s && String(s).indexOf(code)<0) return s; } if(typeof C.dict==='function'){ const dd=(C.dict(LANG)||{}); const v=dd['err_'+code]||dd[code]; if(typeof v==='string' && v) return v; } } }catch(x){} return code; }
 function cxMapServerHotelsToLocal(list){
   return list.map(h => ({
     id: String(h.id), serverId: h.id, country: h.country, currency: cxHotelCur(h), city: h.city,
@@ -2531,7 +2531,7 @@ const T = {
  events_title:{ru:'Мировые события рядом с отелями',en:'World events near our hotels'},
  events_sub:{ru:'Спланируйте поездку под яркое событие — мы подберём отели в том же городе',en:'Plan your trip around a great event — we will suggest hotels in the same city'},
  ref_title:{ru:'Реферальная программа',en:'Referral Program'},
- ref_sub:{ru:'Приглашайте отели и туроператоров — получайте 3% с оплаченного ими счёта комиссии Corronyx, бессрочно, а также 9% с подписки приглашённого партнёра и 3% с оплаты размещения афиши. Вознаграждение доступно через 10 дней. Вывод от $30 в эквиваленте и с 18 лет: участникам из РФ как самозанятым (СБП или карта), из других стран — в USDT (сеть TON)',en:'Invite hotels and tour operators — earn 3% of the commission invoice they pay Corronyx, with no time limit, plus 9% of an invited partner\'s subscription and 3% of an event listing fee. The reward becomes available after 10 days. Withdrawals start at $30 equivalent and are for adults (18+): participants from Russia as self-employed (SBP or card), everyone else in USDT (TON network)'},
+ ref_sub:{ru:'Приглашайте отели и туроператоров — получайте 3% с оплаченного ими счёта комиссии Corronyx, бессрочно. Вознаграждение доступно через 10 дней. Вывод от $30 в эквиваленте и с 18 лет: участникам из РФ как самозанятым (СБП или карта), из других стран — в USDT (сеть TON)',en:'Invite hotels and tour operators — earn 3% of the commission invoice they pay Corronyx, with no time limit. The reward becomes available after 10 days. Withdrawals start at $30 equivalent and are for adults (18+): participants from Russia as self-employed (SBP or card), everyone else in USDT (TON network)'},
  ref_btn:{ru:'Получить реферальную ссылку →',en:'Get your referral link →'},
  back_home:{ru:'Назад',en:'Back'},
  footer_text:{ru:'Бронирование с оплатой в отеле.',en:'Booking with payment at the hotel.'},
@@ -7390,6 +7390,7 @@ async function doRegister(){
   } catch (e) {
     if (e.isNetwork) msg.textContent = cxT('a002');
     else if (e.payload && e.payload.error === 'bad_email_format') msg.textContent = t('err_email_invalid');
+    else if (e.payload && ['bad_text','text_too_long','bad_input','payload_too_large','too_many_requests','bad_json'].indexOf(e.payload.error)>=0) msg.textContent = cxErrText(e);
     else msg.textContent = t('reg_exists'); // сервер не даёт узнать точную причину для чужого email — трактуем как "уже занят"
     console.error('doRegister failed', e);
     return;
@@ -7524,47 +7525,39 @@ function updateNavLoginBtn(){
 }
 
 /* ---- forgot password ---- */
-function doForgotSend(){
+async function doForgotSend(){
   const typedEmail=normEmail(document.getElementById('forgotEmail')?.value);
   const msg=document.getElementById('authMsg');
-  const users=LS.getJSON('cx_users',[]);
-  const foundUser=users.find(u=>sameEmail(u.email,typedEmail));
-  if(!foundUser){ msg.textContent=t('forgot_email_not_found'); return; }
-  const email=foundUser.email;   // адрес как в аккаунте — по нему потом ищем при смене пароля
-  const code=Math.floor(100000+Math.random()*900000).toString();
-  LS.set('cx_forgot_email', email);
-  LS.set('cx_forgot_code', code);
-  LS.set('cx_forgot_step','code');
-  const sentByEmail = sendRecoveryCodeEmail(email, code);
-  if(sentByEmail){
-    // EmailJS настроен и письмо реально отправлено — код на экране не показываем, это раскрывало бы секрет
-    toast('📧 '+(LANG==='ru'?'Код отправлен на почту':'Code sent to your email'));
-  } else {
-    // Демо-режим: EmailJS ещё не настроен в админке — показываем код прямо на экране, чтобы можно было тестировать
-    toast('🔑 '+(LANG==='ru'?'Код подтверждения: ':'Confirmation code: ')+code);
-    alert((LANG==='ru'?'Код подтверждения: ':'Code: ')+code+'\n'+(LANG==='ru'?'(В боевой версии он придёт на почту)':'(In production this will be sent by email)'));
-  }
+  if(!typedEmail){ msg.textContent=t('err_required'); return; }
+  try{ await CxApi.post('/api/auth/password-reset/request', { email: typedEmail }); }
+  catch(e){ msg.textContent = cxIsEmailDown(e) ? cxEmailDownMsg() : ((e && e.isNetwork) ? t('m_verify_send_fail') : cxErrText(e)); return; }
+  /* Сервер отвечает 200 и для незнакомой почты (не раскрывает, зарегистрирован ли адрес), поэтому текст нейтральный. */
+  LS.set('cx_forgot_email', typedEmail); window.__cxResetCode=''; LS.set('cx_forgot_step','code');
+  toast('📧 '+(LANG==='ru'?'Если эта почта зарегистрирована, код отправлен':'If this email is registered, a code has been sent'));
   renderModal('login');
 }
 function doForgotCheckCode(){
-  const entered=document.getElementById('forgotCode')?.value.trim();
-  const saved=LS.get('cx_forgot_code');
+  const entered=(document.getElementById('forgotCode')?.value||'').trim();
   const msg=document.getElementById('authMsg');
-  if(entered===saved){ LS.set('cx_forgot_step','newpass'); renderModal('login'); }
-  else { msg.textContent=t('forgot_code_wrong'); }
+  if(!/^\d{4,8}$/.test(entered)){ msg.textContent=t('forgot_code_wrong'); return; }
+  window.__cxResetCode=entered; LS.set('cx_forgot_step','newpass'); renderModal('login');   /* код проверит сервер при смене пароля */
 }
-function doForgotSavePass(){
+async function doForgotSavePass(){
   const p1=document.getElementById('forgotPass1')?.value;
   const p2=document.getElementById('forgotPass2')?.value;
   const msg=document.getElementById('authMsg');
   if(!p1){ msg.textContent=t('err_required'); return; }
+  if(p1.length<6){ msg.textContent=(LANG==='ru'?'Пароль не короче 6 символов':'Password must be at least 6 characters'); return; }
   if(p1!==p2){ msg.textContent=t('reg_pass_mismatch'); return; }
-  const email=LS.get('cx_forgot_email');
-  const users=LS.getJSON('cx_users',[]);
-  const u=users.find(x=>x.email===email);
-  if(u){ u.password=p1; LS.setJSON('cx_users', users); }
+  const email=LS.get('cx_forgot_email'), code=window.__cxResetCode||'';
+  try{ await CxApi.post('/api/auth/password-reset/confirm', { email, code, new_password: p1 }); }
+  catch(e){
+    const c=e && e.payload && e.payload.error;
+    if(c==='bad_code' || c==='code_expired'){ window.__cxResetCode=''; LS.set('cx_forgot_step','code'); renderModal('login'); const m2=document.getElementById('authMsg'); if(m2) m2.textContent=t('forgot_code_wrong'); return; }
+    msg.textContent = (e && e.isNetwork) ? t('m_verify_send_fail') : cxErrText(e); return;
+  }
   LS.set('cx_forgot_step','email'); LS.set('cx_auth_mode','login');
-  LS.set('cx_forgot_email',''); LS.set('cx_forgot_code','');
+  LS.set('cx_forgot_email',''); LS.set('cx_forgot_code',''); window.__cxResetCode='';
   toast(t('forgot_done'));
   renderModal('login');
 }
