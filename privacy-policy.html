@@ -2,76 +2,107 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ — Corronyx</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Политика конфиденциальности — Corronyx</title>
 <style>
-:root{--dark:#080810;--bg2:#0f0f1a;--bg3:#16162a;--gold:#C9A84C;--gold2:#E8C96A;--text:#F2EEE8;--muted:#9896A0;}
-*{box-sizing:border-box;}
-body{margin:0;background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;line-height:1.7;}
-.doc-header{position:sticky;top:0;background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.08);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;z-index:10;}
-.doc-header .logo{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold2);}
-.doc-header a.back{color:var(--gold2);text-decoration:none;font-size:14px;border:1px solid rgba(201,168,76,.35);border-radius:999px;padding:7px 16px;}
-.doc-header a.back:hover{background:rgba(201,168,76,.1);}
-.doc-wrap{max-width:760px;margin:0 auto;padding:40px 24px 80px;}
-.doc-wrap h1{font-family:'Playfair Display',serif;color:var(--gold2);font-size:26px;margin-bottom:4px;}
-.doc-wrap h2{font-family:'Playfair Display',serif;color:var(--gold2);font-size:18px;margin-top:32px;margin-bottom:10px;border-bottom:1px solid rgba(201,168,76,.2);padding-bottom:6px;}
-.doc-wrap p{color:var(--text);font-size:14.5px;margin:0 0 12px;}
-.doc-wrap p strong{color:var(--gold2);}
-.draft-banner{background:rgba(224,148,69,.1);border:1px solid rgba(224,148,69,.35);color:#e0a445;padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:24px;}
-
-/* ===== Адаптив: заголовок и поля на телефоне (19.09.2026, визуальный агент) =====
-   Длинное слово в заголовке («КОНФИДЕНЦИАЛЬНОСТИ», 26px, заглавные) шире экрана 320–360px давало горизонтальный скролл
-   всей страницы. На узких экранах уменьшаем кегль заголовка и разрешаем перенос очень длинных слов/ссылок.
-   Только CSS, текст документа не тронут; на экранах шире 480px правил нет. */
-@media (max-width:480px){
-  .doc-wrap{padding-left:16px; padding-right:16px; overflow-wrap:break-word;}
-  .doc-wrap h1{font-size:clamp(18px,5.6vw,26px); overflow-wrap:anywhere;}
-}
+:root{--bg:#fbfaf7;--fg:#1d1f23;--muted:#5d636d;--line:#d9d6cc;--gold:#8a6a1f;--warn-bg:#fff4d6;--warn-line:#e0b84a}
+@media (prefers-color-scheme:dark){:root{--bg:#15171a;--fg:#ecebe6;--muted:#a3a8b0;--line:#33363c;--gold:#d9b45a;--warn-bg:#3a3014;--warn-line:#8a6d1c}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.logo{font-weight:700;letter-spacing:.04em;color:var(--gold);font-size:20px}
+nav a,.lang button{color:var(--fg);background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font:inherit;font-size:14px;cursor:pointer;text-decoration:none;margin-left:6px}
+.lang button[aria-pressed=true]{background:var(--gold);color:#fff;border-color:var(--gold)}
+main{max-width:820px;margin:0 auto;padding:22px 20px 60px}h1{font-size:26px;line-height:1.25;margin:.4em 0}h2{font-size:19px;margin:1.6em 0 .4em}
+p,li{margin:.45em 0}.muted{color:var(--muted);font-size:14px}.draft{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:12px 14px;margin:14px 0;font-size:15px}
+.fill{background:var(--warn-bg);border-bottom:2px dashed var(--warn-line);padding:0 4px;border-radius:3px}a{color:var(--gold)}
+[hidden]{display:none!important}table{border-collapse:collapse;width:100%;font-size:15px}td,th{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
 </style>
 </head>
-<body>
-<div class="doc-header">
-  <span class="logo">Corronyx</span>
-  <a href="javascript:history.back()" class="back">← Назад</a>
-</div>
-<div class="doc-wrap">
-  <h1>ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ</h1>
-  <div class="draft-banner">⚠️ Черновая версия документа, подготовленная для юридической проверки. Актуальная редакция появится здесь после утверждения.</div>
-  <p>платформы Corronyx</p>
-      <p>Редакция от 25.08.2026 (ПРОЕКТ — черновая версия для юридической проверки, не для публикации)</p>
-      <p>Настоящая Политика конфиденциальности (далее — «Политика») описывает порядок работы с данными на платформе Corronyx (далее — «Платформа»), которую от своего имени размещает Круглов Алексей Сергеевич, плательщик налога на профессиональный доход (далее — «Corronyx»).</p>
-      <h2>1. Ключевая особенность архитектуры Платформы</h2>
-      <p>1.1. Corronyx НЕ имеет собственного сервера баз данных и не собирает, не хранит и не обрабатывает на своей стороне персональные данные Гостей, Отелей и Партнёров. Все данные, которые Пользователь вводит при регистрации, бронировании или заполнении карточки (имя, телефон, email, реквизиты для выплат и т.п.), сохраняются исключительно в локальном хранилище браузера (localStorage) на устройстве самого Пользователя и не передаются на инфраструктуру, принадлежащую или контролируемую Corronyx.</p>
-      <p>1.2. Это означает, что Corronyx физически не имеет доступа к введённым данным, не может их скопировать, передать третьим лицам или потерять в результате утечки на своей стороне — данные не покидают устройство Пользователя, за исключением случаев, прямо описанных в разделе 3 настоящей Политики.</p>
-      <p>1.3. Сайт Платформы размещается на хостинге для обеспечения доступности в сети Интернет. Ответственность и порядок обработки данных на стороне хостинг-провайдера регулируются отдельно (раздел 3).</p>
-      <h2>2. Правовой статус Corronyx применительно к персональным данным</h2>
-      <p>2.1. С учётом архитектуры, описанной в разделе 1, Corronyx не осуществляет действий, составляющих «обработку персональных данных» по смыслу ст. 3 Федерального закона от 27.07.2006 № 152-ФЗ (сбор, запись, систематизацию, накопление, хранение на своей стороне), в отношении данных, вводимых Пользователями локально.</p>
-      <p>2.2. Настоящее положение является технической оценкой архитектуры Платформы, а не юридическим заключением. Окончательную оценку статуса Corronyx как оператора персональных данных (в том числе необходимость регистрации в реестре операторов Роскомнадзора по ст. 22 152-ФЗ) должен подтвердить юрист перед запуском Платформы — правовая квалификация может измениться, если архитектура изменится (например, при подключении серверной базы данных в будущем).</p>
-      <h2>3. Технические данные хостинга</h2>
-      <p>3.1. Хостинг-провайдер, обеспечивающий работу сайта, в стандартном порядке может вести технические журналы обращений к серверу (IP-адрес, дата и время запроса, тип браузера) в целях обеспечения работоспособности и защиты от технических сбоев и злоупотреблений. Corronyx не использует эти данные для идентификации Пользователей и не имеет к ним целенаправленного доступа сверх стандартных функций хостинг-провайдера.</p>
-      <p>3.2. Файлы cookie на Платформе НЕ используются. Все пользовательские настройки и данные хранятся в localStorage браузера Пользователя.</p>
-      <h2>4. Внешние сервисы, к которым обращается Платформа</h2>
-      <p>4.1. Для отображения отдельных элементов интерфейса Платформа обращается к сторонним публичным сервисам без передачи им персональных данных Пользователя: сервис прогноза погоды, сервис курса валют, сервис генерации QR-кода для криптоплатежей, сервис геокодирования адресов (для подсказки координат при заполнении карточки Отеля/Партнёра), сервис автоматического перевода интерфейса (Google Translate). Указанные сервисы могут в общем порядке фиксировать технические данные запроса (IP-адрес) в соответствии с собственными политиками конфиденциальности.</p>
-      <h2>5. Данные, вводимые Пользователем локально</h2>
-      <p><strong>5.1. Гости:</strong></p>
-      <p>имя, телефон, email при оформлении бронирования; сведения о бронировании; настройки программы лояльности.</p>
-      <p><strong>5.2. Отели и Партнёры:</strong></p>
-      <p>регистрационные данные (название, город, страна, контакты ответственного лица), реквизиты для получения выплат (банковские реквизиты для РФ либо адрес USDT-кошелька для нерезидентов РФ), материалы карточки размещения.</p>
-      <p>5.3. Указанные данные хранятся локально и используются исключительно для отображения интерфейса Пользователю на его собственном устройстве (например, чтобы не вводить их повторно при следующем визите). Полная ответственность за сохранность данных на своём устройстве (включая защиту самого устройства и браузера от несанкционированного доступа третьих лиц) лежит на Пользователе.</p>
-      <h2>6. Удаление данных</h2>
-      <p>6.1. Поскольку данные хранятся локально, Пользователь может самостоятельно удалить их в любой момент через настройки браузера (очистка данных сайта / localStorage) либо с помощью соответствующей функции в интерфейсе Платформы, если она предусмотрена.</p>
-      <p>6.2. Corronyx не может удалить данные за Пользователя, поскольку не имеет к ним доступа.</p>
-      <h2>7. Передача данных при взаимодействии Гостя и Отеля</h2>
-      <p>7.1. При оформлении бронирования данные, введённые Гостем (имя, телефон, email, даты проживания), отображаются в личном кабинете выбранного Отеля через общее для обеих сторон локальное хранилище браузера в рамках технической модели Платформы. Отель, как получатель этих данных для целей исполнения бронирования, самостоятельно определяет порядок их дальнейшего использования и несёт собственную ответственность как оператор персональных данных своих гостей в соответствии с применимым к нему законодательством.</p>
-      <h2>8. Права Пользователя</h2>
-      <p>• в любой момент очистить локально сохранённые данные через настройки своего браузера;</p>
-      <p>• обратиться к Отелю или Партнёру напрямую по вопросам обработки данных, переданных этому Отелю/Партнёру в рамках бронирования или заявки;</p>
-      <p>• направить обращение Corronyx по контактному адресу электронной почты, указанному на сайте Платформы, по любым вопросам, связанным с настоящей Политикой.</p>
-      <h2>9. Порядок изменения Политики</h2>
-      <p>9.1. Corronyx вправе вносить изменения в настоящую Политику, в том числе в связи с изменением архитектуры Платформы (например, при подключении серверной базы данных). Актуальная редакция публикуется на Платформе с указанием даты вступления в силу.</p>
-      <p>ПРИМЕЧАНИЕ ДЛЯ АЛЕКСЕЯ: черновик для юридической проверки, не для публикации. Ключевое: архитектура "всё в localStorage браузера, без сервера БД" — осознанное решение Алексея не брать на себя ответственность за хранение чужих данных (подтверждено 25.08.2026). Документ описывает эту модель как есть. ВАЖНО для юриста: (1) подтвердить, действительно ли отсутствие серверного хранения освобождает от статуса оператора ПДн по 152-ФЗ, или требуется формальное уведомление РКН в любом случае из-за косвенной обработки (логи хостинга, обращения к внешним сервисам); (2) обратить внимание, что раздел 7 описывает нестандартную конструкцию (Отель получает данные Гостя не "от Corronyx", а через общее браузерное хранилище) — юристу стоит явно прописать, что Отель выступает самостоятельным оператором в момент получения данных Гостя; (3) если в будущем Алексей всё же подключит сервер с базой данных — этот документ потребует полной переработки (роль Corronyx как оператора появится).</p>
-</div>
+<body data-title-ru="Политика конфиденциальности — Corronyx" data-title-en="Privacy Policy — Corronyx">
+<header><span class="logo">Corronyx</span>
+<div><span class="lang"><button type="button" data-set="ru" aria-pressed="true">RU</button><button type="button" data-set="en" aria-pressed="false">EN</button></span>
+<nav style="display:inline"><a href="consent-personal-data.html" data-l="ru">Текст согласия</a><a href="consent-personal-data.html?lang=en" data-l="en" hidden>Consent text</a><a href="index.html" data-l="ru">На главную</a><a href="index.html" data-l="en" hidden>Home</a></nav></div></header>
+<main>
+<section data-l="ru"><h1>Политика конфиденциальности</h1>
+<p class="muted">Платформа Corronyx. Редакция от 24.10.2026 (черновик).</p><div class="draft"><strong>Черновик. Требует проверки юристом.</strong> Текст подготовлен для запуска и не заменяет юридическую консультацию. Жёлтые поля в квадратных скобках заполняет владелец платформы перед публикацией; после проверки юристом этот блок удаляется.</div>
+<h2>1. Оператор и контакты</h2><p><span class="fill">[ФИО или наименование оператора]</span>, <span class="fill">[ИНН]</span>, <span class="fill">[адрес]</span>, e-mail для обращений: <span class="fill">[e-mail оператора]</span>.</p>
+<h2>2. Какие сведения мы собираем</h2>
+<table><tr><th>Кто</th><th>Сведения</th></tr>
+<tr><td>Гость</td><td>имя, e-mail, телефон, страна; брони (даты, объект, имя и контакты гостя, суммы); отзывы (текст, фото); видео</td></tr>
+<tr><td>Участник реферальной программы</td><td>имя, e-mail, страна, реквизиты выплат (СБП или карта и ИНН самозанятого, либо криптокошелёк), подтверждение 18+</td></tr>
+<tr><td>Отель, туроператор, партнёр, организатор афиши</td><td>контактное лицо, e-mail, телефон, наименование, ИНН или регистрационный номер, адрес, реквизиты для расчётов</td></tr>
+<tr><td>Все</td><td>язык интерфейса, согласие на cookie, сессия входа, записи журналов сервера (в том числе IP-адрес)</td></tr></table>
+<h2>3. Цели и основания</h2><p>Исполнение договора (бронирование, размещение, расчёты); согласие пользователя (регистрация, отзывы, видео, реферальная программа); выполнение требований закона (учёт расчётов); защита от мошенничества и повторных заявок.</p>
+<h2>4. Кому передаём</h2><p>Отелю или туроператору, которого выбирает гость, для исполнения заказа. Технические исполнители: <span class="fill">[хостинг, почта: заполняет владелец]</span>. Мы не продаём персональные данные.</p>
+<h2>5. Сроки хранения</h2><ul>
+<li>Персональные данные в бронях и аккаунтах стираются не позднее чем через 365 дней после последней активности или после даты выезда. Суммы остаются без имён и контактов для бухгалтерского учёта.</li>
+<li>Платёжные и учётные записи без имён и контактов хранятся столько, сколько требует закон: <span class="fill">[срок уточняет юрист]</span>.</li>
+<li>Резервные копии: удалённые данные могут оставаться в копиях до 14 дней, после чего копии перезаписываются. При восстановлении из копии уже удалённые по просьбе аккаунты обезличиваются повторно.</li></ul>
+<h2>6. Ваши права</h2><ul><li>получить сведения о своих данных, потребовать их уточнения;</li>
+<li>отозвать согласие письмом на <span class="fill">[e-mail оператора]</span>;</li>
+<li><strong>удалить аккаунт</strong> в кабинете кнопкой «🗑»: имя и контакты обезличиваются сразу, отзывы, видео и загруженные вами фото удаляются (если файл не нужен другим записям). Удаление может быть недоступно, пока есть предстоящие брони, неоплаченная комиссия, остаток баллов или заявка на вывод: система покажет причину (от баллов можно отказаться в окне удаления);</li>
+<li>обратиться в Роскомнадзор, если считаете, что нарушены ваши права.</li></ul>
+<h2>7. Cookie и локальное хранилище</h2><p>Мы используем хранилище браузера (localStorage и sessionStorage) для языка, согласия на cookie и сессии входа; вход участника реферальной программы держится только в sessionStorage и исчезает при закрытии вкладки. Рекламных cookie мы не используем; встроенные видео сторонних сервисов могут применять собственные cookie (раздел 11). Для защиты от накрутки бонусов (самореферал) при регистрации браузер один раз создаёт случайный идентификатор (хранится в localStorage) и отправляет его серверу; сервер хранит только его хеш. Это не отпечаток браузера и не сведения об устройстве. <em>На проверку юристу.</em></p>
+<h2>8. Возраст</h2><p>Платформа предназначена для лиц 18 лет и старше. При регистрации обязательна отметка «Мне исполнилось 18 лет»; мы сохраняем время подтверждения возраста.</p>
+<h2>9. Где хранятся данные и для кого платформа</h2><p>Данные хранятся на сервере в РФ. Платформа не ориентирована на жителей Европейского союза и Великобритании.</p>
+<h2>10. Чеки об оплате и журналы сервера</h2><p>Файлы чеков хранятся не дольше 9 дней после решения администратора, затем удаляются; запись об оплате (сумма, дата, заказ) остаётся для бухгалтерского учёта. Журналы сервера хранятся 14 дней.</p>
+<h2>11. Сторонние сервисы</h2><div class="draft"><strong>Дополнено 01.11.2026, на проверку юристу.</strong> Список составлен по фактическому коду страниц; формулировки консервативные. Вопрос передачи данных за пределы РФ решает владелец с юристом.</div><p>Во всех случаях сервис видит ваш IP-адрес и обычные технические заголовки запроса. Мы не передаём этим сервисам ваше имя, e-mail, телефон, номер брони и токен входа.</p>
+<p><strong>Только после вашего действия:</strong></p><ul><li><strong>Переводчик Google</strong> загружается только после нажатия «Перевести страницу»; страница отправляется в Google для перевода. До нажатия обращений к Google нет, нажатие можно отменить.</li>
+<li><strong>Карты OpenStreetMap</strong> загружаются только после нажатия «Показать на карте»; серверы карт получают запрошенный участок карты.</li>
+<li><strong>Поиск адреса (Nominatim, OpenStreetMap)</strong> в кабинетах отеля и организатора афиши: введённый адрес или выбранная точка на карте отправляются на nominatim.openstreetmap.org.</li>
+<li><strong>Распознавание чеков в браузере</strong> (tesseract.js): выполняется на вашем устройстве; файл чека никуда не отправляется, скрипт и языковые данные хранятся на серверах Corronyx.</li></ul>
+<p><strong>При открытии страниц:</strong></p><ul><li><strong>Погода в ленте на главной</strong> (open-meteo.com): отправляются названия городов и коды стран, где есть отели; сведений о вас нет.</li>
+<li><strong>Курс Центробанка</strong> (cbr-xml-daily.ru) в кабинетах партнёра и организатора афиши: запрашивается курс, сведений о вас нет.</li>
+<li><strong>Библиотеки в браузере</strong> (карты, выгрузка в Excel и PDF, распознавание текста с картинки) хранятся на серверах Corronyx; сторонние сети доставки не используются.</li>
+<li><strong>Видео на карточках</strong> (YouTube, VK, Rutube, Google Диск, Instagram, Facebook): встроенный плеер загружается с серверов этих сервисов при показе карточки со ссылкой на видео; сервисы могут применять собственные cookie по своим правилам.</li>
+<li><strong>ИИ-помощник</strong> работает через сервис Cloudflare Workers (corronyx-ai.corronyx.workers.dev): в запросах к нему нет персональных данных (имя, почта, телефон, номер брони, токен).</li></ul>
+<h2>12. Жалобы правообладателей</h2><p>Порядок подачи жалоб: <a href="copyright-complaints.html">«Жалобы правообладателей»</a>. Данные заявителя используются только для рассмотрения жалобы.</p>
+<h2>13. Изменения</h2><p>Актуальная редакция всегда по этой ссылке. О существенных изменениях сообщаем на сайте.</p>
+<p class="muted">Согласие на обработку: <a href="consent-personal-data.html">текст согласия</a>. Условия использования: <a href="terms-of-service.html">условия</a>.</p></section>
+<section data-l="en" hidden><h1>Privacy Policy</h1>
+<p class="muted">Corronyx platform. Version of 24 Oct 2026 (draft).</p><div class="draft"><strong>Draft. Subject to review by a lawyer.</strong> This text is prepared for launch and is not legal advice. The yellow fields in square brackets must be filled in by the platform owner before publication; remove this notice after the legal review.</div>
+<h2>1. Operator and contacts</h2><p><span class="fill">[operator name]</span>, <span class="fill">[tax ID]</span>, <span class="fill">[address]</span>, contact e-mail: <span class="fill">[operator e-mail]</span>.</p>
+<h2>2. What we collect</h2>
+<table><tr><th>Who</th><th>Data</th></tr>
+<tr><td>Guest</td><td>name, e-mail, phone, country; bookings (dates, property, guest name and contacts, amounts); reviews (text, photo); videos</td></tr>
+<tr><td>Referral programme member</td><td>name, e-mail, country, payout details (bank card or fast-payment account and the self-employed tax ID, or a crypto wallet), 18+ confirmation</td></tr>
+<tr><td>Hotel, tour operator, partner, event organiser</td><td>contact person, e-mail, phone, name, tax or registration number, address, settlement details</td></tr>
+<tr><td>Everyone</td><td>interface language, cookie consent, login session, server log records (including IP address)</td></tr></table>
+<h2>3. Purposes and legal grounds</h2><p>Performance of a contract (booking, listing, settlements); the user’s consent (registration, reviews, videos, referral programme); compliance with law (accounting for settlements); protection against fraud and duplicate submissions.</p>
+<h2>4. Who receives data</h2><p>The hotel or tour operator chosen by the guest, to fulfil the order. Technical providers: <span class="fill">[hosting, e-mail: to be completed by the owner]</span>. We do not sell personal data.</p>
+<h2>5. Retention</h2><ul>
+<li>Personal data in bookings and accounts is erased no later than 365 days after last activity or after the check-out date. Amounts remain without names and contacts for accounting.</li>
+<li>Payment and accounting records without names and contacts are kept as long as the law requires: <span class="fill">[period to be confirmed by a lawyer]</span>.</li>
+<li>Backups: deleted data may remain in backups for up to 14 days, after which the backups are overwritten. If the platform is restored from a backup, accounts already deleted at the owner’s request are anonymised again.</li></ul>
+<h2>6. Your rights</h2><ul><li>to receive information about your data and ask for corrections;</li>
+<li>to withdraw consent by e-mail to <span class="fill">[operator e-mail]</span>;</li>
+<li><strong>to delete your account</strong> in your cabinet with the “🗑” button: your name and contacts are anonymised immediately, reviews, videos and photos you uploaded are deleted (unless the file is still used by other records). Deletion may be unavailable while you have upcoming bookings, unpaid commission, a points balance or a pending withdrawal: the system shows the reason (you can waive points in the deletion window);</li>
+<li>to complain to the data protection authority (Roskomnadzor) if you believe your rights are violated.</li></ul>
+<h2>7. Cookies and local storage</h2><p>We use browser storage (localStorage and sessionStorage) for language, cookie consent and the login session; the referral-programme member session is kept in sessionStorage only and disappears when the tab is closed. We do not use advertising cookies; embedded videos from third-party services may use their own cookies (section 11). To prevent bonus abuse (self-referral), at sign-up the browser creates a random identifier once (kept in localStorage) and sends it to the server; the server stores only its hash. It is not a browser fingerprint or device information. <em>Subject to review by a lawyer.</em></p>
+<h2>8. Age</h2><p>The platform is for people aged 18 and over. Registration requires the checkbox "I am 18 years old or older"; we store the time of the age confirmation.</p>
+<h2>9. Where data is stored and who the platform is for</h2><p>Data is stored on a server in Russia. The platform is not aimed at residents of the European Union and the United Kingdom.</p>
+<h2>10. Payment receipts and server logs</h2><p>Receipt files are kept for no longer than 9 days after the administrator's decision and are then deleted; the payment record (amount, date, order) remains for accounting. Server logs are kept for 14 days.</p>
+<h2>11. Third-party services</h2><div class="draft"><strong>Added 1 Nov 2026, subject to review by a lawyer.</strong> The list follows the actual page code; wording is conservative. Transfers of data outside Russia are for the owner to settle with a lawyer.</div><p>In every case the service sees your IP address and ordinary technical request headers. We do not pass your name, e-mail, phone, booking number or login token to these services.</p>
+<p><strong>Only after your action:</strong></p><ul><li><strong>Google Translate</strong> loads only after you press "Translate page"; the page is sent to Google for translation. Before you press, there are no requests to Google, and you can cancel.</li>
+<li><strong>OpenStreetMap maps</strong> load only after you press "Show on map"; the map servers receive the requested map area.</li>
+<li><strong>Address search (Nominatim, OpenStreetMap)</strong> in the hotel and event-organiser cabinets: the address you type or the point you pick on the map is sent to nominatim.openstreetmap.org.</li>
+<li><strong>Receipt recognition in the browser</strong> (tesseract.js): runs on your device; the receipt file is not sent anywhere, and the script and language data are hosted on Corronyx servers.</li></ul>
+<p><strong>When pages open:</strong></p><ul><li><strong>Weather strip on the home page</strong> (open-meteo.com): city names and country codes where hotels exist are sent; nothing about you.</li>
+<li><strong>Central Bank of Russia rate</strong> (cbr-xml-daily.ru) in the partner and event-organiser cabinets: the rate is requested; nothing about you.</li>
+<li><strong>Browser libraries</strong> (maps, Excel and PDF export, text recognition from images) are hosted on Corronyx servers; third-party delivery networks are not used.</li>
+<li><strong>Videos on cards</strong> (YouTube, VK, Rutube, Google Drive, Instagram, Facebook): the embedded player loads from these services when a card with a video link is shown; the services may use their own cookies under their own rules.</li>
+<li><strong>AI assistant</strong> runs through the Cloudflare Workers service (corronyx-ai.corronyx.workers.dev): requests to it contain no personal data (name, e-mail, phone, booking number, token).</li></ul>
+<h2>12. Rights holders' complaints</h2><p>How to file a complaint: <a href="copyright-complaints.html?lang=en">"Copyright complaints"</a>. The complainant's data is used only to review the complaint.</p>
+<h2>13. Changes</h2><p>The current version is always at this link. We announce material changes on the site.</p>
+<p class="muted">Consent to processing: <a href="consent-personal-data.html?lang=en">consent text</a>. Terms of Service: <a href="terms-of-service.html?lang=en">terms</a>.</p></section>
+</main>
+<script>
+(function(){var q=(location.search.match(/[?&]lang=(ru|en)/)||[])[1];var l=q||((navigator.language||'ru').slice(0,2)==='ru'?'ru':'en');
+function set(x){document.documentElement.lang=x;document.querySelectorAll('[data-l]').forEach(function(e){e.hidden=e.getAttribute('data-l')!==x});
+document.querySelectorAll('.lang button').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-set')===x?'true':'false')});
+var t=document.body.getAttribute('data-title-'+x);if(t)document.title=t;}
+document.querySelectorAll('.lang button').forEach(function(b){b.addEventListener('click',function(){set(b.getAttribute('data-set'))})});set(l);})();
+</script>
 </body>
 </html>

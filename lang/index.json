@@ -1,0 +1,44 @@
+{
+ "languages": [
+  {
+   "code": "ru",
+   "label": "Русский"
+  },
+  {
+   "code": "en",
+   "label": "English"
+  },
+  {
+   "code": "es",
+   "label": "Español"
+  },
+  {
+   "code": "zh",
+   "label": "中文"
+  },
+  {
+   "code": "hi",
+   "label": "हिन्दी"
+  },
+  {
+   "code": "ar",
+   "label": "العربية"
+  },
+  {
+   "code": "fr",
+   "label": "Français"
+  },
+  {
+   "code": "pt",
+   "label": "Português"
+  },
+  {
+   "code": "de",
+   "label": "Deutsch"
+  },
+  {
+   "code": "tr",
+   "label": "Türkçe"
+  }
+ ]
+}
