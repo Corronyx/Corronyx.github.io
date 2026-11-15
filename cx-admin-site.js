@@ -77,23 +77,12 @@
       box.querySelectorAll('[data-cxa-days]').forEach(function(b){ b.onclick = function(){ loadStats(box, Number(b.getAttribute('data-cxa-days'))); }; });
     }).catch(function(){ box.innerHTML = '<div style="color:#c0392b">' + esc(T('err')) + '</div>'; });
   }
-  function loadOperators(box){
-    box.innerHTML = '<div style="color:var(--muted)">' + esc(T('load')) + '</div>';
-    return api().get('/api/admin/touroperators').then(function(rows){
-      if(!rows.length){ box.innerHTML = '<div style="color:var(--muted)">' + esc(T('opEmpty')) + '</div>'; return; }
-      box.innerHTML = '<div class="table-wrap"><table><thead><tr><th>' + esc(T('opName')) + '</th><th>' + esc(T('opCity')) + '</th><th>' + esc(T('opStatus')) + '</th><th>' + esc(T('opUrl')) + '</th><th></th></tr></thead><tbody>'
-        + rows.map(function(h){ return '<tr><td>' + esc(h.name) + '</td><td>' + esc(h.city || '') + '</td><td>' + esc(h.status) + '</td><td>' + (h.booking_url ? esc(h.booking_url) : '<span style="color:var(--muted)">' + esc(T('opNoUrl')) + '</span>') + '</td>'
-          + '<td><button type="button" class="btn btn-ghost" data-cxa-op="approve" data-id="' + Number(h.id) + '">' + esc(T('approve')) + '</button> <button type="button" class="btn btn-ghost" data-cxa-op="pause" data-id="' + Number(h.id) + '">' + esc(T('pause')) + '</button></td></tr>'; }).join('') + '</tbody></table></div>';
-      box.querySelectorAll('[data-cxa-op]').forEach(function(b){ b.onclick = function(){ api().post('/api/admin/hotels/' + Number(b.getAttribute('data-id')) + '/' + b.getAttribute('data-cxa-op'), {}).then(function(){ loadOperators(box); }).catch(function(){}); }; });
-    }).catch(function(){ box.innerHTML = '<div style="color:#c0392b">' + esc(T('err')) + '</div>'; });
-  }
   var CxAdminSite = {
-    T: T, mountChannels: mountChannels, loadStats: loadStats, loadOperators: loadOperators,
+    T: T, mountChannels: mountChannels, loadStats: loadStats,
     onNav: function(section){
       var sec = document.getElementById('sec-' + section); if(!sec) return;
       sec.querySelectorAll('[data-cxa-ch]').forEach(function(b){ mountChannels(b); });
       if(section === 'client'){ var s = document.getElementById('cxaStats'); if(s) loadStats(s, 30); }
-      if(section === 'touroperators'){ var o = document.getElementById('cxaOps'); if(o) loadOperators(o); }
     },
     titles: function(){ document.querySelectorAll('[data-cxa-title]').forEach(function(e){ e.textContent = T(e.getAttribute('data-cxa-title')); }); }
   };

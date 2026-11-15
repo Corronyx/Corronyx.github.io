@@ -1130,7 +1130,6 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
     <div class="nav-item" data-section="partners" onclick="ADM.nav('partners')"><span class="nl">🗂️ <span data-t="nav_partners">Партнёры</span></span><span class="nav-badge hidden" id="partnersBadge">0</span></div>
     <div class="nav-item" data-section="afisha" onclick="ADM.nav('afisha')"><span class="nl">🎫 <span data-t="nav_afisha">Афиша</span></span><span class="nav-badge hidden" id="afishaBadge">0</span></div>
     <div class="nav-item" data-section="client" onclick="ADM.nav('client')"><span class="nl">🌐 <span data-t="nav_clientsite">Клиентский сайт</span></span></div>
-    <div class="nav-item" data-section="touroperators" onclick="ADM.nav('touroperators')"><span class="nl">🧳 <span data-t="nav_touroperators">Туроператоры</span></span></div>
     <div class="nav-item" data-section="queues" onclick="ADM.nav('queues')"><span class="nl">🧾 <span data-t="nav_queues">Заявки</span></span><span class="nav-badge hidden" id="queuesBadge">0</span></div>
     <div class="nav-item" data-section="adm3_ops" onclick="ADM.nav('adm3_ops')"><span class="nl">🧳 <span data-t="nav_adm3_ops">Туроператоры</span></span></div>
       <div class="nav-item" data-section="adm3_tb" onclick="ADM.nav('adm3_tb')"><span class="nl">📩 <span data-t="nav_adm3_tb">Заявки на туры</span></span></div>
@@ -1590,11 +1589,6 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
       <div data-cxa-ch="client"></div>
       <div id="cxaStats"></div>
     </div>
-    <div class="section" id="sec-touroperators">
-      <div class="page-title" data-t="nav_touroperators">Туроператоры</div>
-      <div data-cxa-ch="tour"></div>
-      <div id="cxaOps"></div>
-    </div>
     <!-- KP -->
     <div class="section" id="sec-kp">
       <div class="page-title" data-t="nav_kp">📋 Шпаргалка КП</div>
@@ -1821,6 +1815,7 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
     <div class="section" id="sec-adm3_ops">
       <div class="page-title" data-t="nav_adm3_ops">Туроператоры</div>
       <div class="page-sub" data-t="adm3_ops_sub">Проверка и управление туроператорами.</div>
+      <div data-cxa-ch="tour"></div>
       <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
         <select id="adm3OpsFilter" onchange="ADM3.opsRender()"></select>
         <button class="btn btn-ghost btn-sm" onclick="ADM3.opsLoad()">↻</button>
@@ -2665,7 +2660,7 @@ adm2_at_bad:{ru:'Токен: только латинские буквы, циф�
  nav_realtors:{ru:'Агентства недвижимости',en:'Real Estate Agencies'},
  nav_travel:{ru:'Турагентства',en:'Travel agencies'},
  nav_partners:{ru:'Партнёры',en:'Partners'},
- nav_afisha:{ru:'Афиша',en:'Afisha'}, nav_clientsite:{ru:'Клиентский сайт',en:'Client site'}, nav_touroperators:{ru:'Туроператоры',en:'Tour operators'}, nav_queues:{ru:'Заявки',en:'Requests'},
+ nav_afisha:{ru:'Афиша',en:'Afisha'}, nav_clientsite:{ru:'Клиентский сайт',en:'Client site'}, nav_queues:{ru:'Заявки',en:'Requests'},
  nav_documents:{ru:'Документы',en:'Documents'},
  nav_freeframes:{ru:'Бесплатные рамки',en:'Free frames'},
  afisha_sub:{ru:'Объявления о событиях от пользователей (afisha-portal.html) — разовая оплата за размещение, автоистечение через 21 день или по дате события.',en:'User-submitted event listings (afisha-portal.html) — one-time placement fee, auto-expires after 21 days or on the event date.'},
