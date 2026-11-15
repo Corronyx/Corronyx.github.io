@@ -1325,8 +1325,12 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
      оставляем комментарий-напоминание; тег script-загрузчика добавляется в рантайме,
      чтобы не тормозить загрузку страницы, если функцией никто не пользуется. -->
 <script src="cx-session.js" data-role="touroperator"></script>
+<script src="cx-agent.js"></script>
+<script src="cx-site.js"></script>
+<script src="cx-channels.js" data-scope="tour"></script>
 <script src="cx-qr.js"></script>
 <script src="i18n.js"></script>
+<style>.cx-fixed [data-section="invoices"],.cx-fixed [data-mbn="invoices"]{display:none!important}html:not(.cx-fixed) [data-section="subfee"],html:not(.cx-fixed) [data-mbn="subfee"]{display:none!important}</style>
 </head>
 <body>
 <div class="toast-wrap" id="toastWrap"></div>
@@ -1381,6 +1385,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
       <div class="form-row"><label data-t="s013">Полное наименование туроператора</label><input type="text" id="topName" onblur="swAutoCap(this)"></div>
       <div class="form-row"><label data-t="reg_country">Страна</label><select id="regCountry"></select></div>
       <div class="form-row"><label data-t="reg_city">Город</label><input type="text" id="regCity" maxlength="80" onblur="swAutoCap(this)"></div>
+      <div data-cx-reg-site></div>
       <div class="form-row"><label data-t="s014">ИНН</label><input type="text" id="topInn"></div>
       <div class="form-row"><label data-t="s015">Номер в Едином федеральном реестре туроператоров</label><input type="text" id="topReestr"></div>
       <div class="form-row"><label data-t="s016">Реквизиты финансового обеспечения (страховка/банковская гарантия)</label><input type="text" id="topFinObespechenie"></div>
@@ -1409,6 +1414,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
     <span class="hp-email-chip" id="hpEmailChip" onclick="HP.startEditEmail()" title="Изменить email" data-t-title="sa02"></span>
     <div class="nav-item active" data-section="tours" onclick="HP.nav('tours')"><span class="sw-badge-slot" data-icon="🧳"></span> <span data-t="nav_tours">Туры</span></div>
     <div class="nav-item" data-section="invoices" onclick="HP.nav('invoices')"><span class="sw-badge-slot" data-icon="💳"></span> <span data-t="tp2_nav">Счета комиссии</span></div>
+    <div class="nav-item" data-section="subfee" onclick="HP.nav('subfee')"><span class="sw-badge-slot" data-icon="💳"></span> <span data-t="fee_nav">Абонентская плата</span></div>
     <div class="nav-item" data-section="profile" onclick="HP.nav('profile')"><span class="sw-badge-slot" data-icon="👤"></span> <span data-t="tp3_nav">Профиль и документы</span></div>
     <div class="sidebar-foot">
       <div class="lang-switch">
@@ -1427,6 +1433,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
       <div class="page-title" data-t="nav_tours">Туры</div>
       <div class="page-sub" data-t="tc_sub">Создавайте туры</div>
       <div id="tcNotice"></div>
+      <div data-cx-full-note></div>
       <div class="platform-req-card" style="max-width:760px;margin-bottom:22px;">
         <div class="platform-req-title" data-t="tc_new">Новый тур</div>
         <div class="form-row"><label data-t="tc_f_title">Название тура</label><input id="tcTitle" maxlength="140" style="width:100%"></div>
@@ -1455,9 +1462,15 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
       <div class="page-sub" data-t="tp2_sub">Счёт выставляется раз в 10 дней.</div>
       <div id="tpInvBody"></div>
     </div>
+    <div class="section" id="sec-subfee">
+      <div class="page-title" data-t="fee_nav">Абонентская плата</div>
+      <div class="page-sub" data-t="fee_sub">Фиксированная плата за размещение. Процент с броней платформа не берёт.</div>
+      <div id="hpFeeBody"></div>
+    </div>
     <div class="section" id="sec-profile">
       <div class="page-title" data-t="tp3_nav">Профиль и документы</div>
       <div class="page-sub" data-t="tp3_sub">Данные компании и документы для проверки администратором.</div>
+      <div id="cxSiteBoxT" data-cx-site-box data-kind="tour"></div>
       <div id="tpPfBody"></div>
     </div>
   </div>
@@ -1467,6 +1480,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
 <nav class="mobile-bottom-nav" id="mobileBottomNav">
   <button class="mbn-item active" data-mbn="tours" onclick="HP.nav('tours')"><span class="mbn-icon">🧳</span><span data-t="nav_tours">Туры</span></button>
   <button class="mbn-item" data-mbn="invoices" onclick="HP.nav('invoices')"><span class="mbn-icon">🧾</span><span data-t="tp2_nav">Счета комиссии</span></button>
+  <button class="mbn-item" data-mbn="subfee" onclick="HP.nav('subfee')"><span class="mbn-icon">💳</span><span data-t="fee_nav_s">Плата</span></button>
   <button class="mbn-item" data-mbn="profile" onclick="HP.nav('profile')"><span class="mbn-icon">👤</span><span data-t="tp3_nav">Профиль и документы</span></button>
 </nav>
 
@@ -1899,7 +1913,15 @@ async function checkTonUsdtTransfers(address, sinceMs){
 }
 
 /* ===== Business constants (must match index.html / панель администратора) ===== */
-const COMMISSION = 0.12;
+const COMMISSION = (function(){ /* ставка комиссии = режим платформы: 'fixed' даёт 0 (абонентская плата), безопасное значение по умолчанию */
+  try{
+    if(typeof window.CX_COMMISSION_RATE==='number') return window.CX_COMMISSION_RATE;
+    var x=new XMLHttpRequest(); x.open('GET',(window.CX_API_BASE||'https://api.corronyx.ru')+'/api/platform-info',false); x.send();
+    if(x.status===200){ var r=Number(JSON.parse(x.responseText).commission_rate); if(isFinite(r)&&r>=0&&r<=0.5) return r; }
+  }catch(e){}
+  return 0;
+})();
+document.documentElement.classList.toggle('cx-fixed', !COMMISSION); /* режим «абонентская плата»: раздел про комиссию скрыт */
 // ── Автопауза публикации за просрочку комиссии ──────────────────────
 // Оплата гостями идёт напрямую отелю — единственный рычаг Corronyx стимулировать
 // перевод комиссии — временно снять отель с публикации. Решение владельца:
@@ -1926,6 +1948,7 @@ const COMMISSION_AUTOPAUSE_DAYS = 7;
 //                            из внешней системы бронирования, Corronyx её
 //                            никогда не касался.
 function isCommissionEligible(b){
+  if(!COMMISSION) return false; /* режим «абонентская плата»: комиссии с броней нет */
   if(b.source==='site') return true;
   if(b.source==='manual') return b.viaCorronyx===true;
   return false;
@@ -2667,8 +2690,45 @@ function cxI18nSync(){
     else C.setLang(LANG, done);
   }catch(e){}
 }
+const CX_FIXED_T = { /* тексты, если процента с броней нет (абонентская плата); для остальных языков берётся английский */
+  rooms_sub:{ru:'Номерной фонд отеля. Клиент видит цену отеля без наценки платформы.',en:'Your room inventory. The client sees your price with no platform markup.'},
+  stat_period_total:{ru:'Сумма за период',en:'Period total'},
+  h056:{ru:'⛔ Укажите, пришёл ли гость через Corronyx',en:'⛔ Please indicate whether the guest came via Corronyx'},
+  s081:{ru:'✅ Да — гость пришёл через Corronyx',en:'✅ Yes — the guest came via Corronyx'},
+  s083:{ru:'Например: гость увидел отель на сайте Corronyx и позвонил вам напрямую — это «Да». Гость пришёл с улицы, по знакомым или через другой канал — это «Нет».',en:'For example: the guest saw your hotel on the Corronyx site and called you directly — that is “Yes”. The guest walked in, came via friends or another channel — that is “No”.'},
+  s090:{ru:'💬 Гости Corronyx всегда оплачивают проживание напрямую вам, отелю — сайт деньги не принимает и не хранит. Процент с броней платформа не берёт.',en:'💬 Corronyx guests always pay for the stay directly to you, the hotel — the site does not accept or hold money. The platform takes no percentage of bookings.'},
+  s101:{ru:'Удаляет ВСЕ брони, назначения номеров, отметки оплаты, историю расчётов и чёрный список этого отеля — необратимо. Профиль, номера и настройки отеля не трогает. Требует одобрения Corronyx.',en:'Deletes ALL bookings, room assignments, payment marks, settlement history and the blacklist of this hotel — irreversible. Does not touch the profile, rooms and hotel settings. Requires Corronyx approval.'},
+  t008:{ru:'Наша бронь (сайт или внесена вручную)',en:'Our booking (website or entered manually)'},
+  t009:{ru:'Другая система отеля (буква в углу — какая)',en:'Another hotel system (the corner letter shows which)'},
+  fee_nav:{ru:'Абонентская плата',en:'Subscription fee'},
+  fee_nav_s:{ru:'Плата',en:'Fee'},
+  fee_sub:{ru:'Фиксированная плата за размещение. Процент с броней платформа не берёт.',en:'A fixed placement fee. The platform takes no percentage of bookings.'},
+  fee_loading:{ru:'Загрузка…',en:'Loading…'},
+  fee_load_failed:{ru:'Не удалось загрузить данные. Обновите страницу.',en:'Could not load the data. Please refresh the page.'},
+  fee_price_month:{ru:'В месяц',en:'Per month'},
+  fee_price_year:{ru:'В год (скидка {pct}%)',en:'Per year ({pct}% off)'},
+  fee_price_not_set:{ru:'цена не назначена',en:'price not set'},
+  fee_covered_until:{ru:'Оплачено до',en:'Covered until'},
+  fee_trial_until:{ru:'Бесплатный период до',en:'Free period until'},
+  fee_debt:{ru:'К оплате (просрочка)',en:'Amount due (overdue)'},
+  fee_hidden:{ru:'Объект скрыт из выдачи за неоплату. После оплаты и проверки он вернётся автоматически.',en:'Your listing is hidden because the fee is overdue. It returns automatically after your payment is confirmed.'},
+  fee_review_pending:{ru:'Оплата отправлена и ждёт проверки.',en:'Your payment was submitted and awaits review.'},
+  fee_channel_closed:{ru:'Приём оплаты из вашей страны пока не открыт. Мы сообщим, когда можно будет оплатить.',en:'Payments from your country are not open yet. We will let you know when you can pay.'},
+  fee_requisites:{ru:'Реквизиты для оплаты',en:'Payment details'},
+  fee_bank:{ru:'Банковский перевод',en:'Bank transfer'},
+  fee_pay_title:{ru:'Сообщить об оплате',en:'Report a payment'},
+  fee_pay_period:{ru:'Период',en:'Period'},
+  fee_month:{ru:'месяц',en:'month'},
+  fee_year:{ru:'год',en:'year'},
+  fee_pay_amount:{ru:'Сумма',en:'Amount'},
+  fee_pay_proof:{ru:'Квитанция или скриншот',en:'Receipt or screenshot'},
+  fee_pay_send:{ru:'Отправить на проверку',en:'Send for review'},
+  fee_need_proof:{ru:'Приложите квитанцию или скриншот оплаты.',en:'Please attach the receipt or a payment screenshot.'},
+  fee_sent:{ru:'Отправлено. Мы проверим оплату.',en:'Sent. We will review the payment.'},
+  fee_send_failed:{ru:'Не удалось отправить',en:'Could not send'}
+};
 function t(key, vars){
-  let s = cxPackText(key);
+  let s = (!COMMISSION && CX_FIXED_T[key]) ? (CX_FIXED_T[key][LANG] || CX_FIXED_T[key].en) : cxPackText(key);
   if(s==null) s = (T[key] && (T[key][LANG] || T[key].en || T[key].ru)) || key;
   if(vars) Object.keys(vars).forEach(k=> s = s.replace('{'+k+'}', vars[k]));
   return s;
@@ -2884,7 +2944,8 @@ const HP = {
     const inn=g('topInn').value.trim(), reestr=g('topReestr').value.trim(), fin=g('topFinObespechenie').value.trim(), sfera=g('topSfera').value;
     if(!name||!city||!inn||!reestr||!fin){ err.textContent=t('reg_required'); return; }
     if(/[<>]/.test(city)||city.length>80){ err.textContent=t('tp_err_city'); return; }
-    try { await CxApi.post('/api/hotels',{account_type:'touroperator',name,country,city,inn,reestr_number:reestr,fin_obespechenie:fin,sfera}); }
+    const site=window.CxSite?CxSite.regRead():{url:'',bad:false}; if(site.bad){ err.textContent=CxSite.T('bad'); return; }
+    try { await CxApi.post('/api/hotels',{account_type:'touroperator',name,country,city,inn,reestr_number:reestr,fin_obespechenie:fin,sfera,booking_url:site.url||undefined}); }
     catch(e){ if(!(e.status===409 && e.payload && e.payload.error==='profile_exists')){ err.textContent = e.isNetwork ? cxT('a004') : cxSrvErr(e, t('reg_required')); return; } }
     CxSession.cardDraftClear('touroperator'); location.reload();
   },
@@ -2903,13 +2964,14 @@ const HP = {
     if(!g('hpAgree').checked){ err.textContent=cxT('a003'); return; }
     if(!cxPdOk('hpAgree')){ err.textContent=cxPdErr(); return; }   // R25b: отдельное согласие на обработку ПД
     const refCode=LS.get('cx_active_ref');
+    const site=window.CxSite?CxSite.regRead():{url:'',bad:false}; if(site.bad){ err.textContent=CxSite.T('bad'); return; }
     const body={email,password:pass,role:'touroperator',pd_consent:true}; if(refCode) body.referral_code=refCode;
     if(window.CxSession){ if(!CxSession.adultChecked()){ err.textContent=CxSession.t('e_adult'); return; } body.adult_confirmed=true; }   // R13 п.7
     try{
       await CxApi.post('/api/register',body);
       const lr=await CxApi.post('/api/login',{email,password:pass});
       LS.set('cx_tp_jwt',lr.token);
-      await CxApi.post('/api/hotels',{account_type:'touroperator',name,country,city,inn,reestr_number:reestr,fin_obespechenie:fin,sfera,referral_code:refCode||undefined});
+      await CxApi.post('/api/hotels',{account_type:'touroperator',name,country,city,inn,reestr_number:reestr,fin_obespechenie:fin,sfera,referral_code:refCode||undefined,booking_url:site.url||undefined});
       LS.remove('cx_tp_jwt');
     }catch(e){
       LS.remove('cx_tp_jwt');
@@ -2966,6 +3028,7 @@ const HP = {
     window.scrollTo(0,0);
     if(section==='tours') cxTourCabLoad();
     if(section==='invoices') cxTpInvLoad();
+    if(section==='subfee') cxFeeLoad();
     if(section==='profile') cxTpPfLoad();
   },
   renderAll(){
@@ -3016,9 +3079,12 @@ async function cxTourCabLoad(){
   const cs=document.getElementById('tcCountry');
   if(cs && !cs.options.length) cs.innerHTML=cxTcCountryOpts((HP.hotel&&HP.hotel.country)||'RU');
   try{
-    const tours=await CxApi.get('/api/tours/me'), bookings=await CxApi.get('/api/tours/bookings/mine');
-    window.__tc.tours=Array.isArray(tours)?tours:[]; window.__tc.bookings=Array.isArray(bookings)?bookings:[];
+    const tours=await CxApi.get('/api/tours/me');
+    window.__tc.tours=Array.isArray(tours)?tours:[];
   }catch(e){ toast(cxTcErr(e),'error'); }
+  /* брони гостей грузятся отдельно: в режиме «бронь на сайте туроператора» запрос отключён (410) и не должен прятать туры */
+  try{ const bookings=await CxApi.get('/api/tours/bookings/mine'); window.__tc.bookings=Array.isArray(bookings)?bookings:[]; }
+  catch(e){ window.__tc.bookings=[]; if(!(e&&e.status===410)) toast(cxTcErr(e),'error'); }
   /* /api/tours/me отдаёт ВСЕ вылеты каждого тура (и у скрытых туров тоже), отдельные запросы не нужны */
   window.__tc.deps={}; (window.__tc.tours||[]).forEach(x=>{ window.__tc.deps[x.id]=Array.isArray(x.departures)?x.departures:[]; });
   cxTourCabRender();
@@ -3031,6 +3097,7 @@ function cxTcDepRow(tid,d,today){
   return `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px;">
     <input id="dpEDate${id}" type="date" min="${today}" value="${esc(date)}">
     <input id="dpESeats${id}" type="number" min="${Math.max(1,Number(d.seats_booked)||1)}" max="1000" value="${Number(d.seats_total)||1}" style="width:90px">
+    <input id="dpEBooked${id}" type="number" min="0" max="1000" value="${Number(d.seats_booked)||0}" style="width:90px" title="${esc(window.CxSite?CxSite.T('booked'):'')}" aria-label="${esc(window.CxSite?CxSite.T('booked'):'')}">
     <span style="font-size:13px;color:var(--muted);">${seats}</span>
     <button class="btn btn-ghost" onclick="cxTourDepSave(${tid},${id})">${esc(t('tc_save'))}</button>${del}</div>`;
 }
@@ -3093,9 +3160,9 @@ async function cxTourAddDeparture(id){
 }
 async function cxTourDepSave(tid,depId){
   const de=document.getElementById('dpEDate'+depId), se=document.getElementById('dpESeats'+depId); if(!de||!se) return;
-  const date=de.value, seats=parseInt(se.value,10);
-  if(!date || date<cxTcToday() || !(seats>=1&&seats<=1000)){ toast(t('tc_err_date'),'error'); return; }
-  try{ await CxApi.put('/api/tours/'+tid+'/departures/'+depId,{departure_date:date,seats_total:seats}); toast(t('tc_dep_saved'),'ok'); }
+  const date=de.value, seats=parseInt(se.value,10), bk=document.getElementById('dpEBooked'+depId), booked=bk?parseInt(bk.value,10):undefined;
+  if(!date || date<cxTcToday() || !(seats>=1&&seats<=1000) || (bk && !(booked>=0&&booked<=1000))){ toast(t('tc_err_date'),'error'); return; }
+  try{ const body={departure_date:date,seats_total:seats}; if(bk) body.seats_booked=booked; await CxApi.put('/api/tours/'+tid+'/departures/'+depId,body); toast(t('tc_dep_saved'),'ok'); }
   catch(e){ toast(cxTcErr(e),'error'); }
   await cxTourCabLoad();
 }
@@ -3325,6 +3392,52 @@ window.addEventListener('DOMContentLoaded',init);
 
 /* ===== TP1, сдача 2: счета комиссии и оплата реквизитами. Суммы, статусы и реквизиты только с сервера. ===== */
 window.__tp={inv:[],req:{},bk:[]};
+/* ===== Абонентская плата (режим fixed): статус, цена, сообщить об оплате ===== */
+async function cxFeeLoad(){
+  const box = document.getElementById('hpFeeBody'); if(!box || !HP.hotel) return;
+  box.textContent = t('fee_loading');
+  let st;
+  try{ st = await CxApi.get('/api/hotel-fee/'+HP.hotel.id); }catch(e){ box.textContent = t('fee_load_failed'); return; }
+  let rq = {}; try{ rq = await CxApi.get('/api/payment-requisites') || {}; }catch(e){}
+  const p = st.price || {}, cur = p.currency==='USD' ? '$' : '₽';
+  const money = v => (Number.isFinite(Number(v)) ? Number(v) : 0).toLocaleString(LANG==='ru'?'ru-RU':'en-US') + ' ' + cur;
+  const dt = v => v ? new Date(v).toLocaleDateString(LANG==='ru'?'ru-RU':'en-US') : '—';
+  const row = (l,v) => '<div class="stat-card"><div class="num">'+esc(v)+'</div><div class="lbl">'+esc(l)+'</div></div>';
+  let h = '<div class="stat-grid">';
+  h += p.price_not_set ? row(t('fee_price_month'), t('fee_price_not_set')) : row(t('fee_price_month'), money(p.monthly)) + row(t('fee_price_year').replace('{pct}', String(p.annual_discount_pct||'')), money(p.annual));
+  h += row(t('fee_covered_until'), dt(st.covered_until || st.paid_until || st.trial_until));
+  if(st.in_trial) h += row(t('fee_trial_until'), dt(st.trial_until));
+  if(st.debt) h += row(t('fee_debt'), money(st.debt.amount));
+  h += '</div>';
+  if(st.hidden_for_non_payment) h += '<div class="banner-warn">'+esc(t('fee_hidden'))+'</div>';
+  if(st.review_pending) h += '<div class="banner-info">'+esc(t('fee_review_pending'))+'</div>';
+  if(!st.payment_channel_open) h += '<div class="banner-info">'+esc(t('fee_channel_closed'))+'</div>';
+  const lines = [['USDT'+(rq.requisite_usdt_network?' ('+rq.requisite_usdt_network+')':''),rq.requisite_usdt_wallet],['СБП / SBP',[rq.requisite_sbp_phone,rq.requisite_sbp_bank].filter(Boolean).join(' · ')],
+    [t('fee_bank'),[rq.requisite_bank_recipient,rq.requisite_bank_name,rq.requisite_bank_inn&&('ИНН '+rq.requisite_bank_inn),rq.requisite_bank_bik&&('БИК '+rq.requisite_bank_bik),rq.requisite_bank_account&&('р/с '+rq.requisite_bank_account)].filter(Boolean).join(', ')],
+    ['',rq.requisite_payment_link],['',rq.requisite_note]].filter(x=>x[1]);
+  if(lines.length) h += '<div class="platform-req-card"><div class="platform-req-title">'+esc(t('fee_requisites'))+'</div>'+lines.map(x=>'<div>'+(x[0]?esc(x[0])+': ':'')+esc(x[1])+'</div>').join('')+'</div>';
+  if(st.payment_channel_open && !p.price_not_set){
+    h += '<div class="platform-req-card"><div class="platform-req-title">'+esc(t('fee_pay_title'))+'</div>'
+      + '<label>'+esc(t('fee_pay_period'))+' <select id="hpFeeMonths"><option value="1">'+esc(t('fee_month'))+'</option><option value="12">'+esc(t('fee_year'))+'</option></select></label> '
+      + '<label>'+esc(t('fee_pay_amount'))+' ('+esc(cur)+') <input id="hpFeeAmount" type="number" min="0" step="0.01" value="'+esc(p.monthly)+'"></label> '
+      + '<label>'+esc(t('fee_pay_proof'))+' <input id="hpFeeProof" type="file" accept="image/*,application/pdf"></label> '
+      + '<button class="btn" id="hpFeeSend">'+esc(t('fee_pay_send'))+'</button><div id="hpFeeMsg"></div></div>';
+  }
+  box.innerHTML = h;
+  const sel = document.getElementById('hpFeeMonths'), amt = document.getElementById('hpFeeAmount'), btn = document.getElementById('hpFeeSend');
+  if(sel && amt) sel.addEventListener('change', ()=>{ amt.value = sel.value==='12' ? p.annual : p.monthly; });
+  if(btn) btn.addEventListener('click', async ()=>{
+    const msg = document.getElementById('hpFeeMsg'), f = document.getElementById('hpFeeProof').files[0];
+    if(!f){ msg.textContent = t('fee_need_proof'); return; }
+    btn.disabled = true; msg.textContent = '…';
+    try{
+      const up = await CxApi.uploadFile(f);
+      await CxApi.post('/api/hotel-fee/'+HP.hotel.id+'/payment', { amount: Number(amt.value), months: Number(sel.value), proof_url: up.url });
+      msg.textContent = t('fee_sent'); cxFeeLoad();
+    }catch(e){ msg.textContent = t('fee_send_failed') + ' (' + String((e && e.message) || e) + ')'; btn.disabled = false; }
+  });
+}
+
 async function cxTpInvLoad(){
   const box=document.getElementById('tpInvBody'); if(!box) return;
   box.innerHTML='<p style="color:var(--muted);">'+esc(t('tp2_loading'))+'</p>';
@@ -3600,6 +3713,12 @@ Object.assign(T,{cx_sess_expired:{ru:"Сессия закончилась, во�
 <script>
 /* R13 п.7: галочка 18+ в форме регистрации */
 document.addEventListener('DOMContentLoaded',function(){ if(window.CxSession) CxSession.adultRow('hpAgree'); });
+</script>
+<script>
+/* R39: ИИ-помощник в кабинете туроператора (11.11.2026) */
+(function(){ if(!window.CxAgent) return; CxAgent.mount({ portal:'tour-portal.html',
+  greeting:'Здравствуйте! Я Corronyx Agent. Спросите про туры, брони, абонентскую плату или проверку туроператора.',
+  prompt:'Ты — Corronyx Agent, ИИ-помощник для туроператоров на платформе Corronyx. Общайся официально-вежливо, но тепло. Кабинет туроператора: туры (создание и редактирование, фото и одно видео до 30 секунд на тур, даты, цены), брони, раздел «Абонентская плата» (статус, цена, реквизиты, кнопка «Сообщить об оплате» с файлом), профиль и проверка туроператора (регистрация, ожидание, одобрение админом, как у отелей), уведомления. Процента с броней нет, если в кабинете не показаны вкладки комиссии; гость платит туроператору напрямую; баллы реферальной программы не оплачивают брони. Точные суммы не называй: направляй в нужный раздел кабинета. Если не уверен в названии раздела, опиши его общими словами. Ты не выполняешь действия сам (не подтверждаешь оплату, не удаляешь туры), только объясняешь, где это сделать. Обычно отвечай 2-5 предложениями. АКТУАЛЬНО (14.11.2026, важнее текста выше): гости бронируют на сайте самого туроператора, а Corronyx ведёт гостя по кнопке на его сайт. Адрес сайта для бронирования обязателен: он указывается в разделе профиля (поле Адрес вашего сайта для бронирования), без него туры гостям не видны. У каждого выезда в разделе туров есть поле Занято мест: его нужно держать актуальным, гости видят на Corronyx есть места или мест нет, и синхронизировать с вашей системой обязательно. Броней гостей через Corronyx в кабинете больше нет. Оценки гости ставят только после перехода на ваш сайт по нашей кнопке. В конце ответа, если нужно перейти в раздел, добавь метку: [NAV:tours] (туры и выезды) [NAV:profile] (профиль и адрес сайта) [NAV:subfee] (абонентская плата) [NAV:invoices] (счета). Метка не показывается человеку; добавляй её только когда реально стоит перейти.', nav: function(n){ if(typeof HP!=='undefined' && typeof HP.nav==='function') HP.nav(n); }, navNames:['tours','profile','subfee','invoices'] }); })();
 </script>
 </body>
 </html>

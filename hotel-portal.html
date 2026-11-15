@@ -1333,9 +1333,13 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
      оставляем комментарий-напоминание; тег script-загрузчика добавляется в рантайме,
      чтобы не тормозить загрузку страницы, если функцией никто не пользуется. -->
 <script src="cx-session.js" data-role="hotel"></script>
+<script src="cx-agent.js"></script>
+<script src="cx-site.js"></script>
+<script src="cx-channels.js" data-scope="hotel"></script>
 <script src="cx-translate.js"></script>
 <script src="cx-qr.js"></script>
 <script src="i18n.js"></script>
+<style>.cx-fixed [data-section="payouts"],.cx-fixed [data-section="invoices"],.cx-fixed [data-mbn="payouts"],.cx-fixed [data-mbn="invoices"]{display:none!important}html:not(.cx-fixed) [data-section="subfee"],html:not(.cx-fixed) [data-mbn="subfee"]{display:none!important}</style>
 </head>
 <body>
 
@@ -1402,6 +1406,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
         </div>
         <div class="form-row"><label data-t="reg_city">Город</label><input type="text" id="regCity" onblur="swAutoCap(this)"></div>
         <div class="form-row"><label data-t="reg_address">Адрес</label><input type="text" id="regAddress" onblur="swAutoCap(this)"></div>
+        <div data-cx-reg-site></div>
         <div class="form-row"><label data-t="f_stars">Звёзды</label>
           <select id="regStars"><option value="3">3★</option><option value="4">4★</option><option value="5">5★</option></select>
         </div>
@@ -1440,6 +1445,7 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
     <div class="nav-item" data-section="chess" onclick="HP.nav('chess')"><span class="sw-badge-slot" data-icon="♟️"></span> <span data-t="nav_chess">Шахматка</span></div>
     <div class="nav-item" data-section="payouts" onclick="HP.nav('payouts')"><span class="sw-badge-slot" data-icon="💰"></span> <span data-t="nav_payouts"><span data-t="s009">Выплаты</span></span></div>
     <div class="nav-item" data-section="invoices" onclick="HP.nav('invoices')"><span class="sw-badge-slot" data-icon="🧾"></span> <span data-t="hi_nav">Счета комиссии</span></div>
+    <div class="nav-item" data-section="subfee" onclick="HP.nav('subfee')"><span class="sw-badge-slot" data-icon="💳"></span> <span data-t="fee_nav">Абонентская плата</span></div>
     <div class="nav-item" data-section="profile" onclick="HP.nav('profile')"><span class="sw-badge-slot" data-icon="🏨"></span> <span data-t="nav_profile"><span data-t="s024">Профиль</span></span></div>
     <div class="nav-item" data-section="ical" onclick="HP.nav('ical')"><span class="sw-badge-slot" data-icon="🔄"></span> <span data-t="nav_ical"><span data-t="s093">Синхронизация</span></span></div>
     <div class="sidebar-foot">
@@ -1715,6 +1721,12 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
       <div id="hpInvBody"></div>
     </div>
 
+    <div class="section" id="sec-subfee">
+      <div class="page-title" data-t="fee_nav">Абонентская плата</div>
+      <div class="page-sub" data-t="fee_sub">Фиксированная плата за размещение. Процент с броней платформа не берёт.</div>
+      <div id="hpFeeBody"></div>
+    </div>
+
     <!-- PROFILE -->
     <div class="section" id="sec-profile">
       <div class="page-title" data-t="nav_profile">Профиль отеля</div>
@@ -1753,6 +1765,8 @@ input:focus-visible, textarea:focus-visible{outline:none; border-color:#B8954D; 
           <button type="button" class="btn btn-sm btn-ghost" onclick="HP.geocodeAddress()">📍 <span data-t="map_find_btn">Найти на карте</span></button>
           <div id="pAddressMap" class="addr-map"></div>
         </div>
+
+        <div id="cxSiteBoxH" data-cx-site-box data-kind="hotel"></div>
 
         <!-- Кнопка "Сохранить" — намеренно СРАЗУ после карты, а не в самом
              низу страницы (была там раньше): владелец жаловался, что
@@ -2265,7 +2279,15 @@ async function checkTonUsdtTransfers(address, sinceMs){
 }
 
 /* ===== Business constants (must match index.html / панель администратора) ===== */
-const COMMISSION = 0.12;
+const COMMISSION = (function(){ /* ставка комиссии = режим платформы: 'fixed' даёт 0 (абонентская плата), безопасное значение по умолчанию */
+  try{
+    if(typeof window.CX_COMMISSION_RATE==='number') return window.CX_COMMISSION_RATE;
+    var x=new XMLHttpRequest(); x.open('GET',(window.CX_API_BASE||'https://api.corronyx.ru')+'/api/platform-info',false); x.send();
+    if(x.status===200){ var r=Number(JSON.parse(x.responseText).commission_rate); if(isFinite(r)&&r>=0&&r<=0.5) return r; }
+  }catch(e){}
+  return 0;
+})();
+document.documentElement.classList.toggle('cx-fixed', !COMMISSION); /* режим «абонентская плата»: разделы про комиссию скрыты */
 // ── Автопауза публикации за просрочку комиссии ──────────────────────
 // Оплата гостями идёт напрямую отелю — единственный рычаг Corronyx стимулировать
 // перевод комиссии — временно снять отель с публикации. Решение владельца:
@@ -2292,6 +2314,7 @@ const COMMISSION_AUTOPAUSE_DAYS = 7;
 //                            из внешней системы бронирования, Corronyx её
 //                            никогда не касался.
 function isCommissionEligible(b){
+  if(!COMMISSION) return false; /* режим «абонентская плата»: комиссии с броней нет */
   if(b.source==='site') return true;
   if(b.source==='manual') return b.viaCorronyx===true;
   return false;
@@ -3040,8 +3063,45 @@ function cxI18nSync(){
     else C.setLang(LANG, done);
   }catch(e){}
 }
+const CX_FIXED_T = { /* тексты, если процента с броней нет (абонентская плата); для остальных языков берётся английский */
+  rooms_sub:{ru:'Номерной фонд отеля. Клиент видит цену отеля без наценки платформы.',en:'Your room inventory. The client sees your price with no platform markup.'},
+  stat_period_total:{ru:'Сумма за период',en:'Period total'},
+  h056:{ru:'⛔ Укажите, пришёл ли гость через Corronyx',en:'⛔ Please indicate whether the guest came via Corronyx'},
+  s081:{ru:'✅ Да — гость пришёл через Corronyx',en:'✅ Yes — the guest came via Corronyx'},
+  s083:{ru:'Например: гость увидел отель на сайте Corronyx и позвонил вам напрямую — это «Да». Гость пришёл с улицы, по знакомым или через другой канал — это «Нет».',en:'For example: the guest saw your hotel on the Corronyx site and called you directly — that is “Yes”. The guest walked in, came via friends or another channel — that is “No”.'},
+  s090:{ru:'💬 Гости Corronyx всегда оплачивают проживание напрямую вам, отелю — сайт деньги не принимает и не хранит. Процент с броней платформа не берёт.',en:'💬 Corronyx guests always pay for the stay directly to you, the hotel — the site does not accept or hold money. The platform takes no percentage of bookings.'},
+  s101:{ru:'Удаляет ВСЕ брони, назначения номеров, отметки оплаты, историю расчётов и чёрный список этого отеля — необратимо. Профиль, номера и настройки отеля не трогает. Требует одобрения Corronyx.',en:'Deletes ALL bookings, room assignments, payment marks, settlement history and the blacklist of this hotel — irreversible. Does not touch the profile, rooms and hotel settings. Requires Corronyx approval.'},
+  t008:{ru:'Наша бронь (сайт или внесена вручную)',en:'Our booking (website or entered manually)'},
+  t009:{ru:'Другая система отеля (буква в углу — какая)',en:'Another hotel system (the corner letter shows which)'},
+  fee_nav:{ru:'Абонентская плата',en:'Subscription fee'},
+  fee_nav_s:{ru:'Плата',en:'Fee'},
+  fee_sub:{ru:'Фиксированная плата за размещение. Процент с броней платформа не берёт.',en:'A fixed placement fee. The platform takes no percentage of bookings.'},
+  fee_loading:{ru:'Загрузка…',en:'Loading…'},
+  fee_load_failed:{ru:'Не удалось загрузить данные. Обновите страницу.',en:'Could not load the data. Please refresh the page.'},
+  fee_price_month:{ru:'В месяц',en:'Per month'},
+  fee_price_year:{ru:'В год (скидка {pct}%)',en:'Per year ({pct}% off)'},
+  fee_price_not_set:{ru:'цена не назначена',en:'price not set'},
+  fee_covered_until:{ru:'Оплачено до',en:'Covered until'},
+  fee_trial_until:{ru:'Бесплатный период до',en:'Free period until'},
+  fee_debt:{ru:'К оплате (просрочка)',en:'Amount due (overdue)'},
+  fee_hidden:{ru:'Объект скрыт из выдачи за неоплату. После оплаты и проверки он вернётся автоматически.',en:'Your listing is hidden because the fee is overdue. It returns automatically after your payment is confirmed.'},
+  fee_review_pending:{ru:'Оплата отправлена и ждёт проверки.',en:'Your payment was submitted and awaits review.'},
+  fee_channel_closed:{ru:'Приём оплаты из вашей страны пока не открыт. Мы сообщим, когда можно будет оплатить.',en:'Payments from your country are not open yet. We will let you know when you can pay.'},
+  fee_requisites:{ru:'Реквизиты для оплаты',en:'Payment details'},
+  fee_bank:{ru:'Банковский перевод',en:'Bank transfer'},
+  fee_pay_title:{ru:'Сообщить об оплате',en:'Report a payment'},
+  fee_pay_period:{ru:'Период',en:'Period'},
+  fee_month:{ru:'месяц',en:'month'},
+  fee_year:{ru:'год',en:'year'},
+  fee_pay_amount:{ru:'Сумма',en:'Amount'},
+  fee_pay_proof:{ru:'Квитанция или скриншот',en:'Receipt or screenshot'},
+  fee_pay_send:{ru:'Отправить на проверку',en:'Send for review'},
+  fee_need_proof:{ru:'Приложите квитанцию или скриншот оплаты.',en:'Please attach the receipt or a payment screenshot.'},
+  fee_sent:{ru:'Отправлено. Мы проверим оплату.',en:'Sent. We will review the payment.'},
+  fee_send_failed:{ru:'Не удалось отправить',en:'Could not send'}
+};
 function t(key, vars){
-  let s = cxPackText(key);
+  let s = (!COMMISSION && CX_FIXED_T[key]) ? (CX_FIXED_T[key][LANG] || CX_FIXED_T[key].en) : cxPackText(key);
   if(s==null) s = (T[key] && (T[key][LANG] || T[key].en || T[key].ru)) || key;
   if(vars) Object.keys(vars).forEach(k=> s = s.replace('{'+k+'}', vars[k]));
   return s;
@@ -3313,7 +3373,8 @@ Contact: Corronyx@gmail.com
     const err=document.getElementById('registerErr'); err.style.color='var(--err)';
     const name=document.getElementById('regName').value.trim(), country=document.getElementById('regCountry').value||'RU', city=document.getElementById('regCity').value.trim(), address=document.getElementById('regAddress').value.trim(), stars=+document.getElementById('regStars').value;
     if(!name||!city||!address){ err.textContent=t('reg_required'); return; }
-    try { await CxApi.post('/api/hotels', { account_type:'hotel', name, country, city, class: stars }); }
+    const site=window.CxSite?CxSite.regRead():{url:'',bad:false}; if(site.bad){ err.textContent=CxSite.T('bad'); return; }
+    try { await CxApi.post('/api/hotels', { account_type:'hotel', name, country, city, class: stars, booking_url: site.url||undefined }); }
     catch(e){ if(!(e.status===409 && e.payload && e.payload.error==='profile_exists')){ err.textContent = e.isNetwork ? cxT('a004') : cxSrvErr(e, t('reg_required')); return; } }
     CxSession.cardDraftClear('hotel'); location.reload();
   },
@@ -3347,7 +3408,8 @@ Contact: Corronyx@gmail.com
       const address=document.getElementById('regAddress').value.trim();
       const stars=+document.getElementById('regStars').value;
       if(!name||!city||!address||!email||!pass){ err.textContent=t('reg_required'); return; }
-      hotelBody = { account_type:'hotel', name, country, city, class: stars, referral_code: refCode || undefined };
+      const site=window.CxSite?CxSite.regRead():{url:'',bad:false}; if(site.bad){ err.textContent=CxSite.T('bad'); return; }
+      hotelBody = { account_type:'hotel', name, country, city, class: stars, referral_code: refCode || undefined, booking_url: site.url || undefined };
     }
 
     try {
@@ -3475,6 +3537,7 @@ Contact: Corronyx@gmail.com
     if(section==='ical') { this.renderSyncBlock('syncBlockIcal'); }
     if(section==='payouts') { this.renderPayouts(); this.renderPlatformRequisites(); }
     if(section==='invoices') cxHiInvLoad();
+    if(section==='subfee') cxFeeLoad();
   },
   // Чип почты в шапке — показывает текущий email, по клику превращается в
   // поле ввода. Хранение синхронизировано с тем же местом, что и Профиль
@@ -3914,7 +3977,7 @@ Contact: Corronyx@gmail.com
       {num:blacklistCount, lbl:cxT('st_bl'), cls:blacklistCount>0?'stat-warn':'', onclick:"HP.filterDashBookings('blacklisted')"},
       {num:bookings.length, lbl:t('stat_total_bookings'), onclick:"HP.filterDashBookings('all')"},
       {num:fmtMoney(commission), lbl:t('stat_commission'), onclick:"HP.filterDashBookings('confirmed')"}
-    ];
+    ].filter(x=>COMMISSION || x.lbl!==t('stat_commission'));
     document.getElementById('dashStats').innerHTML = stats.map(s=>`<div class="stat-card ${s.cls||''}" onclick="${s.onclick}" style="cursor:pointer;" title="${cxT('stat_hint')}">${s.extra||''}<div class="num">${s.num}</div><div class="lbl">${s.lbl}</div></div>`).join('');
     this.renderDashPeriodNav(dashPeriods);
     // renderBookings() сама вызывает renderUnassignedPanel() —
@@ -8226,7 +8289,7 @@ html.translated-rtl .pass-eye, html[dir="rtl"] .pass-eye{right:auto; left:1px}
 html.translated-rtl .modal .close, html[dir="rtl"] .modal .close{right:auto; left:14px}
 }
 </style>
-<button class="ai-widget-btn" id="aiWidgetBtn" onclick="toggleAiWidget()"><img src="data:image/png;base64,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" alt="Corronyx Agent"></button>
+<button class="ai-widget-btn" id="aiWidgetBtn" onclick="toggleAiWidget()"><img src="data:image/jpeg;base64,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" alt="Corronyx Agent"></button>
 <div class="ai-widget-panel" id="aiWidgetPanel">
   <div class="ai-widget-head"><span>Corronyx Agent</span><span onclick="toggleAiWidget()">✕</span></div>
   <div class="ai-note" data-t="ai_note">Ответ дал ИИ, может ошибаться. Не вводите личные данные.</div>
@@ -8250,7 +8313,7 @@ const AI_SECURITY_KEYWORDS = [
   'проникнуть в систему','получить доступ к базе','раскрой системный промт','системный промпт',
   'ignore previous instructions','system prompt','jailbreak','покажи исходный код','дай мне доступ администратора'
 ];
-function aiDetectSecurityThreat(lowerText){ return AI_SECURITY_KEYWORDS.some(k=>lowerText.includes(k)); }
+function aiDetectSecurityThreat(lowerText){ if(window.CxAgent) return !!CxAgent.classify(lowerText); return AI_SECURITY_KEYWORDS.some(k=>lowerText.includes(k)); }
 function aiExtractContact(text){
   const email=text.match(/[\w.+-]+@[\w-]+\.[\w.-]+/); const phone=text.match(/\+?\d[\d\s\-\(\)]{7,}\d/);
   return (email&&email[0])||(phone&&phone[0])||null;
@@ -8266,10 +8329,11 @@ function cxScrubPII(t){ /* A3 LEGAL: не отправлять ИИ почту, 
   t=t.replace(/(?:\+?\d[\d\s().-]{8,}\d)/g,function(m){ return m.replace(/\D/g,'').length>=10?'[number]':m; });
   return t; }
 async function callCloudflareAI(systemPrompt, userMessage){
+  if(window.CxAgent){ if(CxAgent.isBlocked()) return CxAgent.blockMsg(userMessage); if(!CxAgent.take()) return CxAgent.limitMsg(); systemPrompt=CxAgent.prompt(systemPrompt); }
   userMessage=cxScrubPII(userMessage);
   // 25.08.2026: вызов идёт на собственный Cloudflare Worker (обходит CORS),
   // токен в браузере больше не нужен — см. подробный комментарий в index.html
-  const AI_WORKER_URL='https://corronyx-ai.corronyx.workers.dev/';
+  const AI_WORKER_URL = (window.CxAgent ? CxAgent.url() : 'https://corronyx-ai.corronyx.workers.dev/');
   _aiAgentHistory.push({role:'user', content:userMessage});
   if(_aiAgentHistory.length>AI_AGENT_HISTORY_LIMIT) _aiAgentHistory=_aiAgentHistory.slice(-AI_AGENT_HISTORY_LIMIT);
   try{
@@ -8280,7 +8344,7 @@ async function callCloudflareAI(systemPrompt, userMessage){
     const data=await resp.json();
     const reply=data && (data.response || (data.result && data.result.response)) ? (data.response || data.result.response).trim() : null;
     if(reply) _aiAgentHistory.push({role:'assistant', content:reply});
-    return reply;
+    return window.CxAgent?CxAgent.guard(reply):reply;
   }catch(e){ console.error('Ошибка обращения к ИИ-агенту (Cloudflare Worker):', e); return null; }
 }
 const AI_SYSTEM_PROMPT = `Ты — Corronyx Agent, ИИ-помощник для отелей на платформе Corronyx. Твоя аудитория — сотрудники отеля, которые работают в личном кабинете hotel-portal. Общайся официально-вежливо, но тепло, без сухости.
@@ -8312,7 +8376,11 @@ const AI_SYSTEM_PROMPT = `Ты — Corronyx Agent, ИИ-помощник для 
 НАВИГАЦИЯ: если пользователю нужно попасть в конкретный раздел кабинета, в конце своего ответа добавь метку одного из этих разделов: [NAV:dashboard] [NAV:rooms] [NAV:chess] [NAV:payouts] [NAV:profile] [NAV:ical] — сайт сам переключит вкладку, метка не покажется пользователю. Добавляй её ТОЛЬКО когда реально стоит перейти в раздел, не в каждом ответе.
 
 Если не уверен в ответе — сначала попробуй ответить своими силами по смыслу вопроса, и только в крайнем случае предложи написать в поддержку Corronyx.
-Отвечай по делу, обычно 2-5 предложений, длиннее — если вопрос действительно сложный.`;
+Отвечай по делу, обычно 2-5 предложений, длиннее — если вопрос действительно сложный.
+
+АКТУАЛЬНО (11.11.2026, важнее текста выше): отель платит платформе фиксированную абонентскую плату (раздел «Абонентская плата»: статус, цена, реквизиты, кнопка «Сообщить об оплате» с файлом). Процента с броней нет, если в кабинете не показаны вкладки «Выплаты» и «Счета комиссии». Баллы реферальной программы не оплачивают брони. Суммы не называй, направляй в раздел «Абонентская плата».
+
+АКТУАЛЬНО (14.11.2026, важнее текста выше): гости бронируют на сайте самого отеля, а Corronyx ведёт гостя по кнопке «Забронировать на сайте отеля». Адрес сайта для бронирования обязателен: он указывается в разделе «Профиль» (поле «Адрес вашего сайта для бронирования»), без него карточку отеля гости не видят. Занятость нужно отмечать в «Шахматке», чтобы гости видели «свободно» или «занято» на Corronyx; ее обязательно синхронизировать со своей шахматкой, ответственность за точность на отеле. Броней гостей через Corronyx в кабинете больше нет, раздел «Синхронизация» нужен, чтобы подтянуть брони из своей системы. Оценки (шесть звёзд) гости ставят только после перехода на сайт отеля по нашей кнопке. Метка [NAV:subfee] ведёт в «Абонентскую плату».`;
 
 function toggleAiWidget(){
   const p=document.getElementById('aiWidgetPanel');
@@ -8324,7 +8392,7 @@ function toggleAiWidget(){
 }
 function addAiWidgetMsg(text, who){
   const body=document.getElementById('aiWidgetBody');
-  const div=document.createElement('div'); div.className='ai-widget-msg '+who; div.textContent=text;
+  const div=document.createElement('div'); div.className='ai-widget-msg '+who; if(who==='bot'&&window.CxAgent) CxAgent.renderInto(div,text); else div.textContent=text;
   body.appendChild(div); body.scrollTop=body.scrollHeight;
 }
 /* Режим администратора через чат удалён (12.10.2026): проверка администратора живёт только на сервере (токен админа). */
@@ -8335,7 +8403,9 @@ async function sendAiWidgetMsg(){
   addAiWidgetMsg(text,'user'); input.value='';
   const q=text.toLowerCase();
 
+  if(window.CxAgent && CxAgent.isBlocked()){ addAiWidgetMsg(CxAgent.blockMsg(text),'bot'); return; }
   if(aiDetectSecurityThreat(q)){
+    if(window.CxAgent){ CxAgent.respond(text,'hotel-portal.html',function(m){ addAiWidgetMsg(m,'bot'); }); return; }
     aiEscalateSecurityThreat(text, 'hotel-portal.html');
     addAiWidgetMsg('Извините, я не могу обсуждать эту тему. Если у вас есть вопрос по безопасности сайта — пожалуйста, напишите напрямую в поддержку.', 'bot');
     return;
@@ -8343,7 +8413,7 @@ async function sendAiWidgetMsg(){
   const reply = await callCloudflareAI(AI_SYSTEM_PROMPT, text);
   if(reply){
     // Извлекаем метку [NAV:раздел], если модель её поставила — реально переключаем вкладку
-    const navMatch = reply.match(/\[NAV:(dashboard|rooms|chess|payouts|profile|ical)\]/);
+    const navMatch = reply.match(/\[NAV:(dashboard|rooms|chess|payouts|profile|ical|subfee)\]/);
     const cleanReply = reply.replace(/\[NAV:[a-z]+\]/g, '').trim();
     addAiWidgetMsg(cleanReply || 'Открываю нужный раздел...', 'bot');
     if(navMatch && typeof HP!=='undefined' && typeof HP.nav==='function'){
@@ -8363,6 +8433,7 @@ async function sendAiWidgetMsg(){
   <button class="mbn-item" data-mbn="chess" onclick="HP.nav('chess')"><span class="mbn-icon">♟️</span><span data-t="nav_chess">Шахматка</span></button>
   <button class="mbn-item" data-mbn="payouts" onclick="HP.nav('payouts')"><span class="mbn-icon">💰</span><span data-t="nav_payouts"><span data-t="s009">Выплаты</span></span></button>
   <button class="mbn-item" data-mbn="invoices" onclick="HP.nav('invoices')"><span class="mbn-icon">🧾</span><span data-t="hi_nav_s">Счета</span></button>
+  <button class="mbn-item" data-mbn="subfee" onclick="HP.nav('subfee')"><span class="mbn-icon">💳</span><span data-t="fee_nav_s">Плата</span></button>
   <button class="mbn-item" data-mbn="profile" onclick="HP.nav('profile')"><span class="mbn-icon">🏨</span><span data-t="nav_profile"><span data-t="s024">Профиль</span></span></button>
 </nav>
 
@@ -8484,6 +8555,52 @@ function cxHiInvFmt(v,cur){ try{ return new Intl.NumberFormat(cxLoc(),{style:'cu
 function cxHiInvAmt(i){ return cxHiInvFmt(cxHiInvVal(i),cxHiInvCur(i)); }
 function cxHiInvSum(a){ const s={RUB:0,USD:0}; a.forEach(i=>{ s[cxHiInvCur(i)]+=cxHiInvVal(i); }); const p=['RUB','USD'].filter(c=>s[c]>0).map(c=>cxHiInvFmt(s[c],c)); return p.length?p.join(' + '):cxHiInvFmt(0,(typeof cxHotelCurH==='function'&&cxHotelCurH(HP.hotel)==='USD')?'USD':'RUB'); }
 function cxHiInvStatus(i){ return i.status==='paid'?t('hi_st_paid'):(i.claim_submitted_at?t('hi_st_claim'):t('hi_st_wait')); }
+/* ===== Абонентская плата (режим fixed): статус, цена, сообщить об оплате ===== */
+async function cxFeeLoad(){
+  const box = document.getElementById('hpFeeBody'); if(!box || !HP.hotel) return;
+  box.textContent = t('fee_loading');
+  let st;
+  try{ st = await CxApi.get('/api/hotel-fee/'+HP.hotel.id); }catch(e){ box.textContent = t('fee_load_failed'); return; }
+  let rq = {}; try{ rq = await CxApi.get('/api/payment-requisites') || {}; }catch(e){}
+  const p = st.price || {}, cur = p.currency==='USD' ? '$' : '₽';
+  const money = v => (Number.isFinite(Number(v)) ? Number(v) : 0).toLocaleString(LANG==='ru'?'ru-RU':'en-US') + ' ' + cur;
+  const dt = v => v ? new Date(v).toLocaleDateString(LANG==='ru'?'ru-RU':'en-US') : '—';
+  const row = (l,v) => '<div class="stat-card"><div class="num">'+esc(v)+'</div><div class="lbl">'+esc(l)+'</div></div>';
+  let h = '<div class="stat-grid">';
+  h += p.price_not_set ? row(t('fee_price_month'), t('fee_price_not_set')) : row(t('fee_price_month'), money(p.monthly)) + row(t('fee_price_year').replace('{pct}', String(p.annual_discount_pct||'')), money(p.annual));
+  h += row(t('fee_covered_until'), dt(st.covered_until || st.paid_until || st.trial_until));
+  if(st.in_trial) h += row(t('fee_trial_until'), dt(st.trial_until));
+  if(st.debt) h += row(t('fee_debt'), money(st.debt.amount));
+  h += '</div>';
+  if(st.hidden_for_non_payment) h += '<div class="banner-warn">'+esc(t('fee_hidden'))+'</div>';
+  if(st.review_pending) h += '<div class="banner-info">'+esc(t('fee_review_pending'))+'</div>';
+  if(!st.payment_channel_open) h += '<div class="banner-info">'+esc(t('fee_channel_closed'))+'</div>';
+  const lines = [['USDT'+(rq.requisite_usdt_network?' ('+rq.requisite_usdt_network+')':''),rq.requisite_usdt_wallet],['СБП / SBP',[rq.requisite_sbp_phone,rq.requisite_sbp_bank].filter(Boolean).join(' · ')],
+    [t('fee_bank'),[rq.requisite_bank_recipient,rq.requisite_bank_name,rq.requisite_bank_inn&&('ИНН '+rq.requisite_bank_inn),rq.requisite_bank_bik&&('БИК '+rq.requisite_bank_bik),rq.requisite_bank_account&&('р/с '+rq.requisite_bank_account)].filter(Boolean).join(', ')],
+    ['',rq.requisite_payment_link],['',rq.requisite_note]].filter(x=>x[1]);
+  if(lines.length) h += '<div class="platform-req-card"><div class="platform-req-title">'+esc(t('fee_requisites'))+'</div>'+lines.map(x=>'<div>'+(x[0]?esc(x[0])+': ':'')+esc(x[1])+'</div>').join('')+'</div>';
+  if(st.payment_channel_open && !p.price_not_set){
+    h += '<div class="platform-req-card"><div class="platform-req-title">'+esc(t('fee_pay_title'))+'</div>'
+      + '<label>'+esc(t('fee_pay_period'))+' <select id="hpFeeMonths"><option value="1">'+esc(t('fee_month'))+'</option><option value="12">'+esc(t('fee_year'))+'</option></select></label> '
+      + '<label>'+esc(t('fee_pay_amount'))+' ('+esc(cur)+') <input id="hpFeeAmount" type="number" min="0" step="0.01" value="'+esc(p.monthly)+'"></label> '
+      + '<label>'+esc(t('fee_pay_proof'))+' <input id="hpFeeProof" type="file" accept="image/*,application/pdf"></label> '
+      + '<button class="btn" id="hpFeeSend">'+esc(t('fee_pay_send'))+'</button><div id="hpFeeMsg"></div></div>';
+  }
+  box.innerHTML = h;
+  const sel = document.getElementById('hpFeeMonths'), amt = document.getElementById('hpFeeAmount'), btn = document.getElementById('hpFeeSend');
+  if(sel && amt) sel.addEventListener('change', ()=>{ amt.value = sel.value==='12' ? p.annual : p.monthly; });
+  if(btn) btn.addEventListener('click', async ()=>{
+    const msg = document.getElementById('hpFeeMsg'), f = document.getElementById('hpFeeProof').files[0];
+    if(!f){ msg.textContent = t('fee_need_proof'); return; }
+    btn.disabled = true; msg.textContent = '…';
+    try{
+      const up = await CxApi.uploadFile(f);
+      await CxApi.post('/api/hotel-fee/'+HP.hotel.id+'/payment', { amount: Number(amt.value), months: Number(sel.value), proof_url: up.url });
+      msg.textContent = t('fee_sent'); cxFeeLoad();
+    }catch(e){ msg.textContent = t('fee_send_failed') + ' (' + String((e && e.message) || e) + ')'; btn.disabled = false; }
+  });
+}
+
 async function cxHiInvLoad(){
   const box=document.getElementById('hpInvBody'); if(!box) return;
   box.innerHTML='<p style="color:var(--muted);">'+esc(t('hi_loading'))+'</p>';
@@ -8609,6 +8726,29 @@ function cxLoginHint(on){
 <script>
 /* R13 п.7: галочка 18+ в форме регистрации */
 document.addEventListener('DOMContentLoaded',function(){ if(window.CxSession) CxSession.adultRow('hpAgree'); });
+</script>
+<script>
+/* R42: chessboard blocks (cx_blocked_<hotelId>) are sent to the server so guests see free/busy on Corronyx.
+   Sends only what changed since the last successful run; the first run only adds. */
+(function(){
+  var tmr = null, busy = false;
+  function ymd(d){ return d.toISOString().slice(0, 10); }
+  function unitsMap(){ var m = {}; try { HP.getRooms().forEach(function(r){ (r.roomNumbers || r.units || []).forEach(function(u){ if(r.serverId && u.serverId) m[r.id + '_' + u.num] = u.serverId; }); }); } catch(e){} return m; }
+  async function run(){
+    if(busy || typeof HP === 'undefined' || !HP.hotel || !HP.hotel.id || !window.CxSite || !CxApi.token()) return; busy = true;
+    try {
+      var id = HP.hotel.id, from = ymd(new Date()), t = new Date(); t.setDate(t.getDate() + 365);
+      var d = CxSite.diff(LS.getJSON('cx_blocked_' + id, {}), LS.getJSON('cx_occ_sent_' + id, null), unitsMap(), from, ymd(t));
+      for(var i = 0; i < d.ops.length; i++) await CxApi.put('/api/hotels/' + id + '/occupancy', d.ops[i]);
+      LS.setJSON('cx_occ_sent_' + id, d.next);
+    } catch(e){ /* try again on the next change */ } finally { busy = false; }
+  }
+  function sched(ms){ clearTimeout(tmr); tmr = setTimeout(run, ms || 1200); }
+  window.CxOccSync = { run: run, sched: sched };
+  var orig = LS.setJSON; LS.setJSON = function(k){ var r = orig.apply(this, arguments); try { if(typeof HP !== 'undefined' && HP.hotel && k === 'cx_blocked_' + HP.hotel.id) sched(); } catch(e){} return r; };
+  setInterval(function(){ if(typeof HP !== 'undefined' && HP.hotel && CxApi.token()) sched(500); }, 300000);
+  setTimeout(function(){ sched(500); }, 6000);
+})();
 </script>
 </body>
 </html>
