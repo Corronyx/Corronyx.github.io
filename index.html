@@ -250,6 +250,20 @@ select option{ background:var(--bg2); color:var(--text); }
   border-radius:50%;
   box-shadow:0 0 0 5px var(--dark), 0 0 0 6.5px rgba(201,164,94,.6), inset 0 0 10px rgba(184,149,77,.08);
 }
+#view-home.tab-afisha #homeClassPicker,#view-home.tab-partners #homeClassPicker,#view-home.tab-tours #homeClassPicker{display:none !important;}   /* R44: кнопки класса отеля только на вкладке «Отели» */
+/* R44: названия карточек одного цвета, переливаются только круглые ободки вокруг иконок */
+.sw-badge{position:relative; overflow:visible; border-color:transparent;}
+.sw-badge>span{border-radius:inherit; overflow:hidden;}
+.sw-badge::before,.sw-badge-ring::after,.sw-badge-halo::after,.sw-badge-ring-thin::after{content:""; position:absolute; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(90deg,#8a6d24 0%,#C9A84C 20%,#FFF3D0 40%,#C9A84C 60%,#8a6d24 80%); background-size:250% 100%; animation:cxShimmer 3.5s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude;}
+.sw-badge::before{inset:-2px; padding:2px;}
+.sw-badge-ring::after,.sw-badge-halo::after{inset:-6px; padding:2px;}
+.sw-badge-ring-thin::after{inset:-6.5px; padding:1.5px;}
+.sw-badge-ring,.sw-badge-halo{box-shadow:0 0 0 4px var(--dark), inset 0 0 10px rgba(184,149,77,.08);}
+.sw-badge-ring-thin{box-shadow:0 0 0 5px var(--dark), inset 0 0 10px rgba(184,149,77,.08);}
+@media (prefers-reduced-motion:reduce){.sw-badge::before,.sw-badge::after{animation:none;}}
+
 
 body{
   font-family:'Manrope',sans-serif; background:var(--dark); color:var(--text);
@@ -583,7 +597,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 .cx-lbls{margin:4px 0;}.cx-lbl{display:inline-block;font-size:12px;padding:3px 8px;border-radius:8px;margin:2px 4px 2px 0;border:1px solid var(--line);}
 .cx-lbl-adult{border-color:#c0392b;color:#c0392b;font-weight:700;}.cx-lbl-risk{border-color:#e09445;}.cx-lbl-ok{border-color:#2e8b57;color:#2e8b57;}
 .subgroup-card:hover{border-color:var(--gold); transform:translateY(-3px); background:var(--bg3);}
-.subgroup-card .name{font-size:13px; font-weight:600; margin-top:6px; display:inline-block; padding:5px 12px; border:1px solid var(--gold); border-radius:8px; font-family:'Spectral',serif; font-style:italic; transform:skewX(-10.89deg); background:linear-gradient(90deg,#8a6d24 0%,#C9A84C 20%,#FFF3D0 40%,#C9A84C 60%,#8a6d24 80%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:cxShimmer 3.5s linear infinite;}
+.subgroup-card .name{font-size:13px; font-weight:600; margin-top:6px; display:inline-block; padding:5px 12px; border:1px solid var(--gold); border-radius:8px; font-family:'Spectral',serif; font-style:italic; transform:skewX(-10.89deg); color:#8a6d24; }
 
 /* simple country/city select cards */
 .choice-card{
@@ -592,7 +606,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{background-color:var
 }
 .choice-card:hover{border-color:var(--gold); transform:translateY(-3px); background:var(--bg3);}
 .choice-card .flag{font-size:32px; margin-bottom:8px; width:100%; text-align:center;}
-.choice-card .name{font-size:14px; font-weight:600; display:inline-block; padding:5px 12px; border:1px solid var(--gold); border-radius:8px; margin-top:2px; font-family:'Spectral',serif; font-style:italic; transform:skewX(-10.89deg); background:linear-gradient(90deg,#8a6d24 0%,#C9A84C 20%,#FFF3D0 40%,#C9A84C 60%,#8a6d24 80%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; animation:cxShimmer 3.5s linear infinite;}
+.choice-card .name{font-size:14px; font-weight:600; display:inline-block; padding:5px 12px; border:1px solid var(--gold); border-radius:8px; margin-top:2px; font-family:'Spectral',serif; font-style:italic; transform:skewX(-10.89deg); color:#8a6d24; }
 .star-choice-card{border:2px solid var(--gold); box-shadow:0 0 8px rgba(184,149,77,.15);}
 .star-choice-card:hover{border-color:var(--gold2); box-shadow:0 6px 18px rgba(184,149,77,.35);}
 /* Пирамида категорий на главной: верхний ряд — 4 новые профессиональные направления,
@@ -872,12 +886,7 @@ body{top:0 !important; position:relative !important;}
   -webkit-mask-size:contain !important; mask-size:contain !important; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
   -webkit-mask-position:center; mask-position:center; }
 /* Тот же переливающийся золотой градиент, что у логотипа Corronyx — для названий карточек партнёров/подгрупп */
-.cx-shimmer-text{
-  background:linear-gradient(90deg,#8a6d24 0%,#C9A84C 20%,#FFF3D0 40%,#C9A84C 60%,#8a6d24 80%) !important;
-  background-size:250% 100% !important; -webkit-background-clip:text !important; background-clip:text !important;
-  -webkit-text-fill-color:transparent !important; color:transparent !important;
-  animation:cxShimmer 3.5s linear infinite !important;
-}
+.cx-shimmer-text{ color:#8a6d24 !important; }
 
 /* ===== Мобильное нижнее меню (11.09.2026) — 4 самых частых действия гостя:
    Главная / Поиск / Афиша / Профиль. Партнёрские ссылки ("Стать партнёром" и
@@ -1314,7 +1323,7 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
       <div class="search-tabs" id="homeSearchTabs">
         <div class="search-tab active" data-tab="hotels" onclick="CX.switchSearchTab('hotels')">🏨 <span data-t="tab_hotels">Отели</span></div>
         <div class="search-tab" data-tab="afisha" onclick="CX.switchSearchTab('afisha')">🎭 <span data-t="tab_afisha">Афиши</span></div>
-        <div class="search-tab" data-tab="partners" onclick="CX.switchSearchTab('partners')">🤝 <span data-t="tab_partners">Партнёры</span></div>
+        <div class="search-tab" data-tab="partners" onclick="CX.switchSearchTab('partners')">🤝 <span data-t="tab_partners">Сервисы города</span></div>
 <div class="search-tab" data-tab="tours" onclick="CX.switchSearchTab('tours')">🧳 <span data-t="tab_tours">Туры</span></div>
       </div>
 
@@ -1421,8 +1430,8 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
 
   <section class="section" id="homeGroupsSection">
     <div class="section-head">
-      <h2 class="font-cormorant gradient-heading" data-t="groups_home_title">Партнёры по направлениям</h2>
-      <p data-t="groups_home_sub">Выберите направление и найдите проверенных партнёров в нужном городе</p>
+      <h2 class="font-cormorant gradient-heading" data-t="groups_home_title">Сервисы города</h2>
+      <p data-t="groups_home_sub">Выберите направление и найдите проверенные услуги в нужном городе</p>
     </div>
     <div class="cx-gcards" id="homeGroupsGrid"></div>
   </section>
@@ -2794,13 +2803,13 @@ const T = {
  realtors_section_sub:{ru:'Агентства недвижимости в городе {city}',en:'Real estate agencies in {city}'},
  nav_login:{ru:'<span class="btn-tilt">Войти</span>',en:'<span class="btn-tilt">Log in</span>'},
  mbn_home:{ru:'Главная',en:'Home'}, mbn_search:{ru:'Поиск',en:'Search'}, mbn_afisha:{ru:'Афиша',en:'Events'}, mbn_profile:{ru:'Профиль',en:'Profile'},
- tab_hotels:{ru:'Отели',en:'Hotels'}, tab_afisha:{ru:'Афиши',en:'Events'}, tab_partners:{ru:'Партнёры',en:'Partners'},
+ tab_hotels:{ru:'Отели',en:'Hotels'}, tab_afisha:{ru:'Афиши',en:'Events'}, tab_partners:{ru:'Сервисы города',en:'City services'},
  hero_title:{ru:'Найдите идеальный отель <span>в любой точке мира</span>', en:'Find the perfect hotel <span>anywhere in the world</span>'},
- hero_title_partners:{ru:'Найдите партнёра <span>нужного вам города</span>', en:'Find a partner <span>in the city you need</span>'},
+ hero_title_partners:{ru:'Найдите лучший сервис <span>нужного вам города</span>', en:'Find the best service <span>in the city you need</span>'},
  hero_title_afisha:{ru:'Найдите идеальное мероприятие <span>по миру, по стране, по городу</span> и сделайте своё незабываемое путешествие', en:'Find the perfect event <span>worldwide, in your country, in your city</span> and make your journey unforgettable'},
  hero_title_tours:{ru:'Найдите доступное и выгодное <span>путешествие с нами</span>', en:'Find an affordable and rewarding <span>journey with us</span>'},
- groups_home_title:{ru:'Партнёры по направлениям', en:'Partners by category'},
- groups_home_sub:{ru:'Выберите направление и найдите проверенных партнёров в нужном городе', en:'Choose a category and find verified partners in the city you need'},
+ groups_home_title:{ru:'Сервисы города', en:'City services'},
+ groups_home_sub:{ru:'Выберите направление и найдите проверенные услуги в нужном городе', en:'Choose a category and find verified services in the city you need'},
  groups_card_more:{ru:'Выбрать →', en:'Choose →'},
  hero_sub:{ru:'Более 50 000 отелей в 195 странах. Бронируйте без онлайн-оплаты — платите прямо в отеле при заезде.', en:'Over 50,000 hotels in 195 countries. Book with no online payment — pay directly at the hotel on arrival.'},
  lbl_country:{ru:'Страна',en:'Country'}, ph_country:{ru:'Выберите страну',en:'Select country'},
@@ -4266,7 +4275,8 @@ const CX = {
   // почему-то не заполнены — просто ничего не делает (защита от гонки кликов).
   selectHomeHotelClass(cls){
     const country=this._searchCountry, city=this._searchCity;
-    if(!country || !city) return;
+    if(!country){ toast(t('err_pick_country'), true); return; }
+    if(!city){ toast(t('err_pick_city'), true); return; }
     const checkin = document.getElementById('searchCheckin').value;
     const checkout = document.getElementById('searchCheckout').value;
     this.pushHistory();
@@ -7348,19 +7358,13 @@ function getCountryName(code){
 function renderHomeClassPicker(){
   const wrap=document.getElementById('homeClassPicker');
   if(!wrap) return;
-  const city=CX._searchCity;
-  if(!city){ wrap.style.display='none'; wrap.innerHTML=''; return; }
-  const classes=[
-    {v:'5', l:t('class_5'), i:'⭐⭐⭐⭐⭐'},
-    {v:'4', l:t('class_4'), i:'⭐⭐⭐⭐'},
-    {v:'3', l:t('class_3'), i:'⭐⭐⭐'},
-    {v:'0', l:t('class_guesthouse'), i:'🏠'}
-  ];
+  /* R44: четыре кнопки класса видны под полями поиска отелей всегда (владелец 15.11.2026); на вкладках Афиши/Партнёры/Туры их скрывает CSS */
+  const classes=[ {v:'0', k:'home_class_guesthouse'}, {v:'3', k:'home_class_3'}, {v:'4', k:'home_class_4'}, {v:'5', k:'home_class_5'} ];
   wrap.style.display='block';
   wrap.innerHTML=`
-    <p style="text-align:center; color:var(--muted); font-size:14px; margin-bottom:12px;">${t('home_class_picker_title',{city})}</p>
+    <p style="text-align:center; color:var(--muted); font-size:14px; margin:14px 0 10px;">${t('home_class_hint')}</p>
     <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
-      ${classes.map(cl=>`<div class="choice-card" style="padding:14px; width:150px; border:2px solid var(--gold); box-shadow:0 0 8px rgba(184,149,77,.15);" onclick="CX.selectHomeHotelClass('${cl.v}')"><div class="flag" style="font-size:20px;">${cl.i}</div><div class="name" style="font-size:14px;">${cl.l}</div></div>`).join('')}
+      ${classes.map(cl=>`<button type="button" class="btn btn-ghost" style="min-width:140px;" onclick="CX.selectHomeHotelClass('${cl.v}')">${t(cl.k)}</button>`).join('')}
     </div>`;
 }
 /* renderCountryCards/initCardRotation/rotateSlot удалены — фото-карточки стран

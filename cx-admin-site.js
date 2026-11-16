@@ -3,12 +3,12 @@
    The admin panel is RU/EN only, so texts are kept here in those two languages. */
 (function(){
   var D = {
-    ru: { client: 'Клиентский сайт', hotel: 'Отели', partner: 'Партнёры', afisha: 'Афиша', tour: 'Туроператоры',
+    ru: { client: 'Клиентский сайт', hotel: 'Отели', partner: 'Сервисы города', afisha: 'Афиша', tour: 'Туроператоры',
       chTitle: 'Каналы связи сайта', chHint: 'Канал виден на сайте только после включения. Пока не включён, его никто не видит.', save: 'Сохранить', on: 'Включить', off: 'Отключить', stOn: 'Включён', stOff: 'Выключен', saved: 'Сохранено',
       bad_channel_value: 'Неверная ссылка, почта или телефон', channel_empty: 'Сначала укажите значение', err: 'Не удалось сохранить', mail: 'Почта', phone: 'Телефон',
       statTitle: 'Посещаемость и регистрации', statHint: 'Только числа, без личных данных. Уникальные посетители считаются по необратимому хэшу.', days: 'дней', site: 'Сайт', visits: 'Визиты', uniques: 'Уникальные', day: 'День',
       regs: 'Новые регистрации за период', total: 'Итого', load: 'Загрузка…', none: 'Данных пока нет', opTitle: 'Туроператоры', opName: 'Название', opCity: 'Город', opStatus: 'Статус', opUrl: 'Сайт для бронирования', opNoUrl: 'не указан (карточка скрыта)', approve: 'Одобрить', pause: 'Приостановить', opEmpty: 'Туроператоров пока нет' },
-    en: { client: 'Client site', hotel: 'Hotels', partner: 'Partners', afisha: 'Afisha', tour: 'Tour operators',
+    en: { client: 'Client site', hotel: 'Hotels', partner: 'City services', afisha: 'Afisha', tour: 'Tour operators',
       chTitle: 'Site contact channels', chHint: 'A channel is visible on the site only after you switch it on.', save: 'Save', on: 'Switch on', off: 'Switch off', stOn: 'On', stOff: 'Off', saved: 'Saved',
       bad_channel_value: 'Invalid link, email or phone', channel_empty: 'Enter a value first', err: 'Could not save', mail: 'Email', phone: 'Phone',
       statTitle: 'Traffic and registrations', statHint: 'Numbers only, no personal data. Unique visitors are counted by an irreversible hash.', days: 'days', site: 'Site', visits: 'Visits', uniques: 'Unique', day: 'Day',

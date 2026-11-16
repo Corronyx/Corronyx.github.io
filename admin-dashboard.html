@@ -65,6 +65,19 @@
   border-radius:50%;
   box-shadow:0 0 0 5px var(--dark), 0 0 0 6.5px rgba(201,164,94,.6), inset 0 0 10px rgba(184,149,77,.08);
 }
+/* R44: названия карточек одного цвета, переливаются только круглые ободки вокруг иконок */
+.sw-badge{position:relative; overflow:visible; border-color:transparent;}
+.sw-badge>span{border-radius:inherit; overflow:hidden;}
+.sw-badge::before,.sw-badge-ring::after,.sw-badge-halo::after,.sw-badge-ring-thin::after{content:""; position:absolute; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(90deg,#8a6d24 0%,#C9A84C 20%,#FFF3D0 40%,#C9A84C 60%,#8a6d24 80%); background-size:250% 100%; animation:cxShimmer 3.5s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude;}
+.sw-badge::before{inset:-2px; padding:2px;}
+.sw-badge-ring::after,.sw-badge-halo::after{inset:-6px; padding:2px;}
+.sw-badge-ring-thin::after{inset:-6.5px; padding:1.5px;}
+.sw-badge-ring,.sw-badge-halo{box-shadow:0 0 0 4px var(--dark), inset 0 0 10px rgba(184,149,77,.08);}
+.sw-badge-ring-thin{box-shadow:0 0 0 5px var(--dark), inset 0 0 10px rgba(184,149,77,.08);}
+@media (prefers-reduced-motion:reduce){.sw-badge::before,.sw-badge::after{animation:none;}}
+
 
 body{font-family:'Manrope',sans-serif; background:var(--dark); color:var(--text); min-height:100vh;}
 h1,h2,h3,.brand{font-family:'Playfair Display',serif;}
@@ -1053,6 +1066,7 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
       <small data-t="login_sub">Панель администратора</small>
     </div>
     <div id="loginPane">
+      <div class="form-row"><label data-t="lbl_admin_email">Почта администратора</label><input type="email" id="adminEmail" autocomplete="username" maxlength="254"></div>
       <div class="form-row"><label data-t="lbl_password">Пароль</label><div class="pass-wrap"><input type="password" id="adminPass"><span class="eye" onclick="ADM.togglePass('adminPass',this)">👁</span></div></div>
       <div class="form-row" id="adminTotpRow" style="display:none;"><label id="adminTotpLbl"></label><input type="text" id="adminTotp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000"></div>
       <div class="form-row" id="adminRecoveryRow" style="display:none;"><label id="adminRecoveryLbl"></label><input type="text" id="adminRecovery" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="XXXXX-XXXXX"></div>
@@ -1127,7 +1141,7 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
     <div class="nav-item" data-section="referrals" onclick="ADM.nav('referrals')"><span class="nl">🤝 <span data-t="nav_referrals">Рефералы</span></span><span class="nav-badge hidden" id="referralsBadge">0</span></div>
     <div class="nav-item" data-section="notifications" onclick="ADM.nav('notifications')"><span class="nl">🔔 <span data-t="nav_notifications">Уведомления</span></span><span class="nav-badge hidden" id="notifBadge">0</span></div>
     <div class="nav-item" data-section="kp" onclick="ADM.nav('kp')"><span class="nl">📧 <span data-t="nav_kp">КП отелям</span></span></div>
-    <div class="nav-item" data-section="partners" onclick="ADM.nav('partners')"><span class="nl">🗂️ <span data-t="nav_partners">Партнёры</span></span><span class="nav-badge hidden" id="partnersBadge">0</span></div>
+    <div class="nav-item" data-section="partners" onclick="ADM.nav('partners')"><span class="nl">🗂️ <span data-t="nav_partners">Сервисы города</span></span><span class="nav-badge hidden" id="partnersBadge">0</span></div>
     <div class="nav-item" data-section="afisha" onclick="ADM.nav('afisha')"><span class="nl">🎫 <span data-t="nav_afisha">Афиша</span></span><span class="nav-badge hidden" id="afishaBadge">0</span></div>
     <div class="nav-item" data-section="client" onclick="ADM.nav('client')"><span class="nl">🌐 <span data-t="nav_clientsite">Клиентский сайт</span></span></div>
     <div class="nav-item" data-section="queues" onclick="ADM.nav('queues')"><span class="nl">🧾 <span data-t="nav_queues">Заявки</span></span><span class="nav-badge hidden" id="queuesBadge">0</span></div>
@@ -1401,7 +1415,7 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
       </div>
     </div>
     <div class="section" id="sec-partners">
-      <div class="page-title" data-t="nav_partners">Партнёры</div>
+      <div class="page-title" data-t="nav_partners">Сервисы города</div>
       <div class="page-sub" data-t="partners_sub">Внешние партнёры (агентства недвижимости, турагентства, экскурсии, рестораны и другие категории, которые вы добавите) — отображаются на клиентском сайте по выбранному городу.</div>
       <div data-cxa-ch="partner"></div>
 
@@ -1709,8 +1723,8 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
       <div class="tabs-login" id="ffTabsRow" style="max-width:640px; margin-bottom:20px;">
         <button class="tab-login active" onclick="ADM.switchFreeFrameTab('afisha_gold')" data-ff-tab="afisha_gold">Афиша · Золото</button>
         <button class="tab-login" onclick="ADM.switchFreeFrameTab('afisha_diamond')" data-ff-tab="afisha_diamond">Афиша · Бриллиант</button>
-        <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_gold')" data-ff-tab="partner_gold">Партнёры · Золото</button>
-        <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_diamond')" data-ff-tab="partner_diamond">Партнёры · Бриллиант</button>
+        <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_gold')" data-ff-tab="partner_gold">Сервисы города · Золото</button>
+        <button class="tab-login" onclick="ADM.switchFreeFrameTab('partner_diamond')" data-ff-tab="partner_diamond">Сервисы города · Бриллиант</button>
       </div>
       <div id="ffBody"></div>
     </div>
@@ -1796,7 +1810,7 @@ if(document.body) start(); else document.addEventListener('DOMContentLoaded',sta
 <div class="page-title" data-t="adm2_nav_adtoken">Токен рекламы</div>
 <div class="page-sub" data-t="adm2_at_sub">Токен (erid) партнёрской карточки или афиши после регистрации рекламы. Значение вносит владелец платформы; пустое поле очищает токен</div>
 <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
-<select id="adm2AtKind" onchange="ADM.adm2LoadAdTokens()"><option value="partners" data-t="adm2_at_kind_partners">Партнёры</option><option value="afisha" data-t="adm2_at_kind_afisha">Афиши</option></select>
+<select id="adm2AtKind" onchange="ADM.adm2LoadAdTokens()"><option value="partners" data-t="adm2_at_kind_partners">Сервисы города</option><option value="afisha" data-t="adm2_at_kind_afisha">Афиши</option></select>
 <input type="text" id="adm2AtQ" maxlength="80" onkeyup="if(event.key==='Enter')ADM.adm2LoadAdTokens()" style="min-width:200px;">
 <button class="btn btn-ghost btn-sm" onclick="ADM.adm2LoadAdTokens()" data-t="adm2_at_find">Найти</button>
 </div>
@@ -2128,7 +2142,10 @@ function adjustForWeekend(date){
 // единственным email администратора. Сам email не секрет (это не пароль),
 // поэтому его можно держать в коде так же открыто, как CX_API_BASE.
 const CX_API_BASE = window.CX_API_BASE || 'https://api.corronyx.ru';
-const CX_ADMIN_EMAIL = window.CX_ADMIN_EMAIL || 'admin@corronyx.ru';
+const CX_ADMIN_EMAIL = window.CX_ADMIN_EMAIL || 'corronyx@yandex.com';
+/* R44: два администратора на двух почтах (основная и запасная); войти можно любой, почта вводится в поле, по умолчанию подставляется последняя использованная */
+function cxAdminEmail(){ const el=document.getElementById('adminEmail'); const v=(el&&el.value||'').trim().toLowerCase(); return v||CX_ADMIN_EMAIL; }
+(function(){ const fill=function(){ const el=document.getElementById('adminEmail'); if(!el||el.value) return; let last=''; try{ last=(localStorage.getItem('cx_admin_email_last')||'').trim(); }catch(e){} el.value=last||CX_ADMIN_EMAIL; }; fill(); document.addEventListener('DOMContentLoaded',fill); })();
 const CxApi = {
   token(){ return LS.get('cx_admin_jwt') || ''; },
   async call(method, path, body){
@@ -2639,7 +2656,7 @@ const T = {
  adm2_consent:{ru:'Согласие: версия {v}, {d}, пользователь {u}',en:'Consent: version {v}, {d}, user {u}'}, adm2_author:{ru:'автор',en:'author'}, adm2_hotel:{ru:'отель',en:'hotel'},
  adm2_csv_fail:{ru:'Не удалось скачать CSV',en:'Could not download the CSV'},
 adm2_nav_adtoken:{ru:'Токен рекламы',en:'Ad token'}, adm2_at_sub:{ru:'Токен (erid) партнёрской карточки или афиши после регистрации рекламы. Значение вносит владелец платформы; пустое поле очищает токен',en:'Ad token (erid) of a partner card or event after the advertising is registered. Entered by the platform owner; an empty field clears the token'},
-adm2_at_kind_partners:{ru:'Партнёры',en:'Partners'}, adm2_at_kind_afisha:{ru:'Афиши',en:'Events'}, adm2_at_find:{ru:'Найти',en:'Find'}, adm2_at_search:{ru:'Название, город, email или номер',en:'Name, city, email or ID'},
+adm2_at_kind_partners:{ru:'Сервисы города',en:'City services'}, adm2_at_kind_afisha:{ru:'Афиши',en:'Events'}, adm2_at_find:{ru:'Найти',en:'Find'}, adm2_at_search:{ru:'Название, город, email или номер',en:'Name, city, email or ID'},
 adm2_at_ph:{ru:'Токен рекламы (erid)',en:'Ad token (erid)'}, adm2_at_save:{ru:'Сохранить',en:'Save'}, adm2_at_saved:{ru:'Токен сохранён',en:'Token saved'},
 adm2_at_bad:{ru:'Токен: только латинские буквы, цифры, «-» и «_», до 60 символов',en:'Token: Latin letters, digits, hyphen and underscore only, up to 60 characters'}, adm2_at_more:{ru:'Показаны первые 100, ещё {n}: уточните поиск',en:'First 100 shown, {n} more: refine the search'},
 /*AD1-T-END*/
@@ -2659,8 +2676,8 @@ adm2_at_bad:{ru:'Токен: только латинские буквы, циф�
  nav_security:{ru:'Тревоги ИИ-агента',en:'AI agent alerts'},
  nav_realtors:{ru:'Агентства недвижимости',en:'Real Estate Agencies'},
  nav_travel:{ru:'Турагентства',en:'Travel agencies'},
- nav_partners:{ru:'Партнёры',en:'Partners'},
- nav_afisha:{ru:'Афиша',en:'Afisha'}, nav_clientsite:{ru:'Клиентский сайт',en:'Client site'}, nav_queues:{ru:'Заявки',en:'Requests'},
+ nav_partners:{ru:'Сервисы города',en:'City services'},
+ nav_afisha:{ru:'Афиша',en:'Afisha'}, nav_clientsite:{ru:'Клиентский сайт',en:'Client site'}, lbl_admin_email:{ru:'Почта администратора',en:'Admin email'}, nav_queues:{ru:'Заявки',en:'Requests'},
  nav_documents:{ru:'Документы',en:'Documents'},
  nav_freeframes:{ru:'Бесплатные рамки',en:'Free frames'},
  afisha_sub:{ru:'Объявления о событиях от пользователей (afisha-portal.html) — разовая оплата за размещение, автоистечение через 21 день или по дате события.',en:'User-submitted event listings (afisha-portal.html) — one-time placement fee, auto-expires after 21 days or on the event date.'},
@@ -3607,7 +3624,7 @@ const ADM = {
     const recEl=document.getElementById('adminRecovery'), rec=recEl&&recEl.value.trim();
     let data;
     try{
-      data = await CxApi.post('/api/login', {email: CX_ADMIN_EMAIL, password: pass, totp_code: code||undefined, recovery_code: rec||undefined});
+      data = await CxApi.post('/api/login', {email: cxAdminEmail(), password: pass, totp_code: code||undefined, recovery_code: rec||undefined});
     } catch(e){
       if(btn) btn.disabled=false;
       if(e.status===401 && (e.message==='totp_required' || e.message==='bad_totp')){ this._showTotpRow(); errEl.textContent = e.message==='bad_totp' ? t2('Неверный код из приложения','Wrong authenticator code') : t2('Введите код из приложения на телефоне','Enter the code from your authenticator app'); return; }
@@ -3620,6 +3637,7 @@ const ADM = {
     if(btn) btn.disabled=false;
     if(data.need){ this._authStep(data); return; }
     if(data.role !== 'admin'){ errEl.textContent=t('login_err'); return; }
+    try{ localStorage.setItem('cx_admin_email_last', cxAdminEmail()); }catch(e){}
     await this._afterLogin(data);
   },
   async _afterLogin(data){
@@ -3714,7 +3732,7 @@ const ADM = {
       // Сервер намеренно отвечает {ok:true} для любого email, зарегистрирован
       // он или нет (см. /api/auth/password-reset/request) — так что здесь не
       // может быть ответа "такой почты нет", только сетевая ошибка.
-      resp = await CxApi.post('/api/auth/password-reset/request', {email: CX_ADMIN_EMAIL});
+      resp = await CxApi.post('/api/auth/password-reset/request', {email: cxAdminEmail()});
     } catch(e){
       if(btn) btn.disabled=false;
       errEl.textContent = e.isNetwork ? 'Сервер недоступен. Попробуйте ещё раз позже.' : 'Не удалось отправить код';
@@ -3743,7 +3761,7 @@ const ADM = {
     if(p1.length<6){ errEl.textContent='Пароль минимум 6 символов'; return; }
     if(p1!==p2){ errEl.textContent='Пароли не совпадают'; return; }
     try{
-      await CxApi.post('/api/auth/password-reset/confirm', {email: CX_ADMIN_EMAIL, code, new_password: p1});
+      await CxApi.post('/api/auth/password-reset/confirm', {email: cxAdminEmail(), code, new_password: p1});
     } catch(e){
       if(e.isNetwork) errEl.textContent='Сервер недоступен. Попробуйте ещё раз позже.';
       else if(e.payload && e.payload.error==='bad_code') errEl.textContent='Неверный код';

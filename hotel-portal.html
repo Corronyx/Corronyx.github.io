@@ -105,6 +105,19 @@ label a[href*="terms-of-service"],label a[href*="privacy-policy"],label a[href*=
 .sw-badge-diamond{border-radius:35%; transform:rotate(45deg);}
 .sw-badge-halo{border-radius:42% 58% 65% 35% / 45% 45% 55% 55%; box-shadow:0 0 0 4px var(--dark), 0 0 0 6px var(--gold2), inset 0 0 10px rgba(184,149,77,.08);}
 .sw-badge-ring-thin{border-radius:50%; box-shadow:0 0 0 5px var(--dark), 0 0 0 6.5px rgba(201,164,94,.6), inset 0 0 10px rgba(184,149,77,.08);}
+/* R44: названия карточек одного цвета, переливаются только круглые ободки вокруг иконок */
+.sw-badge{position:relative; overflow:visible; border-color:transparent;}
+.sw-badge>span{border-radius:inherit; overflow:hidden;}
+.sw-badge::before,.sw-badge-ring::after,.sw-badge-halo::after,.sw-badge-ring-thin::after{content:""; position:absolute; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(90deg,#8a6d24 0%,#C9A84C 20%,#FFF3D0 40%,#C9A84C 60%,#8a6d24 80%); background-size:250% 100%; animation:cxShimmer 3.5s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude;}
+.sw-badge::before{inset:-2px; padding:2px;}
+.sw-badge-ring::after,.sw-badge-halo::after{inset:-6px; padding:2px;}
+.sw-badge-ring-thin::after{inset:-6.5px; padding:1.5px;}
+.sw-badge-ring,.sw-badge-halo{box-shadow:0 0 0 4px var(--dark), inset 0 0 10px rgba(184,149,77,.08);}
+.sw-badge-ring-thin{box-shadow:0 0 0 5px var(--dark), inset 0 0 10px rgba(184,149,77,.08);}
+@media (prefers-reduced-motion:reduce){.sw-badge::before,.sw-badge::after{animation:none;}}
+
 *{box-sizing:border-box; margin:0; padding:0;}
 body{font-family:'Manrope',sans-serif; background:var(--dark); color:var(--text); min-height:100vh;}
 h1, h2, h3, .brand{font-family:'Playfair Display',serif;}
